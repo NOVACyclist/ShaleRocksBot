@@ -1,0 +1,15 @@
+.*.swp
+pm_to_blib
+blib/*
+Makefile
+*.yml
+*.bak
+*.gz
+*.cfg
+*.db
+*.sqlite
+*.json
+MYMETA.*
+*.log
+*.txt
+*,old

@@ -1,0 +1,138 @@
+; RocksBot Settings file
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;  Connection Settings ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+[ConnectionSettings]
+; server name
+server  = irc.servername.com
+
+; Bot's nick.
+nickname = RocksBot 
+
+; This is the part that shows up before the @ in the host string
+username = RocksBot
+
+; Available via /whois
+ircname = 'RocksBot IRC Bot http://is.gd/rocksbot'
+
+; if you supply a nickserv password the bot will try to auth with NickServ 
+; before joining channels.  Empty string "" for no nickserv password.
+nickserv_password = "password"
+
+;comma separated list of channels to join on startup
+channels = #RocksBot, ##bottest
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;; Bot Settings         ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+[BotSettings]
+;trigger for bot commands
+CommandPrefix = '.'
+
+; plugins can use this to tell others how to contact the owner, or to set
+; default permissions that only the bot owner should be running.
+BotOwnerNick = YourNick 
+
+; will be created for you. Full path, homie. 
+DatabaseFile = "/home/you/rocksbot/database.sqlite"
+
+; 3 is probably plenty for this. 
+NumWorkerThreads = 3
+
+; The POE IRC component will try to limit the number of messages it sends to avoid 
+; getting kicked for flooding.  You can disable that here at your own peril.
+FloodProtectionDisabled = 0
+
+; let users pipe | things | around.  Piping is cool.
+EnablePipes = 1
+
+; This is for tracing the speed of various commands. It will make your logfile big.
+;# 0 off.  1 = CH command only.  2 CH command and regex matches 3. PluginBaseClass 4. Collections
+SpeedTraceLevel = 0
+
+; run as a daemon or no?.  If daemonized, output will go to a log file.  The pidfile 
+; will be removed if you exit using the shutdown command. Otherwise consider it there for 
+; your convenience, so you can cat pid.txt | xargs kill.
+daemonize = 0
+daemon_logfile = "/home/you/rocksbot/log.log"
+daemon_pidfile = "/home/you/rocksbot/pid.txt"
+
+; which plugins should we not load?  comma separated list
+plugin_ignore_list = 
+
+; Command rate limiter. How many commands can a user send in <seconds> amount of time?
+command_limit_window = 60
+command_limit_max  = 15
+
+; Custom Publish module.  This is the module that plugins will use to publish
+; HTML pages. By default, we use modules::Publish, which publishes to htmlpaste.com.
+; If you'd like to publish somewhere else, make a different module and supply the 
+; module name here. See modules::Publish for more info.
+publish_module = "modules::Publish"
+
+; OK here's the deal.  sqlite databases don't always play well with ext4 filesystems.
+; It's well documented.  "They're working on it."  If you run into speed problems,
+; you can try setting this to zero.  You may lose data in the event of a power failure,
+; but it sure beats waiting 2 seconds for a sql query to complete, no?  Only turn this
+; on if you absolutely have to. If you run into speed problems, set speed trace level 
+; to 4. (above.)  Look for database updates in the output.  They should be taking no
+; more than ~0.2 seconds each.  If you see them taking 10x that amount, i.e. in the 2 
+; second neighborhood, you may be running into this ext4 problem.  There are other ways
+; to fix this problem too, allegedly.  Look up write-barriers on ext4 & sqlite.
+sql_pragma_synchronous = 1
+
+
+; This bot and its plugins can access the internet. (duh).  Because all web requests
+; run through your computer, the resulting webpages may reveal your location or IP
+; address.  (Example: Ask Wolfram Alpha "What is my IP?").  The privacy filter will
+; attempt to filter your IP address from being displayed in IRC.  Also, you can use the 
+; privacy_filter command to add other strings to the filter list. If you don't care so 
+; much, go ahead and disable this.
+privacy_filter_enable = 1
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;; Admin Plugin settings    ;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+[Plugin:Admin]
+; Each time rocksbot runs, it will check to see if any admin user exists.
+; If no admin users exist, it will check to see if the account listed here
+; exists. If it does, that account will be added as an admin. If it doesn't,
+; that account will be created using the password below. After that happens,
+; (i.e. after you run the bot for the first time), you should change your
+; password using the change_password command.
+; In other words, the password here doesn't have to be strong, and should be
+; changed after you run the bot.  Get it?  If you don't, that's ok.  Just
+; put your nick below, leave the password set to pinkfloyd, run the bot,
+; then change your password (via the bot) to something else.  The password
+; listed here won't work on that account anymore.
+OwnerNick = YourNick 
+InitialOwnerPassword = pinkfloyd
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;; Other Plugin Settings    ;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; The information contained here will be passed to the named plugin.
+; Generally, this should only be used for things like API keys.  Plugins aren't allowed
+; to write to this file b/c they should be using database storage instead. They have no 
+; excuse not to, it's really, really easy. Plus, this file is only read on bot start up.
+; Having all threads constantly checking this file for changes would be ridiculous.
+
+[Plugin:LastFM]
+APIKey = ""
+APISecret = ""
+
+[Plugin:Weather]
+; APIKey for WeatherUnderground.com
+APIKey = ""
+
+[Plugin:Wolfram]
+; WolframAlpha API Key
+AppID = ""
+
+[Plugin:Twitter]
+consumer_key =  ""
+consumer_secret  = ""

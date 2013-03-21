@@ -1,0 +1,53 @@
+INSTALLATION INSTRUCTIONS
+
+All the installer does is install missing modules from CPAN.  If you'd prefer to install these yourself, have at it. See Makefile.PL for a list.
+
+1.  Download the package. 
+2.  Create the makefile:  perl ./Makefile.PL
+3.  Run the makefile to install required packages: make
+4.  Copy rocksbot.cfg.sample to rocksbot.cfg. 
+5.  Edit rocksbot.cfg with your desired settings.
+6.  Execute the program with ./rocksbot.pl
+
+7.  Run "make clean" to clean up the installer's temp files.
+8.  After install, you can remove that inc directory if you want.
+
+
+NOTES
+-----
+Install note: root access in step 2?
+By default, perl's Makefile thingy will install the required packages (not rocksbot itself) to your system's library, usually /usr/lib/perl5. This requires root access. If you'd like to install the libraries to your home directory instead (no root access necessary), create the makefile like this:  
+	perl Makefile.PL INSTALL_BASE=/home/me/perl5
+Where INSTALL_BASE points to a local directory, hopefully already in your perl5 include path. This is usually ~/perl5.  Note that you'll need the perl-local-lib package installed for this to work properly.  (apt-get install liblocal-lib-perl on debian).
+
+Install note: XML: 
+The installer tries to install XML::Simple.  For the XML::Simple install to succeed, libxml2 must be available on this system.  If you're using a debian-based system, you can install this using sudo apt-get install libxml-libxml-perl.  XML is only required for two of the distribution's plugins to work. (News and Wolfram). If libxml2 is not available, the bot will still run, but these plugins will be disabled.  (You may see error messages related to not being able to load these plugins.)
+
+Config file:
+The config filename can also be specified as a command line argument. If it isn't, rocksbot.pl will look for rocksbot.cfg in the same directory as rocksbot.pl. 
+
+Logs:
+Logs are only kept if running as a daemon.  Otherwise output is printed to the terminal.
+
+Using the bot:
+A built-in help system displays help info for each plugin.  Use the help command to access this info. Examples: help / help PluginName / help CommandName / help PluginName CommandName / help CommandName -someflag / help PluginName --info.  You can also pipe things around, if enabled in the config file. So "fortune | scramble -m | german | rainbow" would get a forture, mix up the words, translate it to german, than print it out using pretty colors.
+
+Permissions - Overview:
+Default permissions are specified in each plugin. You can change these permissions using the permissions command while authed as an admin-level user.  Permissions exist at the plugin level, the command level, and the flag level.  Each can be restricted to a group or a list of users using the "require" directive. The "allow" directive acts as an exception to the require directive.  So setting permissions to require_group=admin and allow_users=NonAdminNick will require that those running the command be part of the admin group, but will make an exception for user NonAdminNick user and allow him to run the command as well. Plugin-level permissions apply to all commands within that plugin. 
+
+Permissions - Groups:
+How groups work:  There are 5 system groups: internal (1), admin (2), trusted (10), registered (20), and unregistered (30).  Each group has a numerical access level and can run all commands at or below that access level. For instance, a user in the "admin" group, which has access level 2, will be able to run commands that are restricted to the registered group, which has access level 20.  You can create your own groups and make them part of this hierarchy.  Setting the level to 0 is special, it indicates that this group is not part of the hierarchy.  So for instance, you may choose to restrict the usage of the "banner" command to members of a special "banner" group you create with access level 0.  In this case, membership in the group "banner" does not allow the user to run any additional commands, only those that explicitly require membership in the "banner" group.
+
+Creating your own plugins:
+All plugins must use PluginBaseClass as a base module. Plugins have read-only access to their section of the config file.  Read-only access is by design, btw.  PluginBaseClass provides all sorts of nifty functionality, including grabbing pages ($self->getPage()), easy URL shortening ($self->getShortUrl()), and easy read/write database access through "Collections".  Each Collection is plugin-specific, so you don't have to worry about clobbering another plugin's data.  An even more simplified method of database access is provided through the $self->cookie() function.  See plugins/HelloWorld.pm for a example of a close to bare-bones plugin.  When creating a new plugin, start by copying the _shell.pm file to another name & starting with that.  Delete anything you don't need. Note: By default, the bot will not load plugins that begin with an underscore. So don't do that.
+
+Publishing:
+Plugins are able to publish HTML data using the $self->publish() function.  The default publish module is modules::Publish, which publishes to htmlpaste.com.  You may want to write your own custom publish module to handle publish requests.  See modules/Publish.pm for info on how to do that. Then specify your module at the appropriate place in the bot config file.
+
+How the bot works:
+RocksBot.pm creates a POE IRC object, an EventTimer object, and creates a number of CommandHandler threads. One command handler thread loads each plugin in the plugins and plugins_sys directory, except those specifically excluded in the config file or beginning with an _, and executes the plugin's onBotStart() function, if necessary.  After onBotStart() finishes, each CommandHandler thread then loads each plugin & obtains info about the commands, events, and patterns it's interested in.  Each line of IRC text & each IRC event is funneled through an available CommandHandler thread. The CommandHandler determines which plugins are interested in that particular data, handles permissions/authorization, instantiates the plugin, and passes it the relevant data.  The plugin returns the output (if any) as either a $string or as @array of separate messages to the CommandHandler, which then passes it back to rocksbot.pl, where the output is paginated & displayed to the user.  In other words, plugins need only handle accepting data & spitting out output.  Permissions (for the most part) & display are handled elsewhere.
+
+Contributing Code:
+Please feel free to share your custom plugins and code fixes.  http://www.github.com/egretsareherons/RocksBot. 
+
+Thanks. \m/_(^_^)_\m/
