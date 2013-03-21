@@ -137,6 +137,14 @@ sub MM{
 		$plus = 60*60*24;
 	}
 
+	if ($self->hasFlag("yesterday")){
+		$plus = -60*60*24;
+	}
+
+	if (my $num = $self->hasFlagValue("d")){
+		$plus = 60*60*24 * $num;
+	}
+
 	my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime(time() + $plus);
 
 	my $datestr = sprintf("%d%02d%02d", (1900+ $year), $mon+1 ,$mday);
@@ -179,18 +187,23 @@ sub MM{
 			$self->addToList($str);
 		}
 	}
-
-	return $self->getList();
+	
+	my $list = $self->getList();
+	if ($list){
+		return $list;
+	}else{
+		return "No games listed.";
+	}
 }
 
 sub settings{
    my $self = shift;
 
    $self->defineSetting({
-      name=>'is_march_madness',
-      default=>'no',
-		 allowed_values=>[qw(yes no)],
-      desc=>'The regular sports feed doesn\'t work for March Madness.  Set this flag to use a different score provider for the ncaab command during March Madness.'
+		name=>'is_march_madness',
+		default=>'no',
+		allowed_values=>[qw(yes no)],
+		desc=>'The regular sports feed doesn\'t work for March Madness.  Set this flag to use a different score provider for the ncaab command during March Madness.'
    });
 }
 
@@ -207,7 +220,7 @@ sub addHelp{
    my $self = shift;
    $self->addHelpItem("[plugin_description]", "Sports Scores.  Flags available: -live -search term. The main sports feed doesn't work for March Madness, so there's a setting to enable March Madness mode. ");
 	if ($self->s("is_march_madness") eq 'yes'){
-	   $self->addHelpItem("[ncaab]", "NCAA basketball scores, March Madness mode. Provide arguments to search. flags: -tomorrow");
+	   $self->addHelpItem("[ncaab]", "NCAA basketball scores, March Madness mode. Provide arguments to search. flags: -tomorrow -yesterday -d=<number> (in number of days)");
 	}else{
 	   $self->addHelpItem("[ncaab]", "NCAA basketball scores, regular season mode. Provide arguments to search. flags: -live");
 	}
