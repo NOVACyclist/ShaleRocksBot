@@ -185,7 +185,7 @@ sub ConnectToTwitter{
 	unless ( $nt->authorized ) {
 
 		if ($self->hasFlag("oauth")){
-   	   my $msg = "Authorize this app at ". $nt->get_authorization_url. " and enter the PIN using the -pin=<pin> flag."; 
+			my $msg = "Authorize this app at ". $nt->get_authorization_url. " and enter the PIN using the -pin=<pin> flag."; 
 			$self->globalCookie("request_token", $nt->{request_token});
 			$self->globalCookie("request_token_secret", $nt->{request_token_secret});
 			return (0, $msg);
@@ -196,8 +196,8 @@ sub ConnectToTwitter{
 			$nt->{request_token} = $self->globalCookie("request_token");
 			$nt->{request_token_secret} = $self->globalCookie("request_token_secret");
 			
-      	my($access_token, $access_token_secret, $user_id, $screen_name) =
-         $nt->request_access_token(verifier => $pin);
+			my($access_token, $access_token_secret, $user_id, $screen_name) =
+			$nt->request_access_token(verifier => $pin);
 
 			$self->globalCookie("AccessToken", $access_token);
 			$self->globalCookie("AccessTokenSecret", $access_token_secret);
