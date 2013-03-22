@@ -62,7 +62,6 @@ sub getOutput {
 
 	my ($status, $nt) = $self->ConnectToTwitter();
 	return $nt if (!$status);
-	return $self->help($cmd) if (!$options);
 
 	$self->{seen_c} = $self->getCollection(__PACKAGE__, ':seen');
 
@@ -96,6 +95,7 @@ sub getOutput {
 	}
 
 
+	return $self->help($cmd) if (!$options);
 
 	##
 	##		Default - do search

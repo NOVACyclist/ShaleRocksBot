@@ -176,24 +176,14 @@ sub getOutput {
 
 		if (@records == 1){
 
-			if ($records[0]->{val3} ne $self->{nick}){
-				#if (! $self->hasPermission("is_admin") ){
-					return ("You can only delete records that you added");
-				#}else{
-				#	$c->delete($records[0]->{row_id});
-				#	return ("baleeted #$num. ($records[0]->{row_id})");
-				#}
+			if (!$self->hasPermission($records[0]->{val3})){
+				return ("You can only delete records that you added");
 
 			}else{
-
-				#if ($self->hasPermission()){
-					$c->delete($records[0]->{row_id});
-					return ("baleeted #$num. ($records[0]->{row_id})");
-
-				#}else{
-				#	return "You don't look like yourself.  Are you using the right cloak?"
-				#}
+				$c->delete($records[0]->{row_id});
+				return ("baleeted #$num. ($records[0]->{row_id})");
 			}
+
 		}else{
 			return "Couldn't find that $type";
 		}
