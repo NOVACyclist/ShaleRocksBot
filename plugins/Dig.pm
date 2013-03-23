@@ -882,7 +882,7 @@ sub getOutput {
 		#
 		if (my $symbol = $self->hasFlagValue("sell")){
 			my $quantity = $self->hasFlagValue("n");
-			return ("You need to specify a number using -n=<#>") if (!$quantity);
+			return ("You need to specify a number using -n=<#>. (or -n=all to sell all)") if (!$quantity);
 
 			if (!$self->{player}->hasItem("traderlicense")){
 				my $last_trade_time = $self->{player}->cookie("last_stock_trade");
@@ -894,7 +894,11 @@ sub getOutput {
 			$symbol = uc($symbol);
 			my $has_num = $self->{player}->hasStock($symbol);
 			return "I couldn't find that stock in your portfolio."  if (!$has_num);
-				
+
+			if ($quantity eq 'all'){
+				$quantity = $has_num;
+			}
+
 			my $stock = $self->{store}->getStock($symbol);
 			if ( $has_num < $quantity){
 				return "You only have $has_num $stock->{name} in your portfolio.";	
