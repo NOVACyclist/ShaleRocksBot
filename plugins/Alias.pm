@@ -34,10 +34,19 @@ sub onBotStart{
 		print "Adding default aliases...\n";
 		my $c = $self->getCollection(__PACKAGE__, 'alias');
 
-		print "got collection\n";
 		if (!$self->botCan("which")){
 			print "added which\n";
 			$c->add('which', 'help $* --info', ':system');
+		}
+
+		if (!$self->botCan("g")){
+			print "added g\n";
+			$c->add('g', 'lucky $*', ':system');
+		}
+
+		if (!$self->botCan("gg")){
+			print "added gg\n";
+			$c->add('gg', 'google $*', ':system');
 		}
 
 		print "Set first_run cookie so this will never run again.\n";
