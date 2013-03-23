@@ -60,6 +60,7 @@ sub getOutput {
 	my $options = $self->{options};
 	my $output = "";
 
+	$self->suppressNick("true");
 	my ($status, $nt) = $self->ConnectToTwitter();
 	return $nt if (!$status);
 
