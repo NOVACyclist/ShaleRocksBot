@@ -521,7 +521,7 @@ sub getOutput {
 				$value = 1;
 			}
 			my $list = $player->listTrinkets({quantity=>1, noone=>1, value=>1, symbols=>$symbols});
-			my $total_value= $player->{listThingsTotal};
+			my $total_value= $self->commify($player->{listThingsTotal});
 
 			if ($list){
 				return NORMAL."$pronoun these ".BOLD."trinkets".NORMAL.", worth \$$total_value: ". $list;
@@ -540,7 +540,7 @@ sub getOutput {
 			}
 			my $list = $player->listStocks({quantity=>1, noone=>1, value=>1, symbols=>$symbols});
 
-			my $total_value= $player->{listThingsTotal};
+			my $total_value= $self->commify($player->{listThingsTotal});
 			if ($list){
 				return NORMAL."$pronoun a portfolio worth \$$total_value, consisting of these ".BOLD."stocks: ".NORMAL . $list;
 			}else{
