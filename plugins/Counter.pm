@@ -16,6 +16,8 @@ package plugins::Counter;
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #-----------------------------------------------------------------------------
+#use strict;
+#use warnings;
 use base qw (modules::PluginBaseClass);
 use modules::PluginBaseClass;
 use Data::Dumper;
@@ -23,7 +25,8 @@ use Data::Dumper;
 
 sub getOutput {
 	my $self = shift;
-	
+	my $cmd = $self->{command};
+
 	my $c = $self->getCollection(__PACKAGE__, $self->accountNick());
 
 	if (! $self->hasPermission($self->accountNick()) ){
@@ -31,118 +34,64 @@ sub getOutput {
 	}
 
 	##
-	##  No Arguments - print counters
-	##
-
-
-	if ( $self->hasFlag("list") || !$self->numFlags()){
-		
-		@records = $c->getAllRecords();
-		foreach $counter (@records){
-			my $counter_name = $counter->{'val1'};
-			my $counter_val = $counter->{'val2'};
-			$self->addToList($counter_name.": ".$counter_val, $self->BULLET);
-		}
-			
-		if (@records){
-			return ("Your counters: " . $self->getList());
-
-		}else{
-			return ("You don't have any counters. Use ".$self->{BotCommandPrefix}."counter -add=<name> -value=<value> to add one.");
-		}
-
-
-	##
-	## add a counter 
+	## create a counter 
 	## 
 
-	}elsif(my $counter_name = $self->hasFlagValue("create")){
+	if(my $counter_name = $self->hasFlagValue("create")){
 
 		my $counter_val = $self->hasFlagValue("value") || 1;
 
-		if ($counter_val ne ($counter_val + 0 )){
-			return ("That didn't look like a number. ('$counter_val') Usage: ,counter set <CounterName> <value>");
-		}
+		return ("That didn't look like a number. ('$counter_val')") if ($counter_val ne ($counter_val + 0 ));
 
 		my @records = $c->matchRecords({val1=>$counter_name});
 
-		if (@records > 0){
-			return("Looks like you already have a counter by that name. Use delete or add/subract to it.");
-		}
-
-		if ($counter_name=~/\W/){
-			return "You can't use special characters in your counter name. Only letters and numbers."
-		}
+		return("Looks like you already have a counter by that name.") if (@records);
+		return "You can only use letters and numbers in a counter name." if ($counter_name=~/\W/);
 
 		$c->add($counter_name, $counter_val);
 
-		return "added counter '$counter_name' with a value of $counter_val for ". $self->{'nick'}.".";
+		return "added counter '$counter_name' with a value of $counter_val for ". $self->accountNick().".";
+
 
 
 	##
 	## all - see all counters of a particular type
 	##	 
 
-	}elsif($self->{'options'}=~/^all\b/){
+	}elsif($self->hasFlag("all")){
 
-		if ($self->{'options'}=~/^all\s+(\w+)\b/){
-			$counter_name = $1;
-			my $oc = $self->getCollection(__PACKAGE__, '%');
+		my $oc = $self->getCollection(__PACKAGE__, '%');
 
-			my @records;
-
-			if ($counter_name eq "list"){
-				@records = $oc->getAllRecords();
-
-				my %counter_list;
-				foreach $counter (@records){
-					my $counter_name = $counter->{'val1'};
-					$counter_list{$counter_name}++;
-				}
-		
-				my $ret = "All user counters: ";
-
-				foreach $k (sort keys %counter_list){
-					$ret.= $k . "(".$counter_list{$k}.") ";
-				}
-
-				if (@records){
-					return ($ret);
-
-				}else{
-					return ("No one has a counter!");
-				}
-		
-
-			}else{
-
-				@records = $oc->matchRecords({val1=>$counter_name});
-
-				my $ret = "$counter_name counters: ";
-
-				foreach $counter (@records){
-
-					my $counter_user = $counter->{'collection_name'};
-					my $counter_name = $counter->{'val1'};
-					my $counter_val = $counter->{'val2'};
-
-					$ret .= "$counter_user: $counter_val".". ";
-
-				}
-
-				if (@records){
-					return ($ret);
-
-				}else{
-					return ("No one has a counter called $counter_name.");
-				}
-	
+		if ( (my $counter_name = $self->hasFlagValue("all")) eq 0){
+			my @records = $oc->getAllRecords();
+			my %counter_list;
+			foreach $counter (@records){
+				my $counter_name = $counter->{'val1'};
+				$counter_list{$counter_name}++;
 			}
-			
+		
+			foreach $k (sort keys %counter_list){
+				$self->addToList($k . " (".$counter_list{$k}.") ", $self->BULLET);
+			}
 
+			return ('All user counters: '. $self->getList()) if (@records);
+			return ("No one has a counter!");
+		
 		}else{
-			return ("To see everyone's counter of a particular type, do ',counter all <CounterName>'. To list all counters, do ',counter all list'");
+
+			my @records = $oc->matchRecords({val1=>$counter_name});
+			foreach $counter (@records){
+				my $counter_user = $counter->{'collection_name'};
+				#my $counter_name = $counter->{'val1'};
+				my $counter_val = $counter->{'val2'};
+
+				$self->addToList("$counter_user: $counter_val", $self->BULLET);
+			}
+
+			return ("$counter_name counters: " . $self->getList())  if (@records);
+			return ("No one has a counter called $counter_name.");
 		}
+			
 
 
 	##
@@ -160,11 +109,8 @@ sub getOutput {
 			$self->addToList("$counter_name: $counter_val", $self->BULLET);
 		}
 			
-		if (@records){
-			return ($username."'s counters: " . $self->getList());
-		}else{
-			return ($username. " doesn't have any counters.");
-		}
+		return ($username."'s counters: " . $self->getList()) if (@records);
+		return ($username. " doesn't have any counters.");
 
 
 
@@ -197,16 +143,16 @@ sub getOutput {
 
 		my $counter_name ="";
 
-		if ($self->{'options'}=~/^(\+|\-) (.+?)\b/){
+		if ($self->{'options'}=~/^(\+|\-)\s+(.+?)\b/){
 			$counter_name = $2;
 			$amt = 1;
 
-		}elsif ($self->{'options'}=~/^(\+|\-)([\.0-9]+) (.+?)\b/){
+		}elsif ($self->{'options'}=~/^(\+|\-)([\.0-9]+)\s+(.+?)\b/){
 			$amt= $2;
 			$counter_name = $3;
 
 		}else{
-			return ("Usage: ,counter $action <CounterName>");
+			return ($self->help($cmd));
 		}
 	
 
@@ -223,19 +169,20 @@ sub getOutput {
 				$counter_val-=$amt;
 			}
 
-			if ($c->updateRecord(@records[0]->{'id'}, {val2 => $counter_val} )){
+			if ($c->updateRecord(@records[0]->{'row_id'}, {val2 => $counter_val} )){
 				return ("Counter '$counter_name' set to $counter_val.");
 
 			}else{
 				return ("There was an error updating that counter.");
 			}
 
+
 		}elsif(@records > 1){
 			print "POSSIBLE ERROR - MORE THAN ONE RECORD\n";
-			return ("Whoops, something went wrong. #4rpo");
+			return ("Whoops, something went wrong. #pcpm1");
 
 		}else{
-			return ("Can't find a counter for you with that name.  Use ',counter list' to list your current counters.");
+			return ("Can't find a counter for you with that name.");
 		}
 
 
@@ -243,37 +190,25 @@ sub getOutput {
 	## Set Counter
 	## 
 
-	}elsif(my $counter_val = $self->hasFlagValue("set")){
+	}elsif($self->hasFlag("set")){
 
-		my $counter_name = $self->hasFlagValue("name");
-		if (!$counter_name){
-			return "bah";
-		}
+		my ($counter_name, $counter_val);
 
-		if ($self->{'options'}=~/^\w+? (.+?)\b/){
+		if ($self->{'options'}=~/^(.+?)\s+(.+?)\b/){
 			$counter_name = $1;
-
-			if ($self->{'options'}=~/^\w+? (.+?) (.+?)$/){
-				$counter_val= $2;
-			}
+			$counter_val= $2;
 
 		}else{
-			return ("Usage: ,counter set <CounterName> <value>");
-		}
-	
-		if ($counter_val eq ""){
-			return ("Usage: ,counter set <CounterName> <value>");
+			return ($self->help($cmd, '-set'));
 		}
 
-		if ($counter_val ne ($counter_val + 0 )){
-			return ("That didn't look like a number. ('$counter_val') Usage: ,counter set <CounterName> <value>");
-		}
+		return ("That doesn't look like a number. ('$counter_val')") if ($counter_val ne ($counter_val + 0 ));
 
 		my @records = $c->matchRecords({val1=>$counter_name});
 
 		if (@records == 1){
 
-			if ($c->updateRecord(@records[0]->{'id'}, {val2 => $counter_val} )){
+			if ($c->updateRecord(@records[0]->{'row_id'}, {val2 => $counter_val} )){
 				return ("Counter $counter_name set to $counter_val.");
 
 			}else{
@@ -285,16 +220,29 @@ sub getOutput {
 			return ("Whoops, something went wrong. #4rpo");
 
 		}else{
-			return ("Can't find a counter for you with that name.  Use ',counter list' to list your current counters.");
+			return ("Can't find a counter for you with that name. ('$counter_name')");
 		}
 
+	}
 
+
+	if ($self->hasFlag("last_updated")){
+		my $counter_name = $self->{options};
+
+		my @records = $c->matchRecords({val1=>$counter_name});
+
+		if (@records){
+			return "$counter_name as last updated on $records[0]->{sys_update_date}" if ($records[0]->{sys_update_date});
+			return "$counter_name as last updated on $records[0]->{sys_creation_date}";
+		}
+		return "You don't have a counter called '$counter_name'.";
+	}
 
 	##
 	## show single counter by name
 	##
 
-	}elsif($self->{'options'}=~/^(\w+)\b/){
+	if ($self->{'options'}=~/^(\w+)\b/){
 		my $counter_name = $1;
 	
 		my $ret="";
@@ -303,9 +251,7 @@ sub getOutput {
 		my @records = $c->getAllRecords();
 
 		foreach $counter (@records){
-
 			if ($counter->{'val1'} eq $counter_name){
-
 				my $counter_val = $counter->{'val2'};
 				$ret .= "$counter_name: $counter_val.  ";
 			}
@@ -313,12 +259,29 @@ sub getOutput {
 
 		if ($ret){
 			return ($ret);
-
 		}else{
-			return ("You don't have a counter by that name.  Type ',counter list' to list your counters.");
+			return ("You don't have a counter by that name. ('$counter_name')");
 		}
 	}
 
+
+	##
+	##  No Arguments - print counters
+	##
+
+	my @records = $c->getAllRecords();
+	foreach my $counter (@records){
+		my $counter_name = $counter->{'val1'};
+		my $counter_val = $counter->{'val2'};
+		$self->addToList($counter_name.": ".$counter_val, $self->BULLET);
+	}
+			
+	if (@records){
+		return ("Your counters: " . $self->getList());
+
+	}else{
+		return ("You don't have any counters. Use ".$self->{BotCommandPrefix}."counter -create=<name> -value=<value> to add one.");
+	}
 }
 
 sub listeners{
@@ -330,7 +293,7 @@ sub listeners{
 
    my @preg_matches = [qw () ];
 
-   my $default_permissions = [{command=>"counter", require_users => ["$self->{BotOwnerNick}"] }];
+   my $default_permissions = [ ];
 
    return {commands=>@commands, permissions=>$default_permissions,
       irc_events=>@irc_events, preg_matches=>@preg_matches};
@@ -342,15 +305,12 @@ sub listeners{
 sub addHelp{
    my $self = shift;
    $self->addHelpItem("[plugin_description]", "Make counters for things. Increment them. Decrement them. Great fun.");
-   $self->addHelpItem("[counter]", ""); 
-	$self->addHelpItem("[counter][-create]", "Create a new counter.");
-	$self->addHelpItem("[counter][-list]", "List your counters.");
-	$self->addHelpItem("[counter][-/+]", "List your counters.");
-	$self->addHelpItem("[counter][-set]", "Set a counter.");
-	$self->addHelpItem("[counter][-delete]", "Delete a counter.");
-	$self->addHelpItem("[counter][-nick]", "See another person's counters.");
-	$self->addHelpItem("[counter][-all]", "See everyone's <counter name> counters.");
-	$self->addHelpItem("[counter][-all][-list]", "List system-wide counters.");
+   $self->addHelpItem("[counter]", "Maintain counters. counter + <counter_name> to add.  counter - <counter_name> to subtract. Other flags:  -create -set -delete -nick -all.  help counter <-flag> for flag help"); 
+	$self->addHelpItem("[counter][-create]", "Usage: counter -create=<counter_name> -value=<initial_value>.  Create a new counter.");
+	$self->addHelpItem("[counter][-set]", "Usage: counter -set <counter_name> <new_value>.  Set a counter to a particular value.");
+	$self->addHelpItem("[counter][-delete]", "counter -delete=<counter_name>. Delete a counter.");
+	$self->addHelpItem("[counter][-nick]", "counter -nick=<nick>.  See another person's counters.");
+	$self->addHelpItem("[counter][-all]", "counter -all [=<counter_name>].  See everyone's counters. Use -all or -all=<counter_name>");
 }
 
 1;
