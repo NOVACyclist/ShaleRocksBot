@@ -130,7 +130,7 @@ sub getOutput {
 		if ($found){
 			my $link = "http://twitter.com/x/status/" . $id;
 			$link = $self->getShortURL($link);
-			$output = '@' . $user . " says: $tweet ".GREEN.UNDERLINE."<$link>".NORMAL;
+			$output = '@' . $user . " says: $tweet <".GREEN.UNDERLINE."$link".NORMAL.">";
 			$self->tweetMarkSeen($tweet);
 
 		}else{
