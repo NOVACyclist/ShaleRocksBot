@@ -52,7 +52,7 @@ sub getOutput {
 			return "I last saw $options in $channel on $date saying \"$records[0]->{val2}\".";
 
 		}else{
-			return "I haven't seen $options around";
+			return "I haven't seen $options around.";
 		}
 	}
 
