@@ -106,13 +106,14 @@ sub getOutput {
 
 	if (@{$r->{statuses}}){
 
-		my ($tweet, $user);
+		my ($tweet, $user, $id);
 		my $found = 0;
 		my $i=0;
 
 		do {
 			$tweet = @{$r->{statuses}}[$i]->{text};
 			$user = @{$r->{statuses}}[$i]->{user}->{screen_name};
+			$id = @{$r->{statuses}}[$i]->{id};
 
 			$tweet = decode_entities($tweet);
 			$tweet =~s/\n/ /gis;
@@ -127,7 +128,9 @@ sub getOutput {
 	
 
 		if ($found){
-			$output = '@' . $user . " says: $tweet";
+			my $link = "http://twitter.com/x/status/" . $id;
+			$link = $self->getShortURL($link);
+			$output = '@' . $user . " says: $tweet ".GREEN.UNDERLINE."<$link>".NORMAL;
 			$self->tweetMarkSeen($tweet);
 
 		}else{
