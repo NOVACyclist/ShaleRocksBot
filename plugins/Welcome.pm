@@ -21,6 +21,7 @@ use strict;
 use warnings;
 use base qw (modules::PluginBaseClass);
 use modules::PluginBaseClass;
+use Data::Dumper;
 
 sub getOutput {
 	my $self = shift;
@@ -29,7 +30,7 @@ sub getOutput {
 	my $options = $self->{options};
 	my $cmd = $self->{command};
 	my $nick = $self->{nick};
-	my $irc_event = $self->{irc_event};
+	my $irc_event = $self->{irc_event} ||'';
 
    $self->suppressNick("true");
 
@@ -41,7 +42,6 @@ sub getOutput {
 		}
 		return;
 	}
-
 
 	## Handle some regex matches that we signed up for.
 	if (!$cmd){
@@ -141,7 +141,7 @@ sub listeners{
 	my $self = shift;
 	
 	my @commands = [qw(herald)];
-	my @irc_events = [qw (irc_join irc_part irc_quit) ];
+	my @irc_events = [qw (irc_join) ];
 	my @preg_matches = ["/^$self->{BotName}/i", 
 								'/hug (\w+)\W*'.$self->{BotName}.'/i',
 								'/everybody dance now/i',

@@ -26,6 +26,8 @@ use modules::EventTimer;
 use constant EventTimer => 'modules::EventTimer';
 use modules::PrivacyFilter;
 use constant PrivacyFilter => 'modules::PrivacyFilter';
+use modules::UserAuth 1.0;
+use constant UserAuth => 'modules::UserAuth';
 use Config::Simple;
 use POE qw(Component::IRC);
 use POE::Component::IRC::Plugin::NickServID;
@@ -257,9 +259,10 @@ sub timerTick{
 
 sub irc_join{
 	my ($event, $args) = @_[ARG0 .. $#_];
-	print theTime() . "Event: $event\nArgs:$args\n";
 	my ($nick, $mask) =  split /!/, $event;
 	my $channel = $args;
+
+	print theTime() . "irc_join Who: $event Channel:$args\n";
 
 	return if ($nick eq $BotName);
 
@@ -274,16 +277,53 @@ sub irc_join{
 	runBotCommand( $opts );
 }
 
+sub irc_ping{
+	my ($sender, $who, $where, $what) = @_[SENDER, ARG0 .. ARG2];
+
+	my $opts = {
+		irc_event => 'irc_ping',
+		options => "",
+		channel => '',
+		nick	  => UA_INTERNAL,
+		mask	  => UA_INTERNAL 
+	};
+
+	runBotCommand( $opts );
+
+}
+
 sub irc_quit{
 	my ($event, $args) = @_[ARG0 .. $#_];
-	print theTime() . "irc_quit Event: $event\nArgs:$args\n";
+	my ($nick, $mask) =  split /!/, $event;
+	print theTime() . "irc_quit Who: $event Message:$args\n";
+
+	my $opts = {
+		irc_event => 'irc_quit',
+		options => "$args",
+		channel => '',
+		nick	  => $nick,
+		mask	  => $mask
+	};
+
+	runBotCommand( $opts );
 }
 
 sub irc_part{
 	my ($event, $args) = @_[ARG0 .. $#_];
-	print theTime() . "Event: $event\nArgs:$args\n";
-}
+	my ($nick, $mask) =  split /!/, $event;
+	print theTime() . "irc_part Who: $event Channel:$args\n";
 
+	my $opts = {
+		irc_event => 'irc_part',
+		options => "",
+		channel => $args,
+		nick	  => $nick,
+		mask	  => $mask
+	};
+
+	runBotCommand( $opts );
+
+}
 
 sub _stop{
 	print theTime() . "STOP\n";
@@ -492,8 +532,6 @@ sub _default {
 sub irc_ctcp_action{
 	my ($sender, $who, $where, $what) = @_[SENDER, ARG0 .. ARG2];
 	my $nick = ( split /!/, $who )[0];
-
-	#$irc->yield(notice=> $nick=> "RocksBot v1.0 Perl IRC Bot. Sharp.");
 }
 
 
@@ -504,10 +542,6 @@ sub irc_ctcp_version{
 	$irc->yield(notice=> $nick=> "RocksBot v".$VERSION." Perl IRC Bot. http://is.gd/rocksbot");
 }
 
-
-sub irc_ping{
-	my ($sender, $who, $where, $what) = @_[SENDER, ARG0 .. ARG2];
-}
 
 
 
@@ -1051,6 +1085,6 @@ sub rateLimit{
 
 sub theTime{
 	my @t = localtime(time);
-	return '[' . "$t[2]:$t[1]:$t[0]" .'] ';
+	return sprintf("[%02d:%02d:%02d] ", $t[2], $t[1], $t[0]);
 }
 1;

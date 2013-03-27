@@ -461,10 +461,11 @@ sub Execute {
 		$self->handleCommand();
 
 	##
-	##	The irc_join event.  We have a nick, mask, and channel
+	##	IRC events.  We have a nick, mask, and channel
+	## irc_join irc_ping irc_part irc_quit
 	##
 
-	}elsif( $self->{irc_event} ne 'irc_msg' ){
+	}elsif( ($self->{irc_event} ne 'irc_msg') && ($self->{irc_event} ne 'irc_public') ){
 
 		$self->handleEvent();
 	}

@@ -311,7 +311,9 @@ sub listeners{
 	## Command Listeners - put em here.  eg [qw (cmd1 cmd2 cmd3)]
 	my @commands = [qw()];
 
-	## Values: irc_join
+	## Values: irc_join irc_ping irc_part irc_quit
+	## Note that irc_quit does not send channel information, and that the quit message will be 
+	## stuck in $options
 	my @irc_events = [qw () ];
 
 	## Example:  ["/^$self->{BotName}/i",  '/hug (\w+)\W*'.$self->{BotName}.'/i' ]
