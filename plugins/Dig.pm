@@ -1536,15 +1536,18 @@ sub getBoard{
 	$self->{board}->sort({field=>'val1', type=>'numeric', order=>'asc'});
 	my @records = $self->{board}->getAllRecords();
 
+	my $s = $self->s("plot_start") || '[';
+	my $e = $self->s("plot_end") || ']';
+
 	foreach my $rec (@records){
 		if ($rec->{val3} ne ':0'){
 			if ($rec->{val1} < 10 ){
-				$output.="[X] ";
+				$output.=$s."X".$e ." ";
 			}else{
-				$output.="[XX] ";
+				$output.=$s."XX".$e." ";
 			}
 		}else{
-			$output.="[$rec->{val1}] ";
+			$output.=$s."$rec->{val1}".$e." ";
 		}
 	}
 	
@@ -1820,6 +1823,20 @@ sub settings{
 		default=>'#dig!',
 		allowed_values=>[],
 		desc=>'It\'s a good (and fair) idea to restrict digging to a single channel. Define that channel here. This only restricts the "dig" command. Other commands will still work in other channels and via PM. '
+	});
+
+	$self->defineSetting({
+		name=>'plot_start',
+		default=>'[',
+		allowed_values=>[],
+		desc=>'Character to use to identify the plots.'
+	});
+
+	$self->defineSetting({
+		name=>'plot_end',
+		default=>']',
+		allowed_values=>[],
+		desc=>'Character to use to identify the plots.'
 	});
 }
 
