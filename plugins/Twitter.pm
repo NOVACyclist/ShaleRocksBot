@@ -61,6 +61,13 @@ sub getOutput {
 	my $output = "";
 
 	$self->suppressNick("true");
+	
+	if (!$self->{consumer_key} || !$self->{consumer_secret}){
+		my $msg = "The bot owner (".$self->{BotOwnerNick}.") has not set the Twitter API key. ";
+		$msg .= "Obtain an API key from twitter & add it to the bot config file.";
+		return $msg;
+	}
+
 	my ($status, $nt) = $self->ConnectToTwitter();
 	return $nt if (!$status);
 
