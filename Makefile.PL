@@ -20,6 +20,7 @@ requires 'DBD::SQLite';
 requires 'JSON';
 requires 'Net::LastFM';
 requires 'Date::Manip';
+requires 'Net::OAuth';
 requires 'Net::Twitter::Lite::WithAPIv1_1';
 requires 'XML::Feed';
 requires 'WWW::WolframAlpha';

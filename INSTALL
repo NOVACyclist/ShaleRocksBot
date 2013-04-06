@@ -20,6 +20,11 @@ By default, perl's Makefile thingy will install the required packages (not rocks
 	perl Makefile.PL INSTALL_BASE=/home/me/perl5
 Where INSTALL_BASE points to a local directory, hopefully already in your perl5 include path. This is usually ~/perl5.  Note that you'll need the perl-local-lib package installed for this to work properly.  (apt-get install liblocal-lib-perl on debian).
 
+Amazon AWS installation:
+Do these first:
+sudo yum install perl-ExtUtils-MakeMaker
+yum install perl-CPAN
+
 Install note: XML: 
 The installer tries to install XML::Simple.  For the XML::Simple install to succeed, libxml2 must be available on this system.  If you're using a debian-based system, you can install this using sudo apt-get install libxml-libxml-perl.  XML is only required for two of the distribution's plugins to work. (News and Wolfram). If libxml2 is not available, the bot will still run, but these plugins will be disabled.  (You may see error messages related to not being able to load these plugins.)
 
