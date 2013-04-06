@@ -538,7 +538,7 @@ sub getOutput {
 				$symbols = 1;
 				$value = 1;
 			}
-			my $list = $player->listStocks({quantity=>1, noone=>1, value=>1, symbols=>$symbols, sort=>'quantity'});
+			my $list = $player->listStocks({quantity=>1, noone=>1, value=>1, symbols=>$symbols});
 
 			my $total_value= $self->commify($player->{listThingsTotal});
 			if ($list){
@@ -1074,8 +1074,6 @@ sub crewList{
 sub commify {
 	my $self = shift;
 	my $num  = shift;
-	return 0 if (!$num);
-
 	$num = reverse $num;
 	$num=~ s/(\d\d\d)(?=\d)(?!\d*\.)/$1,/g;
 	return scalar reverse $num;
@@ -1538,15 +1536,18 @@ sub getBoard{
 	$self->{board}->sort({field=>'val1', type=>'numeric', order=>'asc'});
 	my @records = $self->{board}->getAllRecords();
 
+	my $s = $self->s("plot_start") || '[';
+	my $e = $self->s("plot_end") || ']';
+
 	foreach my $rec (@records){
 		if ($rec->{val3} ne ':0'){
 			if ($rec->{val1} < 10 ){
-				$output.="[X] ";
+				$output.=$s."X".$e ." ";
 			}else{
-				$output.="[XX] ";
+				$output.=$s."XX".$e." ";
 			}
 		}else{
-			$output.="[$rec->{val1}] ";
+			$output.=$s."$rec->{val1}".$e." ";
 		}
 	}
 	
@@ -1602,9 +1603,11 @@ sub makeBoard{
 		push @amounts, $amount;
 	}
 	
-	my @squares = (1 .. $self->{num_plots});
+	
+	my $start_num = 1; #$self->s("plot_start_num");
+	my @squares = ($start_num .. $self->{num_plots});
 	my $i = @squares;
-	while ( --$i ){
+	while ( --$i >= $start_num){
 		my $j = int rand( $i+1 );
 		@squares[$i,$j] = @squares[$j,$i];
 	}
@@ -1823,6 +1826,27 @@ sub settings{
 		allowed_values=>[],
 		desc=>'It\'s a good (and fair) idea to restrict digging to a single channel. Define that channel here. This only restricts the "dig" command. Other commands will still work in other channels and via PM. '
 	});
+
+	$self->defineSetting({
+		name=>'plot_start',
+		default=>'[',
+		allowed_values=>[],
+		desc=>'Character to use to identify the plots.'
+	});
+
+	$self->defineSetting({
+		name=>'plot_end',
+		default=>']',
+		allowed_values=>[],
+		desc=>'Character to use to identify the plots.'
+	});
+
+	#$self->defineSetting({
+	#	name=>'plot_start_num',
+	#	default=>'1',
+	#	allowed_values=>[],
+	#	desc=>'First plot number'
+	#});
 }
 
 sub addHelp{
@@ -2144,7 +2168,7 @@ sub listStocks{
 }
 
 
-# opts:  exclude=[], quantity=>1, noone=>1 array=>1, price=>1, total=>1, sort=>'quantity'
+# opts:  exclude=[], quantity=>1, noone=>1 array=>1, price=>1, total=>1
 sub listThings{
 	my $self = shift;
 	my $type = shift;
@@ -2187,15 +2211,7 @@ sub listThings{
 	}
 
 	# create output string
-	my @sarr;
-	if (defined($opts->{sort}) && ($opts->{sort}  eq 'quantity')){
-		@sarr = sort {$list{$b}->{quantity} <=> $list{$a}->{quantity}} keys %list;
-
-	}else{
-		@sarr = sort keys %list;
-	}
-
-	foreach my $id (@sarr){
+	foreach my $id (sort keys %list){
 		if (defined($opts->{exclude})){
 			next if ($id ~~ @{$opts->{exclude}});
 		}
