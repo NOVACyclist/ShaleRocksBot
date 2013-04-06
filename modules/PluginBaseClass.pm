@@ -136,6 +136,7 @@ my $keep_stats_start;
 my @keep_stats_records;
 my @keep_stats_collections;
 
+my $cookies_channels;	#keep cookies channel specific 0 or 1 
 my $cookies_c;   # collection, loaded only if necessary
 my $settings_c;  # collection. loaded only if necessary
 
@@ -168,6 +169,8 @@ sub new {
 	$self->returnType("text");
 	$self->outputDelimiter(" ");
 	$self->suppressNick("false");
+
+	$self->{cookies_channels} = 0;
 
 	$self->settings();
 	$self->loadSettings();
@@ -931,6 +934,15 @@ sub getPM{
 	return {nick=>$self->{pm_recipient}, msg=>$self->{pm_content}} ;
 }
 
+sub useChannelCookies{
+	my $self = shift;
+	$self->{cookies_channels} = 1;
+}
+
+sub noChannelCookies{
+	my $self = shift;
+	$self->{cookies_channels} = 0;
+}
 
 
 sub globalCookie{
@@ -965,13 +977,23 @@ sub deleteGlobalCookie{
 sub deletePackageCookies{
 	my $self = shift;
 	my $key = shift;
+
 	if (!$self->{cookies_c}){
 		$self->{cookies_c} = $self->getCollection($self->{PackageShortName}, '::cookies::');
 	}
-	my @records = $self->{cookies_c}->getAllRecords();
+	
+	my @records;
+	if ($self->{cookies_channels}){
+		@records = $self->{cookies_c}->matchRecords({val4=>$self->{channel}});
+	}else{
+		@records = $self->{cookies_c}->getAllRecords();
+	}
+
+	$self->{cookies_c}->startBatch();
 	foreach my $rec (@records){
 		$self->{cookies_c}->delete($rec->{row_id});
 	}
+	$self->{cookies_c}->endBatch();
 }
 	
 sub allCookies{
@@ -982,11 +1004,16 @@ sub allCookies{
 		$self->{cookies_c} = $self->getCollection($self->{PackageShortName}, '::cookies::');
 	}
 
-	my @records = $self->{cookies_c}->getAllRecords();
+	my @records;
+	if ($self->{cookies_channels}){
+		@records = $self->{cookies_c}->matchRecords({val4=>$self->{channel}});
+	}else{
+		@records = $self->{cookies_c}->getAllRecords();
+	}
 	
 	my @ret;
 	foreach my $rec (@records){	
-		push @ret, {owner=>$rec->{val1}, name=> $rec->{val2}, value=>$rec->{val3}};
+		push @ret, {owner=>$rec->{val1}, name=> $rec->{val2}, value=>$rec->{val3}, channel=>$rec->{val4}};
 	}
 
 	return @ret;
@@ -1007,7 +1034,12 @@ sub _cookie{
 		$self->{cookies_c} = $self->getCollection($self->{PackageShortName}, '::cookies::');
 	}
 
-	my @records = $self->{cookies_c}->matchRecords({val1=>$val1, val2=>$key});
+	my @records;
+	if ($self->{cookies_channels}){
+		@records = $self->{cookies_c}->matchRecords({val1=>$val1, val2=>$key, val4=>$self->{channel}});
+	}else{
+		@records = $self->{cookies_c}->matchRecords({val1=>$val1, val2=>$key, val4=>''});
+	}
 
 	if (defined($value) && $value eq ':delete'){
 		$self->{cookies_c}->delete($records[0]->{row_id});
@@ -1017,7 +1049,11 @@ sub _cookie{
 		if (@records){
 			$self->{cookies_c}->updateRecord($records[0]->{row_id}, {val3=>$value});
 		}else{
-			$self->{cookies_c}->add($val1, $key, $value);
+			if ($self->{cookies_channels}){
+				$self->{cookies_c}->add($val1, $key, $value, $self->{channel});
+			}else{
+				$self->{cookies_c}->add($val1, $key, $value);
+			}
 		}
 
 		return $value;
