@@ -538,7 +538,7 @@ sub getOutput {
 				$symbols = 1;
 				$value = 1;
 			}
-			my $list = $player->listStocks({quantity=>1, noone=>1, value=>1, symbols=>$symbols});
+			my $list = $player->listStocks({quantity=>1, noone=>1, value=>1, symbols=>$symbols, sort=>'quantity'});
 
 			my $total_value= $self->commify($player->{listThingsTotal});
 			if ($list){
@@ -1074,6 +1074,8 @@ sub crewList{
 sub commify {
 	my $self = shift;
 	my $num  = shift;
+	return 0 if (!$num);
+
 	$num = reverse $num;
 	$num=~ s/(\d\d\d)(?=\d)(?!\d*\.)/$1,/g;
 	return scalar reverse $num;
@@ -2142,7 +2144,7 @@ sub listStocks{
 }
 
 
-# opts:  exclude=[], quantity=>1, noone=>1 array=>1, price=>1, total=>1
+# opts:  exclude=[], quantity=>1, noone=>1 array=>1, price=>1, total=>1, sort=>'quantity'
 sub listThings{
 	my $self = shift;
 	my $type = shift;
@@ -2185,7 +2187,15 @@ sub listThings{
 	}
 
 	# create output string
-	foreach my $id (sort keys %list){
+	my @sarr;
+	if (defined($opts->{sort}) && ($opts->{sort}  eq 'quantity')){
+		@sarr = sort {$list{$b}->{quantity} <=> $list{$a}->{quantity}} keys %list;
+
+	}else{
+		@sarr = sort keys %list;
+	}
+
+	foreach my $id (@sarr){
 		if (defined($opts->{exclude})){
 			next if ($id ~~ @{$opts->{exclude}});
 		}

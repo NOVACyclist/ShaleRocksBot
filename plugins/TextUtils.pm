@@ -261,6 +261,36 @@ sub getOutput {
 	}
 
 	##
+	##	grep
+	##
+
+	if ($cmd eq 'grep'){
+		my $pattern;
+
+		if ($self->hasFlag("p")){
+			$pattern = $self->hasFlagValue("p");
+		}else{
+			$options=~s/^(.+?) //;
+			$pattern = $1;
+		}
+
+		my $pos = index($options, $pattern);
+
+		if ($pos >= 0){
+			my $start = $pos - 40;
+			my $run = length($pattern) + 80;
+
+			if ($start < 0){
+				$start = 0;
+			}
+			
+			return substr($options, $start, $run);
+		}else{
+			return "not found";
+		}
+	}
+
+	##
 	## Scramble
 	##
 
@@ -484,7 +514,7 @@ sub listeners{
    ##Command Listeners - put em here.  eg ['one', 'two']
    my @commands = ['rainbow', 'listcolors', 'color', 'echo','lc','uc','ucwords','cut',
 						'rtrim', 'ltrim', 'trim', 'tr','strpos','scramble', 'banner', 'ucsent',
-						'bold', 'underline' ,'inverse'];
+						'bold', 'underline' ,'inverse', 'grep'];
 
 	my @irc_events = [];
 
@@ -521,6 +551,7 @@ sub addHelp{
    $self->addHelpItem("[trim]", "trim whitespace from both sides of a string.");
    $self->addHelpItem("[tr]", "Change (translate) this to that in a string.  Usage: tr <this> <that> <string>.");
    $self->addHelpItem("[strpos]", "Get the position of <word> in a string.  Usage: pos <word> <string>.");
+   $self->addHelpItem("[grep]", "Grep for a pattern in very long string. This happens before a line is paginated.  Usage: grep <pattern> <string>, or use the -p=\"<pattern>\" flag.  Most useful with pipes.  Example: ~inventory | grep Pacman");
    $self->addHelpItem("[scramble]", "Scramble the letters in a string.  Usage: scramble [<-w><-m>] <string>.");
    $self->addHelpItem("[scramble][-w]", "Scramble each word within a string.  Usage: scramble -w <string>.");
    $self->addHelpItem("[scramble][-m]", "Scramble the order of the words in a string.  Usage: scramble -wm <string>.");

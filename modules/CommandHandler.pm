@@ -465,7 +465,7 @@ sub Execute {
 	## irc_join irc_ping irc_part irc_quit
 	##
 
-	}elsif( ($self->{irc_event} ne 'irc_msg') && ($self->{irc_event} ne 'irc_public') ){
+	}elsif( $self->{irc_event} ne 'irc_msg' ){
 
 		$self->handleEvent();
 	}
