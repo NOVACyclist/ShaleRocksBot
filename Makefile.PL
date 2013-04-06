@@ -21,7 +21,6 @@ requires 'JSON';
 requires 'Net::LastFM';
 requires 'Date::Manip';
 requires 'Net::Twitter::Lite::WithAPIv1_1';
-requires 'Net::Twitter::Lite';
 requires 'XML::Feed';
 requires 'WWW::WolframAlpha';
 
