@@ -97,7 +97,6 @@ sub getOutput {
 	my $c = $self->getCollection(__PACKAGE__, $cmd);
 
 
-
 	##
 	##	Show specific #
 	##
@@ -159,7 +158,7 @@ sub getOutput {
 		my @n = keys(%nums);
 		my $count = @n;
 
-		my $display_id = $c->add($options, $count, $self->{nick});
+		my $display_id = $c->add($options, $count, $self->accountNick());
 		return "added #$display_id to the collection:  $options";
 	}
 
@@ -211,12 +210,14 @@ sub getOutput {
 		}
 
 		if ($newtype =~/^_/){
-			return "Command can't start with an underscore.";
+			if (!$self->hasFlag("force")){
+				return "Command can't start with an underscore.";	
+			}
 		}
 
 
 		my $c = $self->getCollection(__PACKAGE__, ':types');
-		$c->add($newtype, $rt, $self->{nick});
+		$c->add($newtype, $rt, $self->accountNick());
 
 		$self->returnType("reloadPlugins");
 		$output = "New type created. Now add something to the collection.  ";
@@ -262,11 +263,17 @@ sub getOutput {
 	##
 	##	default
 	##
-	if ($options!~/(.+?)$/){
-		return $self->help($cmd);
+	#if ($options!~/(.+?)$/ && !$self->hasFlag("force")){
+	#	return $self->help($cmd);
+	#}
+
+	my $target;
+	if ($options=~/(.+?)$/){
+		$target = $1;
+	}else{
+		$target = "";
 	}
 
-	my $target = $1;
 	my $req = "";
 	if ($target =~s/^#([0-9]+) //){
 		$req = $1;
@@ -292,7 +299,11 @@ sub getOutput {
 			my $rn = int(rand(@records));
 			$diss = $records[$rn]->{val1};
 		}else{
-			return "I don't know nuthin bout dat.";
+			if (@targets){
+				return "I don't know nuthin bout dat.";
+			}else{
+				return $self->help($cmd);
+			}
 		}
 	}
 
@@ -318,6 +329,7 @@ sub listeners{
 
 	push @default_permissions, {command=>"PLUGIN", flag=>"newtype", require_group=>UA_TRUSTED};
 	push @default_permissions, {command=>"PLUGIN", flag=>"rmtype", require_group=>UA_TRUSTED};
+	push @default_permissions, {command=>"PLUGIN", flag=>"force", require_group=>UA_ADMIN};
 	foreach my $type (@{$self->{types}}){
 		push @commands, $type->{type};
 
@@ -341,7 +353,7 @@ sub addHelp{
 		$self->addHelpItem("[$type->{type}][-delete]","Delete a $type->{type} from the $type->{type} database.  Usage: $type->{type} -delete=<diss number>");
 		$self->addHelpItem("[$type->{type}][-show]","Show a $type->{type}.  Usage: $type->{type} -show=<number>");
 		$self->addHelpItem("[$type->{type}][-search]","Usage: $type->{type} -search <text to search for>");
-		$self->addHelpItem("[$type->{type}][-newtype]","Usage: $type->{type} -newtype=<trigger> -return_type=<text or action>");
+		$self->addHelpItem("[$type->{type}][-newtype]","Usage: $type->{type} -newtype=<trigger> -return_type=<text or action>.  Use -force to allow commands to start with an underscore.");
 		$self->addHelpItem("[$type->{type}][-rmtype]","Remove a type from the system. This will delete all of the data associated with that type as well.  Usage: $type->{type} -rmtype=<trigger>");
 	}
 }

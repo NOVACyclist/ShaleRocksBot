@@ -1603,9 +1603,11 @@ sub makeBoard{
 		push @amounts, $amount;
 	}
 	
-	my @squares = (1 .. $self->{num_plots});
+	
+	my $start_num = 1; #$self->s("plot_start_num");
+	my @squares = ($start_num .. $self->{num_plots});
 	my $i = @squares;
-	while ( --$i ){
+	while ( --$i >= $start_num){
 		my $j = int rand( $i+1 );
 		@squares[$i,$j] = @squares[$j,$i];
 	}
@@ -1838,6 +1840,13 @@ sub settings{
 		allowed_values=>[],
 		desc=>'Character to use to identify the plots.'
 	});
+
+	#$self->defineSetting({
+	#	name=>'plot_start_num',
+	#	default=>'1',
+	#	allowed_values=>[],
+	#	desc=>'First plot number'
+	#});
 }
 
 sub addHelp{
