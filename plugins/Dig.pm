@@ -604,6 +604,27 @@ sub getOutput {
 		##	SELL an item to the store
 		##
 
+		if ($self->hasFlag("all-trinkets")){
+			my @arr = $self->{player}->listTrinkets({array=>1});
+
+			foreach my $id (@arr){
+				my $quantity = $self->{player}->hasItem($id);
+
+				my $thing = $self->{store}->getItem($id);
+				my $price = $thing->{current_value};
+
+				if ($thing->{buyback_rate}){
+					$price = sprintf("%.2f", $price * $thing->{buyback_rate});
+				}
+
+				$self->{player}->takeThing($thing, $quantity, $price);
+				my $balance = $self->{player}->currency({type=>$thing->{price_unit}, increment=>$price * $quantity, format=>1});
+			}
+
+			return "All of your trinkets have been sold.";
+		}
+	
+
 		if ($self->hasFlag("sell")){
 
 			my $id;
@@ -1855,7 +1876,7 @@ sub addHelp{
    $self->addHelpItem("[dig]", "Dig for treasure.  Usage: dig <number>.  Use -bomb to use a bomb.");
    $self->addHelpItem("[dig][-god]", "Giveth and taketh. -killboard -nick=<nick> -give -take -what=<currency|thing> -quantity=<#num> -id=<id> -letdig");
    $self->addHelpItem("[inventory]", "See your dig inventory. Use -nick=<nick> to see someone else's inventory. Use -detail=<id> to get detail for one item. With -trinkets and -stocks, use -symbols to include symbols.  Use -status to see your current status.");
-   $self->addHelpItem("[store]", "Buy items to help you dig. Use -sell=<item id> to sell an item. Use the -n=<number> flag to specify a quantity (optional).");
+   $self->addHelpItem("[store]", "Buy items to help you dig. Use -buy=<item id> to buy an item. Use -sell=<item id> to sell an item. Use the -n=<number> flag to specify a quantity (optional). Use -sell -all-trinkets to sell all of your trinkets.");
    $self->addHelpItem("[leaders]", "See the leaderboard. Flags: -money -dirt -digs -crews -gold -pounds -trilobites -whohas=<item_id>.");
    $self->addHelpItem("[crews]", "Join a diggin' crew.  -list to see current crews.  -list=<crew> to list members of a crew.  -join=<crew name> to join or start your own crew.");
    $self->addHelpItem("[market]", "The Dig Stock Market. -quote=<symbol> -buy=<symbol> -sell=<symbol> -n=<number>");
