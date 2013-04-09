@@ -118,7 +118,7 @@ sub getOutput {
 
 	if ($cmd eq 'in'){
 		
-		if ($options!~s/^([0-9]+) +//){
+		if ($options!~s/^([\.0-9]+) +//){
 			return $self->help($cmd);
 		}
 		$num = $1;
@@ -131,7 +131,7 @@ sub getOutput {
 		my $s = $2;
 		
 		$seconds = $num * $mult->{$unit};
-		my $now = time();
+		my $now = int(time());
 
 		my $date = new Date::Manip::Date;
 		$date->parse("epoch " . ($now + $seconds) );
