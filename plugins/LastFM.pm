@@ -161,8 +161,13 @@ sub getOutput {
 
 	if ($self->hasFlag("nick")){
 		$user = $self->hasFlagValue("nick");
+
+	}elsif ($self->{options}){
+		$user = $options;
+
 	}else{
-		$user = $self->accountNick();
+		#$user = $self->accountNick();
+		$user = $self->{nick};
 	}
 
 	$output = $self->getLastPlayed($user);
@@ -382,7 +387,11 @@ sub getTops{
 sub getLastPlayed{
 	my $self = shift;
 	my $user = shift;
-		
+	
+	if ($user eq $self->{nick}){	
+		$user = $self->accountNick();
+	}
+
 	my $user_lastfm = $self->getLastFMUser($user);
 
 	my $lastfm = Net::LastFM->new(api_key => $self->{APIKey}, api_secret => $self->{APISecret},);
