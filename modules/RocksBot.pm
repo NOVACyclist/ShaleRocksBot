@@ -569,7 +569,15 @@ sub printOutputAction{
 	}
 
 	
-	$irc->yield(ctcp => $channel => 'ACTION ' . $output);
+	if (loopProtect($output, $channel)){
+		if (int(rand(2))){
+			$irc->yield(ctcp => $channel => 'ACTION ' . "takes a time out.");
+		}else{
+			$irc->yield(ctcp => $channel => 'ACTION ' . "... is growing tired of this.");
+		}
+	}else{
+		$irc->yield(ctcp => $channel => 'ACTION ' . $output);
+	}
 }
 
 ## 
