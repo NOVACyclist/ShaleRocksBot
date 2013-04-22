@@ -75,6 +75,9 @@ our @CH;
 # this is for the rate limiter
 our %user_commands;
 
+# this is for the loop protection
+our $recent_responses;
+
 sub new {
 	my ($class, @args) = @_;
 	my $self = bless {}, $class;
@@ -680,14 +683,24 @@ sub printOutput{
 		}
 	}
 
-	if ($suppress_nick){
-		$irc->yield( privmsg => $channel => "$line" );
+	
+	my $message = $line;
 
-	}else{
-		$irc->yield( privmsg => $channel => "$nick: $line" );
+	if (!$suppress_nick){
+		$message = "$nick: $line";
 	}
 
+	if (loopProtect($message, $channel)){
+		if (int(rand(2))){
+			$irc->yield( privmsg => $channel => "I think we're going in circles here. Let's agree to disagree.");
+		}else{
+			$irc->yield( privmsg => $channel => " . . . break time! bbl");
+		}
+	}else{
+		$irc->yield( privmsg => $channel => $message );
+	}
 	
+
 	if (@msgs){
 		my $message = "";
 
@@ -1028,6 +1041,40 @@ sub runBotCommand{
 		return 1;
 	}
 }
+
+
+# this should probably be made channel specific
+sub loopProtect{
+	my $msg = shift;
+	my $channel = shift;
+	
+	# remove old entries
+	my @newarr;
+	foreach my $response (@{$recent_responses->{$channel}}){
+		if ($response->{timestamp} > (time() - 15 )){
+			push @newarr, $response;
+		}
+	}
+
+	$recent_responses->{$channel} = \@newarr;
+
+	my $hits = 0;
+
+	foreach my $response (@{$recent_responses->{$channel}}){
+		if ($response->{msg} eq $msg){
+			$hits++;
+		}
+	}
+
+	push @{$recent_responses->{$channel}}, {msg=>$msg, timestamp=>time()};
+	
+	if ($hits > 3){
+		return 1;
+	}else{
+		return 0;
+	}
+}
+
 
 sub rateLimit{
 	my $opts = shift;
