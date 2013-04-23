@@ -1374,7 +1374,7 @@ sub digPlot{
 			$num = $num * $sack->{item_info}->{attributes}->{dirt_multiplier};
 		}
 		my $val = $self->{player}->dirt($num);
-		$output = "You found dirt";
+		$output = "You found dirt in plot #".$plot;
 
 
 	}elsif ($rec->{val4} eq 'map'){
