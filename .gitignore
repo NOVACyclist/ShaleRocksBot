@@ -12,4 +12,4 @@ Makefile
 MYMETA.*
 *.log
 *.txt
-*,old
+*.old
