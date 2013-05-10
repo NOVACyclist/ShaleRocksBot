@@ -45,6 +45,7 @@ sub getOutput {
 	##
 
 	if ($cmd eq 'cron'){
+
 		my $secs = $self->hasFlagValue("seconds");
 		my $mins = $self->hasFlagValue("minutes");
 		my $hours = $self->hasFlagValue("hours");

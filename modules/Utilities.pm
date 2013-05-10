@@ -51,7 +51,21 @@ sub parseFlags{
 	
 	$options=~s/'/_BITEME_PARSEWORDS_/g;
 	my @tokens = parse_line('\s+|=','delimiters',$options);
-	@tokens = grep { $_ && !m/^$/ } @tokens;
+
+	# this line has a problem in that it skips -flag=0
+	# so adding the temp_arr stuff instead
+	# @tokens = grep { $_ && !m/^$/ } @tokens;
+
+	my @temp_arr;
+	foreach my $temp (@tokens){
+		if ($temp=~/^$/){
+			#skip blanks
+		}else{
+			push @temp_arr, $temp;
+		}
+	}
+	@tokens = @temp_arr;
+
 	foreach my $t (@tokens){
 		$t=~s/_BITEME_PARSEWORDS_/'/gis;
 	}
@@ -101,7 +115,7 @@ sub parseFlags{
 						#we know nothing
 
 					}elsif($tokens[$j] eq '|'){
-						print "done on pipe\n";
+						#print "done on pipe\n";
 						$done_looking=1;
 						$done_parsing=1;
 
