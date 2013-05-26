@@ -111,6 +111,49 @@ sub getOutput {
 		return $choices[$i];
 	}
 
+	
+	# Rock Paper Scissors
+	if ($cmd eq 'rock' || $cmd eq 'paper' || $cmd eq 'scissors'){
+		my $choice = ('rock', 'paper', 'scissors')[int(rand(3))];
+
+		my $status = "";
+		if ($choice eq $cmd){
+			$status = "It's a tie!";
+
+		}elsif($choice eq 'rock'){
+			if ($cmd eq 'paper'){
+				$status = "You win!";
+			}else{
+				$status = "I win!";
+			}
+		}elsif($choice eq 'paper'){
+			if ($cmd eq 'scissors'){
+				$status = "You win!";
+			}else{
+				$status = "I win!";
+			}
+		}elsif($choice eq 'scissors'){
+			if ($cmd eq 'rock'){
+				$status = "You win!";
+			}else{
+				$status = "I win!";
+			}
+		}
+
+		my $my_score = $self->globalCookie("rps_me") || 0;
+		my $world_score = $self->globalCookie("rps_world") || 0;
+	
+		if ($status eq 'You win!'){
+			$self->globalCookie("rps_world", ++$world_score);
+		}elsif($status eq 'I win!'){
+			$self->globalCookie("rps_me", ++$my_score);
+		}
+
+		
+		my $ret = NORMAL."You chose $cmd. I chose $choice.".BOLD." $status".NORMAL;
+		$ret.=" ... ".RED."$self->{BotName}:".NORMAL." $my_score ".RED." World: ".NORMAL."$world_score";
+		return $ret;
+	}
 
 	return $output;
 
@@ -120,7 +163,7 @@ sub listeners{
    my $self = shift;
 
    ##Command Listeners - put em here.  eg ['one', 'two']
-   my @commands = ['8ball','fortune','powerball', 'rand', 'ask' ];
+   my @commands = ['8ball','fortune','powerball', 'rand', 'ask', 'rock','paper','scissors' ];
    my $default_permissions =[ ];
 
    return {commands=>@commands, permissions=>$default_permissions};

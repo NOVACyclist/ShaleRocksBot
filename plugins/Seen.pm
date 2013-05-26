@@ -189,8 +189,6 @@ sub getOutput {
 		
 		return \@ret;
 	}
-		
-
 
 	return;
 }
