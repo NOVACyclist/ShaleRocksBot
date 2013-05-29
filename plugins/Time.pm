@@ -474,7 +474,7 @@ sub addHelp{
  #  $self->addHelpItem("[scheduled_tasks]", "View the scheduled tasks.");
    $self->addHelpItem("[time]", "Get the current time and date.");
    $self->addHelpItem("[tock]", "Get the current time and date from the USNO Master Clock. Usage: tock [<U.S. time zone>]");
-   $self->addHelpItem("[cron]", "Schedule recurring jobs. flags: -list -add -delete=<job_id>. When creating, use -seconds=<seconds> -minutes=<minutes> -hours=<hours> -channel=<channel> -command=\"commmand and arguments\".  Time format can be a number, * (for all), or a comma separated list, ala 0,20,40.  Cron jobs run as the system user, NOT as the user who created them.");
+   $self->addHelpItem("[cron]", "Schedule recurring jobs. flags: -list -add -delete=<job_id>. When creating, use -seconds=<seconds> -minutes=<minutes> -hours=<hours> -channel=<channel> -command=\"command and arguments\".  Time format can be a number, * (for all), or a comma separated list, ala 0,20,40.  Cron jobs run as the system user, NOT as the user who created them.");
    $self->addHelpItem("[benchmark]", "benchmark: Perform bot speed benchmarks.");
 }
 1;
