@@ -547,7 +547,7 @@ sub addHelp{
    $self->addHelpItem("[lastfm][-search]", "Usage: lastfm -search <song> by <artist> - search for a song by an artist.");
    $self->addHelpItem("[lastfm][-compare]", "Usage: lastfm -compare <user1> and <user2> - Compare the musical tastes of two users.");
 
-   $self->addHelpItem("[lastfm][-link]", "Usage: lastfm -link=<your last fm username> - Link your ".$self->{BotName}." Link your lastfm account.  This way you won't have to type your lastfm username all the time, and others will be able to use your IRC name as well. use -delete to undo this.");
+   $self->addHelpItem("[lastfm][-link]", "Usage: lastfm -link=<your last fm username> - Link your ".$self->{BotName}." account to your lastfm account.  This way you won't have to type your lastfm username all the time, and others will be able to use your IRC name as well. use -delete to undo this.");
    $self->addHelpItem("[lastfm][-unlink]", "lastfm -unlink.  Unlink your lastfm account.");
 
 
