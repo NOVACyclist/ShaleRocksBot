@@ -533,7 +533,7 @@ sub addHelp{
    my $self = shift;
    $self->addHelpItem("[plugin_description]", "Interface with LastFM.");
 
-	$self->addHelpItem("[lastfm]", "lastfm - Show your or another users's last played track.  Other options to pass: [-nick=<nick>] [-top_tracks, -top_artists, -top_albums, -recent, -search, -compare, -link -period=week|month|3month|6month|12month]");
+	$self->addHelpItem("[lastfm]", "lastfm - Show your or another users's last played track.  Other options to pass: [-nick=<nick>] [-top_tracks, -top_artists, -top_albums, -recent, -search, -compare, -link, -period=week|month|3month|6month|12month]");
 
    $self->addHelpItem("[lastfm][-top_tracks]", "lastfm -top_tracks - Show your or another user's top tracks.  (Also use flags -user=<username>,  -period = week month 3month 6month 12month)");
 
