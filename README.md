@@ -3,7 +3,7 @@ RocksBot
 
 Rocksbot is a Perl IRC bot based on the Perl Object Environment (POE) framework.  Rocksbot is multi-threaded, can run as a daemon (if desired), and is extensible via plugins.  Sample plugins are provided.
 
-Rocksbot supports user accounts and has a highly customizable permissions system, as well as a built-in help system. Built-in functions make saving retrieving data, grabbing URLS, publishing HTML pages, and shortening URL's a snap.  All data is stored in a sqlite database.
+Rocksbot supports user accounts and has a highly customizable permissions system, as well as a built-in help system. Built-in functions make saving and retrieving data, grabbing URLS, publishing HTML pages, and shortening URL's a snap.  All data is stored in a sqlite database.
 
 Rocksbot makes use of "command line" flags to make argument order less important.  (Example:  login -password=blah).
 
