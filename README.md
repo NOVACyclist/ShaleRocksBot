@@ -7,7 +7,7 @@ Rocksbot supports user accounts and has a highly customizable permissions system
 
 Rocksbot makes use of "command line" flags to make argument order less important.  (Example:  login -password=blah).
 
-Commands can be piped, similar to many *nix command shells.  (Example: To get a fortune, translate it to german, then color the output like a rainbow:  ~fortune | german | rainbow )
+Commands can be piped, similar to many *nix command shells.  (Example: To get a fortune, translate it to german, then color the output like a rainbow:  .fortune | german | rainbow )
 
 Installation:
 
