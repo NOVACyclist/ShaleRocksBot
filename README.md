@@ -9,7 +9,7 @@ Rocksbot makes use of "command line" flags to make argument order less important
 
 Commands can be piped, similar to many *nix command shells.  (Example: To get a fortune, translate it to german, then color the output like a rainbow:  .fortune | german | rainbow )
 
-Rocksbot is licensed according to the terms of the GNU General Public License, version 3 (GPLv3).
+Rocksbot is available according to the terms the GNU General Public License, version 3 (GPLv3).
 
 Installation:
 
