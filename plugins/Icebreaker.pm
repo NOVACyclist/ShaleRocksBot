@@ -36,7 +36,6 @@ sub getOutput {
 
   	## Get the json
   	my $page = $self->getPage("http://www.reddit.com/r/AskReddit/.json?limit=200");
-
   	my $json_o  = JSON->new->allow_nonref;
   	$json_o = $json_o->pretty(1);
   	my $j = $json_o->decode($page);
