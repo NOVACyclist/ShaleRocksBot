@@ -24,6 +24,7 @@ use modules::PluginBaseClass;
 use JSON;
 use Data::Dumper;
 
+my $cache;
 
 sub getOutput {
 	my $self = shift;
@@ -34,11 +35,24 @@ sub getOutput {
 
 	$self->suppressNick("true");	
 
+	if ($self->hasFlag("clearcache")){
+		$self->trimCache(0);
+		return "Icebreaker cache cleared";
+	}
+
   	## Get the json
   	my $page = $self->getPage("http://www.reddit.com/r/AskReddit/.json?limit=200");
   	my $json_o  = JSON->new->allow_nonref;
   	$json_o = $json_o->pretty(1);
-  	my $j = $json_o->decode($page);
+	
+	my $j;
+	eval{
+	  	$j = $json_o->decode($page);
+	};
+	
+	if ($@){
+		return "Error contacting reddit. Try again in a few minutes.";
+	}
 
   	## process each link
 	my @questions;
@@ -46,11 +60,83 @@ sub getOutput {
   		my $story = $j->{data}->{children}[$i];
    	my $title = $story->{data}->{title};
   		#my $author =  $story->{data}->{author};
-  		#my $id =  $story->{data}->{id};
-		push @questions, $title;
+  		my $id =  $story->{data}->{id};
+		if (!$self->checkCache($id)){
+			push @questions, {title=>$title, id=>$id};
+		}
    }
- 	my $message = BOLD."Question for Everybody: ".NORMAL . $questions[int(rand(@questions))];
-	return $message;
+	my $qnum = int(rand(@questions));
+ 	my $message = BOLD."Question for Everybody: ".NORMAL . $questions[$qnum]->{title};
+	$self->saveCache($questions[$qnum]->{id});
+	$self->trimCache(200);
+
+	if ($message){
+		return $message;
+	}else{
+		return "Whoops. Couldn't find a new icebreaker. Try again in a few minutes.";
+	}
+}
+
+sub loadCache{
+	my $self = shift;
+
+	if (!defined($self->{cache})){
+		$self->{cache} = $self->getCollection(__PACKAGE__, 'cache');
+	}
+	
+	$self->{cache}->sort({field=>"sys_creation_timestamp", type=>'numeric', order=>'desc'});
+	return $self->{cache};
+}
+
+
+sub saveCache{
+	my $self = shift;	
+	my $val = shift;
+
+	my $c = $self->loadCache();
+	my @records = $c->getAllRecords();
+
+	foreach my $rec (@records){
+		if ($rec->{val1} eq $val){
+			#already in cache
+			return;
+		}
+	}
+
+	print "saved $val\n";
+	$c->add($val);
+}
+
+sub checkCache{
+	my $self = shift;
+	my $val = shift;
+
+	my $c = $self->loadCache();
+	my @records = $c->getAllRecords();
+
+	foreach my $rec (@records){
+		if ($rec->{val1} eq $val){
+			print "found $val\n";
+			return 1;
+		}
+	}
+	
+	return 0;
+}
+
+
+sub trimCache{
+	my $self = shift;
+	my $num = shift;
+
+	my $c = $self->loadCache();
+	my @records = $c->getAllRecords();
+
+	if (@records > $num){
+		for (my $i=$num; $i<@records; $i++){
+			$c->delete($records[$i]->{row_id});
+		}
+	}
 }
 
 
@@ -63,7 +149,9 @@ sub listeners{
 
 	my @preg_matches = [qw () ];
 
-	my $default_permissions =[ ];
+	my $default_permissions =[ 
+		{command=>"icebreaker", flag=>"clearcache", require_group => UA_TRUSTED},
+	];
 
 	return {commands=>@commands, permissions=>$default_permissions, 
 		irc_events=>@irc_events, preg_matches=>@preg_matches};
@@ -77,7 +165,7 @@ sub listeners{
 sub addHelp{
 	my $self = shift;
 	$self->addHelpItem("[plugin_description]", "Asks a question for everyone in the room to answer. Pulls questions from reddit.com/r/AskReddit.");
-   $self->addHelpItem("[icebreaker]", "Pull a random question from AskReddit & announce it to the room.");
+   $self->addHelpItem("[icebreaker]", "Pull a random question from AskReddit & announce it to the room.  Use -clearcache to clear the icebreaker cache.");
 }
 1;
 __END__
