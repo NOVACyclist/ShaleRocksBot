@@ -59,9 +59,10 @@ sub getOutput {
 		$page =~/<p class="remark">(.+?)<\/p>/gis;
 		my $comment = $1;
 
-		
+	
 		if ($place){
-			return "The Fucking Weather for $place: $temp".$self->DEGREE."F  $comment";
+			$URL = $self->getShortURL($URL);
+			return "The Fucking Weather for $place: $temp".$self->DEGREE."F  $comment ".GREEN.UNDERLINE.$URL.NORMAL;
 		}else{	
 			return "Couldn't find that fucking place!";
 		}
