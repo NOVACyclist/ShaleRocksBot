@@ -45,17 +45,22 @@ sub getOutput {
 
 	my $output = "";
 
+
 	#	
 	# bang bang bang
 	#
 
 	if ($cmd eq 'bang'){
+		return "You can't do that via PM. Sorry, bud." if ($channel!~/^#/);
 
 		if (!$self->globalCookie("hunt_on")){
 			return "A hunt is not currently in progress.";
 		}
 
 		if (!$self->globalCookie("duck_launched")){
+			$self->returnType("irc_yield");
+			$self->yieldCommand('kick');
+			$self->yieldArgs([$self->{channel}, $nick]);
 			return "There was no duck, you fool!";
 		}
 		$self->globalCookie("duck_launched", 0);
@@ -77,6 +82,7 @@ sub getOutput {
 	#
 
 	if ($cmd eq 'start'){
+		return "You can't do that via PM. Sorry, bud." if ($channel!~/^#/);
 		if ($self->globalCookie("hunt_on")){
 			return "A hunt is already in progress."
 		}
@@ -93,6 +99,7 @@ sub getOutput {
 	#
 
 	if ($cmd eq 'stop'){
+		return "You can't do that via PM. Sorry, bud." if ($channel!~/^#/);
 		if (!$self->globalCookie("hunt_on")){
 			return "A hunt is not currently in progress.";
 		}
