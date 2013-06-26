@@ -41,12 +41,8 @@ sub getOutput {
    if ($options eq '' ){
 		return $self->help($command);
 
-
 	}else{
 
-		my $options = $self->{'options'};
-
-	
 		my $URL = "http://thefuckingweather.com/?where=". $options ;
 		my $page = $self->getPage($URL);
 	
