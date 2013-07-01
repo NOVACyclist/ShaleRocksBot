@@ -32,6 +32,7 @@ my $testing;	#launch ducks every 8 seconds
 sub plugin_init{
 	my $self = shift;
 	$self->{testing} = 0;
+	$self->useChannelCookies();
 	return $self;
 }
 
@@ -73,7 +74,7 @@ sub getOutput {
 		# schedule next duck
 		$self->scheduleDuck();
 
-		return "Nice shot! You have shot $ducks ducks.";
+		return "Nice shot! You have shot $ducks ducks in $self->{channel}";
 	}
 	
 
@@ -144,9 +145,9 @@ sub getOutput {
 
 		my $list = $self->getList();
 		if ($list){
-			$output = BOLD."Scores: ".NORMAL . $list;
+			$output = BOLD."DuckHunt Scores for $self->{channel}: ".NORMAL . $list;
 		}else{
-			$output = 'No one has shot any ducks yet.';
+			$output = 'No one has shot any ducks in '.$self->{channel}.' yet.';
 		}
 		return $output;
 	}
