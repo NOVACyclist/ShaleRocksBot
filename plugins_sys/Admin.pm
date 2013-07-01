@@ -872,7 +872,7 @@ sub addHelp{
    $self->addHelpItem("[reload_plugins]", "Reload bot plugins.");
    $self->addHelpItem("[admin_groups]", "[-list] all groups  [-adduser] a user to a group [-addgroup][-level=#] add a group  [-show] members of a group or groups a nick belongs to  [-rmuser] from a group  [-rmgroup] remove a group  [<-nick=nick>] [<-group=group>]  ");
    $self->addHelpItem("[canrun]", "Tells you if a user can run a particular command, based on current permission levels.  Usage: canrun -nick=<nick> -plugin=<plugin> -command=<command> -flags=<flag1,flag2>");
-   $self->addHelpItem("[permissions]", "Manage the permissions of plugins & commands. Flags: -plugin=<plugin> -command=<command> -flags=<flag1,flag2> -set [-require | -allow] -group=<group> -nicks=<nick1,nick2> -reset_defaults -reset_defaults");
+   $self->addHelpItem("[permissions]", "Manage the permissions of plugins & commands. Flags: -plugin=<plugin> -command=<command> -flags=<flag1,flag2> -set [-require | -allow] -group=<group> -nicks=<nick1,nick2> -reset_defaults");
    $self->addHelpItem("[disable]", "Disable a command.  Usage: disable -plugin=<plugin> -command=<command>. Use -command=* to disable the entire plugin.  Use disable -view to view disabled commands.");
    $self->addHelpItem("[enable]", "Enable a command.  Usage: enable -plugin=<plugin> -command=<command>.  (Use disable -view to view disabled commands.)");
    $self->addHelpItem("[shutdown]", "This will shut the bot down. That is, it will exit. Completely. It will disappear from here and anywhere else it happens to be.");
