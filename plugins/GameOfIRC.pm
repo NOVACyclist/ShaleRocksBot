@@ -160,9 +160,12 @@ sub getOutput {
 		}
 
 	}else{
-		# # of game records is > 1.  this is a problem.
+		# # of game records is > 1.  this is a problem.	 Just delete them all, what the hell.
 		print "More than one game records.\n";
-		print "returning\n";
+		foreach my $rec (@records){
+			$c_sess->delete($rec->{row_id});
+		}
+		print "deleted them all. this is an ugly hack.\n";
 		return "";
 	}
 	
@@ -744,7 +747,6 @@ sub rule_13{
 	my $mode = shift;
 	$self->{'desc_' . $mode} = "stop drop and cap";
 	my $str = join " ", map {ucfirst} split / /, lc($self->{options});
-	print "STR is $str\n";
 	if ($self->{options} eq $str){
 		return 1;
 	}
