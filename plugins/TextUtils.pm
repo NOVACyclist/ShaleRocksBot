@@ -136,8 +136,14 @@ sub getOutput {
 
 	if ($cmd eq 'echo'){
 		return $self->help($cmd) if ($options!~/^(.+?)$/);
+		
+		if (my $c = $self->hasFlagValue("channel")){
+			$self->{channel} = $c;
+		}
+
 		return $options;
 	}
+
 
 	##
 	##	 Case
@@ -519,7 +525,8 @@ sub listeners{
 	my @irc_events = [];
 
    my $default_permissions =[
-			{command=>"banner", require_users => ["$self->{BotOwnerNick}"] }
+			{command=>"banner", require_users => ["$self->{BotOwnerNick}"] },
+			{command=>"echo", flag=>'channel', require_group => UA_TRUSTED }
 			];
    return {commands=>@commands, permissions=>$default_permissions, irc_events=>@irc_events};
 }
@@ -529,7 +536,7 @@ sub addHelp{
    $self->addHelpItem("[plugin_description]", "A collection of text utilities.");
    $self->addHelpItem("[banner]", "Print out an old sk00l banner. This may well get the bot kicked for flooding.  Usage:  banner <text>");
    $self->addHelpItem("[color]", "Color up some text.  Usage: color <color> <text>");
-   $self->addHelpItem("[echo]", "Repeat something. Usage: echo <text>");
+   $self->addHelpItem("[echo]", "Repeat something. Usage: echo <text> [-channel=<#channel>]");
    $self->addHelpItem("[lc]", "Translate to lower case.  Usage: lc <text>");
    $self->addHelpItem("[listcolors]", "Prints all of the IRC colors");
    $self->addHelpItem("[rainbow]", "Usage: rainbow <text>.  Options [-w], [-c=<number>]");
