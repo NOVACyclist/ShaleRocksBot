@@ -141,6 +141,10 @@ sub getOutput {
 			$self->{channel} = $c;
 		}
 
+		if ($self->hasFlag('action')){
+			$self->returnType('action');
+		}
+
 		return $options;
 	}
 
@@ -536,7 +540,7 @@ sub addHelp{
    $self->addHelpItem("[plugin_description]", "A collection of text utilities.");
    $self->addHelpItem("[banner]", "Print out an old sk00l banner. This may well get the bot kicked for flooding.  Usage:  banner <text>");
    $self->addHelpItem("[color]", "Color up some text.  Usage: color <color> <text>");
-   $self->addHelpItem("[echo]", "Repeat something. Usage: echo <text> [-channel=<#channel>]");
+   $self->addHelpItem("[echo]", "Repeat something. Usage: echo <text> [-channel=<#channel>] [-action]");
    $self->addHelpItem("[lc]", "Translate to lower case.  Usage: lc <text>");
    $self->addHelpItem("[listcolors]", "Prints all of the IRC colors");
    $self->addHelpItem("[rainbow]", "Usage: rainbow <text>.  Options [-w], [-c=<number>]");
