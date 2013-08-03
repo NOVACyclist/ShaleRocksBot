@@ -61,7 +61,7 @@ sub getOutput {
 		if (!$self->globalCookie("duck_launched")){
 			$self->returnType("irc_yield");
 			$self->yieldCommand('kick');
-			$self->yieldArgs([$self->{channel}, $nick]);
+			$self->yieldArgs([$self->{channel}, $nick, "There was no duck! You shot yourself right out of the channel!"]);
 			return "There was no duck, you fool!";
 		}
 		$self->globalCookie("duck_launched", 0);
