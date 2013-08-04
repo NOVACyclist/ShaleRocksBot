@@ -217,7 +217,7 @@ sub getHighestGroupLevel{
 	my $level = UA_UNREGISTERED_LEVEL;
 
 	foreach my $g (@{$self->{groups}}){
-		if ($g->{group_level} < $level){
+		if ($g->{group_level} < $level && ($g->{group_level} >= UA_ADMIN_LEVEL) ){
 			$level = $g->{group_level};
 		}
 	}
@@ -1077,6 +1077,7 @@ sub hasRunPermission{
 sub hasPermission{
    my $self = shift;
 	my $pnick = shift;
+
 
 	# bad input
 	return 0 if (!$pnick);
