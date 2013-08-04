@@ -73,7 +73,12 @@ sub tick{
 		my $key = sprintf("%02d%02d%02d", $hours, $mins, $secs);
 		if (defined($self->{cron_jobs}->{$key})){
 			foreach my $job (@{$self->{cron_jobs}->{$key}}){
-				print "Processing cron job $job->{command} $job->{options}\n";
+				print "Processing cron job $job->{command} ";
+				if (defined($job->{options})){
+					print "options: ($job->{options}) ";
+				}
+				print "\n";
+
 				$self->processCronJob($job);
 				$hasJobs=1;
 			}
