@@ -88,7 +88,6 @@ sub getOutput {
 
 	return $self->help($cmd) if (!$options);
 
-	print "options is |$options|\n";
 	my @records = $c->matchRecords({val1=>$options});
 	return ("A countdown with the ID $options does not exist") if (@records == 0);
 
