@@ -239,7 +239,7 @@ sub listeners{
 sub addHelp{
 	my $self = shift;
 	$self->addHelpItem("[plugin_description]", "Create aliases. When creating, use \$1, \$2, etc., to refer to required arguments.  Use \@3, \@4, etc., to refer to optional arguments.  Optional argument numbering starts where requirement argument numbering left off. Use \$* to refer to all arguments, or all remaining arguments.");
-   $self->addHelpItem("[alias]", "Create a new alias: alias -add -name=<alias> -command=<command>.  List aliases: alias -list.  Delete an alias:  alias -delete=<alias>");
+   $self->addHelpItem("[alias]", "Create a new alias: alias -add -name=<alias> -command=<command>.  List aliases: alias -list.  Show an alias definition: alias -list=<alias name>.  Delete an alias:  alias -delete=<alias>");
    $self->addHelpItem("[alias][-add]", "Create a new alias: alias -add -name=<alias> -command=<command>. When adding aliases, use \$1, \$2, etc., to refer to required arguments.  Use \@3, \@4, etc., to refer to optional arguments.  Optional argument numbering starts where requirement argument numbering left off.  Use \$* to refer to all arguments, or all remaining arguments.");
 
 	foreach my $alias (@{$self->{aliases}}){
