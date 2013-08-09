@@ -266,7 +266,11 @@ sub getOutput {
 		my $end = $2;
 		my $str = $3;
 	
-		$str=~s/$start/$end/g;
+		if ($self->hasFlag("i")){
+			$str=~s/$start/$end/gi;
+		}else{
+			$str=~s/$start/$end/g;
+		}
 		return ($str);
 	}
 
@@ -560,7 +564,7 @@ sub addHelp{
    $self->addHelpItem("[rtrim]", "trim whitespace from the right side of a string.");
    $self->addHelpItem("[ltrim]", "trim whitespace from the left side of a string.");
    $self->addHelpItem("[trim]", "trim whitespace from both sides of a string.");
-   $self->addHelpItem("[tr]", "Change (translate) this to that in a string.  Usage: tr <this> <that> <string>.");
+   $self->addHelpItem("[tr]", "Change (translate) this to that in a string.  Usage: tr <this> <that> <string>. Flags: -i (case insensitive)");
    $self->addHelpItem("[strpos]", "Get the position of <word> in a string.  Usage: pos <word> <string>.");
    $self->addHelpItem("[grep]", "Grep for a pattern in very long string. This happens before a line is paginated.  Usage: grep <pattern> <string>, or use the -p=\"<pattern>\" flag.  Most useful with pipes.  Example: ~inventory | grep Pacman");
    $self->addHelpItem("[scramble]", "Scramble the letters in a string.  Usage: scramble [<-w><-m>] <string>.");
