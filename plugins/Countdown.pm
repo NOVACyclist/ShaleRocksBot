@@ -103,7 +103,26 @@ sub getOutput {
 	my $minutes =  int(($tsecs -  (($days * 60 * 60 * 24) + $hours * 60 * 60)) / 60);
 	my $secs = ($tsecs -  (($days * 60 * 60 * 24) + $hours * 60 * 60 + $minutes * 60)) ;
 
-	return BOLD.RED."$days days $hours hours $minutes minutes $secs seconds until ".BLACK.$records[0]->{val2}.NORMAL;
+	my $daytext = 'days';
+	$daytext = 'day' if ($days == 1);
+	my $mintext = 'minutes';
+	$mintext = 'minute' if ($minutes == 1);
+	my $hourtext = 'hours';
+	$hourtext = 'hour' if ($hours == 1);
+	my $sectext = 'seconds';
+	$sectext = 'second' if ($secs == 1);
+	
+	my $whentext = 'until';
+	if ( ($hours < 0) || ($days < 0) || ($minutes < 0) || ($secs < 0)){
+		$hours = abs($hours);
+		$minutes= abs($minutes);
+		$secs= abs($secs);
+		$days= abs($days);
+		$whentext = 'since';
+
+	}
+
+	return BOLD.RED."$days $daytext, $hours $hourtext, $minutes $mintext, $secs $sectext $whentext ".BLACK.$records[0]->{val2}.NORMAL;
 }
 
 
