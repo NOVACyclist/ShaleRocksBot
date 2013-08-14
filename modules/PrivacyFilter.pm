@@ -63,14 +63,20 @@ sub init{
 	##	Get our IP
 	##
 	
-	my $page = $self->getPage("http://www.jsonip.com/");
-	my $json_o  = JSON->new->allow_nonref;
-	my $j = $json_o->decode($page);
-	my $ip = $j->{ip};
+	eval {
+		my $page = $self->getPage("http://www.jsonip.com/");
+		my $json_o  = JSON->new->allow_nonref;
+		my $j = $json_o->decode($page);
+		my $ip = $j->{ip};
 
-	if ($ip){
-		push @{$self->{filters}}, {str=>$ip, repl=>'8.8.8.8'};
-	}else{
+		if ($ip){
+			push @{$self->{filters}}, {str=>$ip, repl=>'8.8.8.8'};
+		}else{
+			print "Warning:  PrivacyFilter could not determine your IP address\n";
+		}
+	};
+
+	if ($@){
 		print "Warning:  PrivacyFilter could not determine your IP address\n";
 	}
 
