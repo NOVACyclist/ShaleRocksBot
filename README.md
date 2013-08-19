@@ -14,7 +14,7 @@ Rocksbot is available according to the terms the GNU General Public License, ver
 Installation
 ------------
 
-1.  Download and extract the package, or issue a git pull.
+1.  Download and extract the package, or issue a git clone.
 2.  Create the makefile:  perl ./Makefile.PL
 3.  Run the makefile to install required packages: make
 4.  Copy rocksbot.cfg.sample to rocksbot.cfg. 
