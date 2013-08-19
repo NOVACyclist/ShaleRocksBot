@@ -28,6 +28,8 @@ sub getOutput {
 	my $cmd = $self->{command};	
 	my $options = $self->{options};
 	
+	$self->suppressNick("true");
+
 	if ($cmd eq 'imgur_stats'){
 		my $runs = $self->globalCookie("total_tries") || 0;
 		my $hits = $self->globalCookie("hits") || 0;
@@ -74,7 +76,7 @@ sub getOutput {
 		}
 
 		$self->globalCookie("hits", ($self->globalCookie("hits") || 0) + 1);
-		return BOLD."A random image from imgur: ".NORMAL.GREEN.UNDERLINE."http://i.imgur.com/$id.jpg".NORMAL."  (Note: Randomly NSFW)";
+		return BOLD."A random image from imgur: ".NORMAL.GREEN.UNDERLINE."http://i.imgur.com/$id.jpg".NORMAL."  (Note: Nondeterministically NSFW)";
 	}
 	
 }
