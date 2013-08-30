@@ -78,6 +78,9 @@ our %user_commands;
 # this is for the loop protection
 our $recent_responses;
 
+# channel state data
+our $state;
+
 sub new {
 	my ($class, @args) = @_;
 	my $self = bless {}, $class;
@@ -187,12 +190,14 @@ sub init{
 	##	Create the IRC POE session
 	##
 
+	## 332 = channel topic
+
 	POE::Session->create(
    	 package_states => [
       	  $self => [ qw(_default _start irc_001 irc_public irc_msg irc_ping irc_join 
 						irc_part irc_quit irc_ctcp_version irc_ctcp_action 
 						ch_result ch_output ch_startup_complete ch_plugin_loaded 
-						ch_stats timerTick _stop ) ],
+						ch_stats timerTick _stop irc_332) ],
 	    ],
    	 heap => { irc => $irc },
 	);
@@ -363,6 +368,15 @@ sub irc_001 {
 
 	return;
 }
+
+
+## Save channel topic info
+sub irc_332 {
+	my $channel_name = $_[ARG2]->[0];
+	my $channel_topic = $_[ARG2]->[1];
+	$state->{$channel_name}->{topic} = $channel_topic;
+}
+
 
 sub ch_startup_complete {
 	print "All Plugins have run onBotStart(). Only once.\n";
