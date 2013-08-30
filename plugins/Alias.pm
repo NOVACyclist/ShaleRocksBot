@@ -101,7 +101,7 @@ sub getOutput {
 				return "Alias $pname already exists";
 			}
 
-			$c->add($pname, $pcommand, $nick);
+			$c->add($pname, $pcommand, $self->accountNick());
 			$self->returnType("reloadPlugins");
 			return "$pname added.";
 		}
