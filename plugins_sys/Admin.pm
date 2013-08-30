@@ -114,7 +114,17 @@ sub getOutput {
 		}
 		return "I'll try...";
 	}
-	
+
+
+	if ($cmd eq 'ban'){
+		return $self->help($cmd) if (!$options);
+		#$self->returnType("irc_yield");
+		#$self->yieldCommand('ban');
+		#$self->yieldArgs([$self->{channel}, '+b', '*!*@'.$host]);
+		return "Not implemented...";
+	}
+
+
 	if ($cmd eq 'giveops'){
 		return $self->help($cmd) if (!$options);
 		$self->returnType("irc_yield");
@@ -841,12 +851,13 @@ sub listeners{
    my $self = shift;
 
    ##Command Listeners - put em here.  eg ['one', 'two']
-   my @commands = [ qw(join part kick giveops takeops change_user_password delete_user_account reload_plugins admin_groups shutdown permissions canrun disable enable privacy_filter settings)];
+   my @commands = [ qw(join part kick ban giveops takeops change_user_password delete_user_account reload_plugins admin_groups shutdown permissions canrun disable enable privacy_filter settings)];
 
 	my $default_permissions = [
 		{command=>"PLUGIN", require_group => UA_TRUSTED},
 		{command=>"join", require_group => UA_ADMIN},
 		{command=>"part", require_group => UA_ADMIN},
+		{command=>"ban", require_group => UA_ADMIN},
 		{command=>"reload_plugins", require_users => ["$self->{BotOwnerNick}"]},
 		{command=>"admin_groups",  require_group => UA_ADMIN},
 		{command=>"shutdown",  require_group => UA_ADMIN},
