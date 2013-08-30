@@ -364,7 +364,7 @@ sub listeners{
 sub addHelp{
 	my $self = shift;
 	$self->addHelpItem("[plugin_description]", "Help System. Note that flags to help use --two hyphens.  For admin commands, [--admin]");
-	$self->addHelpItem("[help]", "Usage: help <plugin name> [<command> ...].  Use help --info <plugin name> to get general plugin information.  Use help --all to see all of the help.");
+	$self->addHelpItem("[help]", "Usage: help <plugin name> [<command> ...].  Use help --info <plugin name> to get general plugin information.  Use help --all to see all of the help. Use the allhelp command to view an HTML help file for this bot.");
 	$self->addHelpItem("[help][-info]", "Get the plugin description.");
 	$self->addHelpItem("[help][-all]", "See all help available for a particular plugin or command.");
 	$self->addHelpItem("[allcommands]", "List all commands that $self->{BotName} will respond to. By default will only list the commands that the requesting user has permission to run.  Use -all to see all commands. Use -fullname to include the plugin name with each command.");
