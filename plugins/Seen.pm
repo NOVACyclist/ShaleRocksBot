@@ -222,7 +222,7 @@ sub addHelp{
 	$self->addHelpItem("[plugin_description]", "Keeps track of when a nick was last seen in this channel. ");
 	$self->addHelpItem("[seen]", "Usage: seen <nick> [-channel=<#channel>].  Find out when a nick was last seen in this channel.");
 	$self->addHelpItem("[seendb]", "Some stats about who's been seen.  Usage: seendb.  Available flags: -listusers,  -cleardatabase -publish");
-	$self->addHelpItem("[seendb][-publish]", "publish the list to a temporary html page");
+	$self->addHelpItem("[seendb][-publish]", "publish the list to a temporary html page. Only applicable when used with -listusers.");
 	$self->addHelpItem("[tell]", "Tell someone something. Use -list to see what I'm waiting to say to whom. Use -delete=<number> to delete. (soon: Use -pm to tell that person via PM, otherwise they'll be told in-channel.");
 }
 1;
