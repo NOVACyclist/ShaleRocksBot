@@ -131,6 +131,7 @@ sub getOutput {
 	if ($cmd eq 'seendb'){
 
 		my $c = $self->getCollection(__PACKAGE__, '%');
+		$c->sort({field=>"collection_name", type=>'alpha', order=>'asc'});
 		my @records = $c->matchRecords({val1=>$channel});
 		
 		if ($self->hasFlag("cleardatabase")){
@@ -146,13 +147,18 @@ sub getOutput {
 		$output = "I have seen a total of $count users in $channel. ";
 
 		if ($self->hasFlag("listusers")){
-			my $comma = "";
 			foreach my $rec (@records){
-				$output.= $comma . $rec->{collection_name};
-				$comma = ", ";
+				$self->addToList($rec->{collection_name});
+			}
+
+			if ($self->hasFlag("publish")){
+				my $url = $self->publish($self->getList());
+				$output.="List published at $url";
+			}else{
+				$output.=$self->getList();
 			}
 		}
-		
+
 		return $output;
 	}
 
@@ -214,8 +220,9 @@ sub listeners{
 sub addHelp{
 	my $self = shift;
 	$self->addHelpItem("[plugin_description]", "Keeps track of when a nick was last seen in this channel. ");
-	$self->addHelpItem("[seen]", "Usage: seen <nick>.  Find out when a nick was last seen in this channel.");
-	$self->addHelpItem("[seendb]", "Some stats about who's been seen.  Usage: seendb.  Available flags: -listusers,  -cleardatabase");
+	$self->addHelpItem("[seen]", "Usage: seen <nick> [-channel=<#channel>].  Find out when a nick was last seen in this channel.");
+	$self->addHelpItem("[seendb]", "Some stats about who's been seen.  Usage: seendb.  Available flags: -listusers,  -cleardatabase -publish");
+	$self->addHelpItem("[seendb][-publish]", "publish the list to a temporary html page");
 	$self->addHelpItem("[tell]", "Tell someone something. Use -list to see what I'm waiting to say to whom. Use -delete=<number> to delete. (soon: Use -pm to tell that person via PM, otherwise they'll be told in-channel.");
 }
 1;
