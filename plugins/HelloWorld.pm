@@ -71,7 +71,7 @@ sub listeners{
 # the help system will use this to help.
 sub addHelp{
 	my $self = shift;
-	$self->addHelpItem("[plugin_description]", "This is an example of a litle more than the bare minimum required for a plugin to function. It's also an example of how to use cookies.  Use hello -clear to clear the cookies database.");
+	$self->addHelpItem("[plugin_description]", "This is an example of a little more than the bare minimum required for a plugin to function. It's also an example of how to use cookies.  Use hello -clear to clear the cookies database.");
    $self->addHelpItem("[hello]", "Usage: hello");
    $self->addHelpItem("[hello][-clear]", "Clear the hello database.");
 }
