@@ -21,6 +21,7 @@ use warnings;
 use base qw (modules::PluginBaseClass);
 use modules::PluginBaseClass;
 use Data::Dumper;
+use POSIX;
 
 
 ##
@@ -41,6 +42,55 @@ sub getOutput {
 
 	#print Dumper ($self->{BotPluginInfo});
 	my $plugins = $self->{BotPluginInfo};
+
+
+	if ($cmd eq 'allhelp'){
+		my @commands;
+		my $html="<h2>$self->{BotName} help file</h2>";
+		$html.="Generated on " . strftime "%F %T %Z", localtime $^T;	
+		$html.="<br>$self->{BotName} is a <a href=\"http://is.gd/rocksbot\">RocksBot perl IRC bot</a>.  This installation is run by $self->{BotOwnerNick}.";
+
+		foreach my $k (sort keys $plugins){
+			$html.="\n<p><b>$k</b>:\n";
+
+			my $p = $plugins->{$k};
+			my $o = $p->{package}->new($p->{init_options});
+			$html.= $o->{HELP}->{'[plugin_description]'};
+
+			$html.="\n<br><i>Commands: ";
+			foreach my $command (@{$plugins->{$k}->{commands}}){
+				if ($command !~/^_/ && $command ne $k){
+					$self->addToList($command)
+				}
+			}
+			my $temp = $self->getList();
+			if ($temp){
+				$html.=$temp;
+			}else{
+				$html.="No commands.";
+			}
+			$html.="</i></p>";
+			
+
+			$html.="<ul>";
+			foreach my $h (sort keys $o->{HELP}){
+				my $key = $h;
+				my $text = $o->{HELP}->{$h};
+				next if ($key eq '[plugin_description]');
+				$text=~s/</&lt;/gis;
+				$text=~s/>/&gt;/gis;
+				$html.="<li>$h : $text</li>";
+			}
+			$html.="</ul>";
+
+			$html.="<p>&nbsp;</p>";
+		}
+
+		my $link = $self->publish($html);
+		return "Help file generated: $link";
+	}
+
+
 
 	if ($cmd eq 'allcommands'){
 		my @commands;
@@ -298,7 +348,7 @@ sub getOutput {
 sub listeners{
 	my $self = shift;
 	##Command Listeners - put em here.  eg ['one', 'two']
-	my @commands = [qw(help allcommands allregex)];
+	my @commands = [qw(help allcommands allregex allhelp)];
 
    my $default_permissions = [{command=>'help', flag=>'admin', require_group=>UA_ADMIN} ,
 		{command=>'allregex',  require_group=>UA_ADMIN} 
@@ -319,6 +369,7 @@ sub addHelp{
 	$self->addHelpItem("[help][-all]", "See all help available for a particular plugin or command.");
 	$self->addHelpItem("[allcommands]", "List all commands that $self->{BotName} will respond to. By default will only list the commands that the requesting user has permission to run.  Use -all to see all commands. Use -fullname to include the plugin name with each command.");
 	$self->addHelpItem("[allregex]", "List all currently registered regex matches.");
+	$self->addHelpItem("[allhelp]", "Create and publish an HTML document that lists all commands.");
 	#$self->addHelpItem("[man]", "Usage: help <plugin name> [<command> ...].  Use help --info <plugin name> to get general plugin information.  Use help --all to see all of the help.");
 	
 }
