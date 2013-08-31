@@ -112,11 +112,16 @@ sub getOutput {
 		}
 	}
 
-
 	$output = join " ". BULLET." ", @games;
 
 	if ($output){
-		return $output;
+		if ($self->hasFlag("publish")){
+			$output = join " <br> ", @games;
+			my $url = $self->publish($output);
+			return "Listing generated: $url";
+		}else{
+			return $output;
+		}
 	}else{
 		return "No scores found";
 	}
@@ -218,17 +223,17 @@ sub listeners{
 
 sub addHelp{
    my $self = shift;
-   $self->addHelpItem("[plugin_description]", "Sports Scores.  Flags available: -live -search term. The main sports feed doesn't work for March Madness, so there's a setting to enable March Madness mode. ");
+   $self->addHelpItem("[plugin_description]", "Sports Scores.  Flags available: -live -search term -publish (with no other args). The main sports feed doesn't work for March Madness, so there's a setting to enable March Madness mode. ");
 	if ($self->s("is_march_madness") eq 'yes'){
 	   $self->addHelpItem("[ncaab]", "NCAA basketball scores, March Madness mode. Provide arguments to search. flags: -tomorrow -yesterday -d=<number> (in number of days)");
 	}else{
-	   $self->addHelpItem("[ncaab]", "NCAA basketball scores, regular season mode. Provide arguments to search. flags: -live");
+	   $self->addHelpItem("[ncaab]", "NCAA basketball scores, regular season mode. Provide arguments to search. flags: -live, -publish");
 	}
 
-   $self->addHelpItem("[ncaaf]", "NCAA football scores. Provide arguments to search. flags: -live");
-   $self->addHelpItem("[mlb]", "MLB baseball scores. Provide arguments to search. flags: -live.");
-   $self->addHelpItem("[nfl]", "NFL football scores. Provide arguments to search. flags: -live.");
-   $self->addHelpItem("[nhl]", "NHL hockey scores. Provide arguments to search.  flags: -live.");
+   $self->addHelpItem("[ncaaf]", "NCAA football scores. Provide arguments to search. flags: -live, -publish");
+   $self->addHelpItem("[mlb]", "MLB baseball scores. Provide arguments to search. flags: -live, -publish.");
+   $self->addHelpItem("[nfl]", "NFL football scores. Provide arguments to search. flags: -live, -publish.");
+   $self->addHelpItem("[nhl]", "NHL hockey scores. Provide arguments to search.  flags: -live, -publish.");
 }
 
 
