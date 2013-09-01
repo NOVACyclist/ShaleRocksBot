@@ -34,14 +34,14 @@ sub getOutput {
 		my $id= $self->hasFlagValue("id");
 		my $title= $self->hasFlagValue("title");
 
-		return "You need to spcify -sec= " if (!$self->hasFlag("sec"));
-		return "You need to spcify -min= " if (!$self->hasFlag('min'));
-		return "You need to spcify -hour= " if (!$self->hasFlag('hour'));
-		return "You need to spcify -day= " if (!$self->hasFlag('day'));
-		return "You need to spcify -month= " if (!$self->hasFlag('month'));
-		return "You need to spcify -year " if (!$self->hasFlag('year'));
-		return "You need to spcify -id= " if (!$self->hasFlag('id'));
-		return "You need to spcify -title= " if (!$self->hasFlag('title'));
+		return "You need to specify -sec= " if (!$self->hasFlag("sec"));
+		return "You need to specify -min= " if (!$self->hasFlag('min'));
+		return "You need to specify -hour= " if (!$self->hasFlag('hour'));
+		return "You need to specify -day= " if (!$self->hasFlag('day'));
+		return "You need to specify -month= " if (!$self->hasFlag('month'));
+		return "You need to specify -year " if (!$self->hasFlag('year'));
+		return "You need to specify -id= " if (!$self->hasFlag('id'));
+		return "You need to specify -title= " if (!$self->hasFlag('title'));
 
 
 		## check if id already exists
