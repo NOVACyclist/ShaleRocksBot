@@ -49,11 +49,20 @@ sub getOutput {
 		my $html="<h2>$self->{BotName} help file</h2>";
 		$html.="Generated on " . strftime "%F %T %Z", localtime $^T;	
 		$html.="<p>$self->{BotName} is a <a href=\"http://is.gd/rocksbot\">RocksBot perl IRC bot</a> run by user $self->{BotOwnerNick}.  The command prefix is: $self->{BotCommandPrefix}</p>";
-		$html.="<p>You don't need an account to do most things with $self->{BotName}. But if you register for an account, the bot will keep track of you & your data if your nick changes.  To get an account, type /msg $self->{BotName} -password = your_chosen_password.  Passwords are hashed and do not appear in the bot log files.</p>";
+		$html.="<p>You don't need an account to do most things with $self->{BotName}. But if you register for an account, the bot will keep track of you & your data if your nick changes.  To get an account, type /msg $self->{BotName} register -password = your_chosen_password.  Passwords are hashed and do not appear in the bot log files. See the <a href=\"#UserOptions\">UserOptions</a> section of this document for a listing of account related functions.</p>";
 		$html.="<p>Help is available via the $self->{BotCommandPrefix}help command.  Use $self->{BotCommandPrefix}help to get a list of plugins.  Use $self->{BotCommandPrefix}help PluginName to get a list of commands in each plugin. Use $self->{BotCommandPrefix}help command_name to see help for a particular command.  <i>Example:  $self->{BotCommandPrefix}help register.</i> Most commands work via PM as well. You don't need to use the command prefix ($self->{BotCommandPrefix}) in a PM window.</p>";
-		$html.="<p>Below is a listing of the installed plugins and the available help messages.</p><hr>";
+		$html.="<p>Below is a listing of the enabled plugins and the available help messages.</p><hr>";
+
+		$html.="<b>Enabled Plugins</b><br>";
+		$html.="<ul>";
+		foreach my $k (sort keys $plugins){
+			$html.="<li><a href=\"#$k\">$k</a></li>";
+		}
+		$html.="</ul>";
+		$html.="<p>&nbsp;</p>";
 
 		foreach my $k (sort keys $plugins){
+			$html.="<a name=\"$k\"></a>";
 			$html.="\n<p><b>$k</b>:\n";
 
 			my $p = $plugins->{$k};
