@@ -272,7 +272,7 @@ sub addHelp{
    $self->addHelpItem("[change_password]", "Usage: change_password -old_password=<old> -new_password=<new>. ");
    $self->addHelpItem("[login]", "Usage: login -password=<password> [-nick=<nick>]");
    $self->addHelpItem("[logout]", "Usage: logout");
-   $self->addHelpItem("[output_filter]", "$self->{BotName} will send all communique's with you through an output filter.  [-c] to clear your output filter.  [-s <filter>] to set a filter]");
+   $self->addHelpItem("[output_filter]", "$self->{BotName} will send all communiques with you through an output filter.  [-c] to clear your output filter.  [-s <filter>] to set a filter]");
    $self->addHelpItem("[output_filter][-s]", "Set an output filter.  Usage: output_filter -s <filter>");
    $self->addHelpItem("[output_filter][-c]", "Clear your output filter. Usage: output_filter -c ");
    $self->addHelpItem("[hostmasks]", "See the hostmasks that $self->{BotName} identifies you with. To see a list, just do \"hostmasks\".  To add a new one, login while using that mask.  To delete one, use -delete=<#id>");
