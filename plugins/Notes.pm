@@ -217,7 +217,6 @@ sub addHelp{
    my $self = shift;
    $self->addHelpItem("[plugin_description]", "Keep notes.");
    $self->addHelpItem("[notes]", "Usage: notes  Flags: -add -search -delete -nick -search -renumber");
-   $self->addHelpItem("[command][subcommand]", "Whatever.");
 }
 1;
 __END__
