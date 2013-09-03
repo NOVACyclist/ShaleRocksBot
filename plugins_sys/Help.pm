@@ -362,7 +362,7 @@ sub listeners{
 	##Command Listeners - put em here.  eg ['one', 'two']
 	my @commands = [qw(help allcommands allregex allhelp)];
 
-   my $default_permissions = [{command=>'help', flag=>'admin', require_group=>UA_ADMIN} ,
+   my $default_permissions = [
 		{command=>'allregex',  require_group=>UA_ADMIN} 
 		];
 
@@ -375,8 +375,8 @@ sub listeners{
 ##
 sub addHelp{
 	my $self = shift;
-	$self->addHelpItem("[plugin_description]", "Help System. Note that flags to help use --two hyphens.  For admin commands, [--admin]");
-	$self->addHelpItem("[help]", "Usage: help <plugin name> [<command> ...].  Use help --info <plugin name> to get general plugin information.  Use help --all to see all of the help. Use the allhelp command to view an HTML help file for this bot.");
+	$self->addHelpItem("[plugin_description]", "Help System. To get a pretty HTML file of all available help, use the command  $self->{BotCommandPrefix}allhelp.  Note that flags for the help command use --two hyphens. ");
+	$self->addHelpItem("[help]", "Usage: help <plugin name> [<command> ...].  Use help --info <plugin name> to get general plugin information.  Use help --all to see all of the help. Use the $self->{BotCommandPrefix}allhelp command to view an HTML help file for this bot.");
 	$self->addHelpItem("[help][-info]", "Get the plugin description.");
 	$self->addHelpItem("[help][-all]", "See all help available for a particular plugin or command.");
 	$self->addHelpItem("[allcommands]", "List all commands that $self->{BotName} will respond to. By default will only list the commands that the requesting user has permission to run.  Use -all to see all commands. Use -fullname to include the plugin name with each command.");
