@@ -29,5 +29,5 @@ Getting started
 ---------------
 On first run, an admin user will be created using the username and password specified in the config file.  You should log-in (login -username=whatever -password=whatever) and change the admin password.
 
-To get information about the installed plugins, issue the .help command.  (Assuming that you're using a . as the bot command prefix.)  To get a list of commands contained in each plugin, issue a .help PluginName.  To get help with a particular command, issue a .help CommandName, or .help PluginName CommandName.  To get information about a command + flag combo, use .help CommandName -flag.  To get general information about a command or plugin, use .help --info.
+To get information about the installed plugins, issue the .help command.  (Assuming that you're using a . as the bot command prefix.)  To get a list of commands contained in each plugin, issue a .help PluginName.  To get help with a particular command, issue a .help CommandName, or .help PluginName CommandName.  To get information about a command + flag combo, use .help CommandName -flag.  To get general information about a command or plugin, use .help --info.  To generate a customized HTML help file, use .allhelp
 
