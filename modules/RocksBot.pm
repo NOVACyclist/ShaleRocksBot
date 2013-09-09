@@ -197,7 +197,7 @@ sub init{
       	  $self => [ qw(_default _start irc_001 irc_public irc_msg irc_ping irc_join 
 						irc_part irc_quit irc_ctcp_version irc_ctcp_action 
 						ch_result ch_output ch_startup_complete ch_plugin_loaded 
-						ch_stats timerTick _stop irc_332) ],
+						ch_stats timerTick deferredCommand _stop irc_332) ],
 	    ],
    	 heap => { irc => $irc },
 	);
@@ -443,6 +443,13 @@ sub irc_msg {
 
 		runBotCommand( $opts );
 	}
+}
+
+sub deferredCommand{
+	my ($kernel, $sender, $heap, $ref, $result) = @_[KERNEL, SENDER, HEAP, ARG0, ARG1];
+	print "Deferred Command\n";
+	print Dumper($ref);
+	runBotCommand($ref);
 }
 
 sub ch_stats{
@@ -1018,17 +1025,27 @@ sub runBotCommand{
 
 		if (!$ch){
 
-			$output = "I'm busy now.";
+			if (!defined($opts->{retry_count})){
+				$opts->{retry_count} = 1;
+			}
+        
+			if ($opts->{retry_count} < 20){
+				$opts->{retry_count}++;
+				$poe_kernel->delay_add( deferredCommand => 1.5, $opts);
 
-			my $opts = {
-				channel => $channel,
-				nick	  => $nick,
-				output  => $output,
-				mask    => $mask
-			};
+			}else{
+				$output = "I'm busy now.";
 
-			if ($cmd){
-				printOutput($opts);
+				my $opts = {
+					channel => $channel,
+					nick	  => $nick,
+					output  => $output,
+					mask    => $mask
+				};
+
+				if ($cmd){
+					printOutput($opts);
+				}
 			}
 
 			return;
@@ -1105,6 +1122,12 @@ sub rateLimit{
 	if (!$opts->{command}){
 		return (0, "");
 	}
+
+	## Don't subject deferredCommands to rate limiting
+	if (defined($opts->{retry_count})){
+		return (0, "");
+	}
+
 
 	# Don't subject internal commands to rate limiting. This applies to timer events,
 	# saveMore, and also to any user-entered command coming via pipe. The pipe thing
