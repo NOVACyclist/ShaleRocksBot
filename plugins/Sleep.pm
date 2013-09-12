@@ -81,7 +81,7 @@ sub getOutput {
 		}
 		
 		print "returning line $line\n";
-		return ("RN: $self->{rn}.  Line " . $lines[$line] . " Doing reentry, sleeping 3.");
+		return ("RN: $self->{rn}.  Line " . $lines[$line] . " Doing reentry, sleeping 3. ".time());
 	}
 }
 
