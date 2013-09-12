@@ -675,7 +675,7 @@ sub getPage {
 	my $ua = LWP::UserAgent->new;
 
 	$ua->agent("Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)");
-	$ua->timeout(5);
+	$ua->timeout(60);
 
 	my $req = HTTP::Request->new(GET => $url);
 	my $res = $ua->request($req);
@@ -730,6 +730,7 @@ sub getShortURL{
 		return $url;
 	}
 }
+
 
 sub help{
    my $self = shift;
