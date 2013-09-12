@@ -37,45 +37,75 @@ sub getOutput {
 
 	if ($self->hasFlag("clearcache")){
 		$self->trimCache(0);
+		my $c = $self->getCollection(__PACKAGE__, 'questions');
+		$c->deleteAllRecords();
 		return "Icebreaker cache cleared";
 	}
 
-  	## Get the json
-  	my $page = $self->getPage("http://www.reddit.com/r/AskReddit/.json?limit=200");
-  	my $json_o  = JSON->new->allow_nonref;
-  	$json_o = $json_o->pretty(1);
-	
-	my $j;
-	eval{
-	  	$j = $json_o->decode($page);
-	};
-	
-	if ($@){
-		return "Error contacting reddit. Try again in a few minutes.";
+	my $question = $self->getQuestion();
+
+	if ($question eq '0' ){
+		return "Reddit seems slow right now. Try again in a bit.";
 	}
 
-  	## process each link
-	my @questions;
-  	for (my $i=0; $i<@{$j->{data}->{children}}; $i++){
-  		my $story = $j->{data}->{children}[$i];
-   	my $title = $story->{data}->{title};
-  		#my $author =  $story->{data}->{author};
-  		my $id =  $story->{data}->{id};
-		if (!$self->checkCache($id)){
-			push @questions, {title=>$title, id=>$id};
-		}
-   }
-	my $qnum = int(rand(@questions));
- 	my $message = BOLD."Question for Everybody: ".NORMAL . $questions[$qnum]->{title};
-	$self->saveCache($questions[$qnum]->{id});
+ 	my $message = BOLD."Question for Everybody: ".NORMAL . $question;
 	$self->trimCache(200);
 
-	if ($message){
-		return $message;
-	}else{
-		return "Whoops. Couldn't find a new icebreaker. Try again in a few minutes.";
-	}
+	return $message;
 }
+
+sub getQuestion(){
+	my $self = shift;
+	my $c = $self->getCollection(__PACKAGE__, 'questions');
+	my @records = $c->getAllRecords();
+
+	if (@records < 50){
+
+  		## Get the json
+ 	 	my $page = $self->getPage("http://www.reddit.com/r/AskReddit/.json?limit=100");
+		if ($page eq ''){
+			return 0;
+		}		
+
+ 	 	my $json_o  = JSON->new->allow_nonref;
+	  	$json_o = $json_o->pretty(1);
+	
+		my $j;
+		eval{
+		  	$j = $json_o->decode($page);
+		};
+	
+		if ($@){
+			return 0;
+		}
+
+ 	 	## process each link
+		my @questions;
+	  	for (my $i=0; $i<@{$j->{data}->{children}}; $i++){
+	  		my $story = $j->{data}->{children}[$i];
+  		 	my $title = $story->{data}->{title};
+  			#my $author =  $story->{data}->{author};
+	  		my $id =  $story->{data}->{id};
+			if (!$self->checkCache($id)){
+				#print "added $title\n";
+				$c->add($id, $title);
+			}
+  	 	}
+		
+		@records = $c->getAllRecords();
+	}
+	
+	if (@records == 0){
+		return 0;
+	}
+
+	my $question = @records[int(rand(@records))];
+	$c->delete($question->{row_id});
+	$self->saveCache($question->{val1});
+	return $question->{val2};
+	
+}
+
 
 sub loadCache{
 	my $self = shift;
