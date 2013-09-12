@@ -226,6 +226,15 @@ sub getOutput {
 
 
 
+	##
+	## publish
+	##
+
+	if ($cmd eq 'publish'){
+		return $self->help($cmd) if (!$options);
+		return "Published output to " . GREEN .UNDERLINE. $self->publish($options) . NORMAL;
+
+	}
 
 	##
 	## strpos
@@ -528,7 +537,7 @@ sub listeners{
    ##Command Listeners - put em here.  eg ['one', 'two']
    my @commands = ['rainbow', 'listcolors', 'color', 'echo','lc','uc','ucwords','cut',
 						'rtrim', 'ltrim', 'trim', 'tr','strpos','scramble', 'banner', 'ucsent',
-						'bold', 'underline' ,'inverse', 'grep'];
+						'bold', 'underline' ,'inverse', 'grep', 'publish'];
 
 	my @irc_events = [];
 
@@ -545,6 +554,7 @@ sub addHelp{
    $self->addHelpItem("[banner]", "Print out an old sk00l banner. This may well get the bot kicked for flooding.  Usage:  banner <text>");
    $self->addHelpItem("[color]", "Color up some text.  Usage: color <color> <text>");
    $self->addHelpItem("[echo]", "Repeat something. Usage: echo <text> [-channel=<#channel>] [-action]");
+   $self->addHelpItem("[grep]", "Grep for a pattern in very long string. This happens before a line is paginated.  Usage: grep <pattern> <string>, or use the -p=\"<pattern>\" flag.  Most useful with pipes.  Example: ~inventory | grep Pacman");
    $self->addHelpItem("[lc]", "Translate to lower case.  Usage: lc <text>");
    $self->addHelpItem("[listcolors]", "Prints all of the IRC colors");
    $self->addHelpItem("[rainbow]", "Usage: rainbow <text>.  Options [-w], [-c=<number>]");
@@ -561,12 +571,12 @@ sub addHelp{
    $self->addHelpItem("[cut][-f]", "Cut a string and return fields specified by comma delimited list.  Example: cut -f=2,3,4 These pretzels are making me thirsty. Use [-d=<val>] to specify a delimiter, default is space. Use [-od] to specify an output delimiter.");
    $self->addHelpItem("[cut][-d]", "Specify a delimiter to cut on. Use with -f");
    $self->addHelpItem("[cut][-od]", "Specify an output delimiter.  Use with -f");
+   $self->addHelpItem("[publish]", "Publish the output of any command using the installed Publish module. Usually used via pipe. Example: $self->{BotCommandPrefix}fortune | publish");
    $self->addHelpItem("[rtrim]", "trim whitespace from the right side of a string.");
    $self->addHelpItem("[ltrim]", "trim whitespace from the left side of a string.");
    $self->addHelpItem("[trim]", "trim whitespace from both sides of a string.");
    $self->addHelpItem("[tr]", "Change (translate) this to that in a string.  Usage: tr <this> <that> <string>. Flags: -i (case insensitive)");
    $self->addHelpItem("[strpos]", "Get the position of <word> in a string.  Usage: pos <word> <string>.");
-   $self->addHelpItem("[grep]", "Grep for a pattern in very long string. This happens before a line is paginated.  Usage: grep <pattern> <string>, or use the -p=\"<pattern>\" flag.  Most useful with pipes.  Example: ~inventory | grep Pacman");
    $self->addHelpItem("[scramble]", "Scramble the letters in a string.  Usage: scramble [<-w><-m>] <string>.");
    $self->addHelpItem("[scramble][-w]", "Scramble each word within a string.  Usage: scramble -w <string>.");
    $self->addHelpItem("[scramble][-m]", "Scramble the order of the words in a string.  Usage: scramble -wm <string>.");
