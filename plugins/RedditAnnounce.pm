@@ -62,6 +62,12 @@ sub getOutput {
    	## Get the json
    	my $page = $self->getPage("http://www.reddit.com/r/$subreddit/new/.json?sort=new");
 
+		if (!$page){
+			## timeout error, probably.  silently ignore
+			print "suspected timeout error with lwp in RedditAnnounce. (#r4a). Skipping processing.";
+			return;
+		}
+
    	my $json_o  = JSON->new->allow_nonref;
    	$json_o = $json_o->pretty(1);
    	my $j = $json_o->decode($page);
