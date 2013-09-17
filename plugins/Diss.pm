@@ -348,7 +348,7 @@ sub addHelp{
 
 	foreach my $type (@{$self->{types}}){
 		
-		$self->addHelpItem("[$type->{type}]", "Usage: [#<number>] $type->{type} <target> [and <target>] Available flags: add, delete, show, search, newtype, rmtype");
+		$self->addHelpItem("[$type->{type}]", "Usage: $type->{type} [#<number>] <target> [and <target>] Available flags: add, delete, show, search, newtype, rmtype");
 	   $self->addHelpItem("[$type->{type}][-add]", "Usage example: $type->{type} -add makes yo mama jokes about {0}'s mother.  Use {0} {1}... to specify targets.");
 		$self->addHelpItem("[$type->{type}][-delete]","Delete a $type->{type} from the $type->{type} database.  Usage: $type->{type} -delete=<diss number>");
 		$self->addHelpItem("[$type->{type}][-show]","Show a $type->{type}.  Usage: $type->{type} -show=<number>");
