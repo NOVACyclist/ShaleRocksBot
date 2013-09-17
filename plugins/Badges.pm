@@ -73,7 +73,7 @@ sub getOutput {
 		if (@records){
 			return ($output);
 		}else{
-			return ("You don't have any badges. Use ".$self->{BotCommandPrefix}."badge add <name> <date> to add one.");
+			return ("You don't have any badges. " . $self->help('badge'));
 		}
 
 
@@ -81,7 +81,7 @@ sub getOutput {
 	## add a badge
 	## 
 
-	}elsif($self->hasFlag("create")){
+	}elsif($self->hasFlag("add")){
 
 		if (! $self->hasPermission($self->accountNick()) ){
    	    return ("You don't have permission to do that.");
@@ -416,7 +416,7 @@ sub getOutput {
 			return ($ret);
 
 		}else{
-			return ("You don't have a badge by that name.  Type '".$self->{BotCommandPrefix}."badge' to list your badges.");
+			return ("You don't have a badge by that name. " . $self->help('badge'));
 		}
 	}
 }
@@ -548,8 +548,8 @@ sub listeners{
 sub addHelp{
    my $self = shift;
    $self->addHelpItem("[plugin_description]", "Badges. Get a date-based \"days since\" badge for whatever.");
-   $self->addHelpItem("[badge]", "Use $self->{BotCommandPrefix}badge to list your badges. Flags: -create -delete -update -cost, with -name=\"Badge Name\" -date=\"a date string\".  Use -all to see all users' badges, use -all -name=\"Badge Name\" to see all badges of a particular type for all users. Use -nick=SomeGuy to see SomeGuy's badges");
-   $self->addHelpItem("[badge][-create]", "Create a badge.  Usage: $self->{BotCommandPrefix}badge -create -name=\"Badge Name\" -date=\"some date\"");
+   $self->addHelpItem("[badge]", "Use $self->{BotCommandPrefix}badge to list your badges. Flags: -add -delete -update -cost, with -name=\"Badge Name\" -date=\"a date string\".  Use -all to see all users' badges, use -all -name=\"Badge Name\" to see all badges of a particular type for all users. Use -nick=SomeGuy to see SomeGuy's badges");
+   $self->addHelpItem("[badge][-add]", "Create a badge.  Usage: $self->{BotCommandPrefix}badge -add -name=\"Badge Name\" -date=\"some date\"");
    $self->addHelpItem("[badge][-update]", "Change the date on a badge.  Usage: $self->{BotCommandPrefix}badge -update -name=\"Badge Name\" -date=\"some date\"");
    $self->addHelpItem("[badge][-delete]", "Usage: $self->{BotCommandPrefix}badge -delete -name=\"Badge Name\"");
    $self->addHelpItem("[badge][-cost]", "Set a daily cost for a badge. Example: $self->{BotCommandPrefix}badge -cost = 5.25 -name=\"Badge Name\"");
