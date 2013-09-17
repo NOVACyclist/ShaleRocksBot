@@ -157,7 +157,7 @@ sub listeners{
 sub addHelp{
    my $self = shift;
    $self->addHelpItem("[plugin_description]", "Googlefight - which term has more results?");
-   $self->addHelpItem("[gf]", "Goolge fight.  Usage: gf <term 1> vs <term 2>");
+   $self->addHelpItem("[gf]", "Google fight.  Usage: gf <term 1> vs <term 2>");
 }
 1;
 __END__
