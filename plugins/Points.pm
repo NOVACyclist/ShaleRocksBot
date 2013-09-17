@@ -250,12 +250,12 @@ sub addHelp{
    $self->addHelpItem("[plugin_description]", "$self->{BotName} points system: This is your personal points collection.  You can assign and remove points as you see fit.  Commands: addpoint, rmpoint, points.");
    $self->addHelpItem("[addpoint]", "Give something a point. Usage: addpoint <something>");
    $self->addHelpItem("[rmpoint]", "Take a point away. Usage: rmpoint <something>");
-   $self->addHelpItem("[points]", "See the points you've assigned. Flags: -nick=<nick> -all -delete=<thing> -deleteeverything -posneg -total -most");
+   $self->addHelpItem("[points]", "See the points you've assigned. Flags: -nick=<nick> -all -delete=<thing> -deleteeverything -posneg -total ");
    $self->addHelpItem("[points][-delete]", "Delete a single item from your leaderboard. Usage: points -delete=\"<the thing>\"");
    $self->addHelpItem("[points][-deleteeverything]", "Delete everything from your leaderboard. Usage: points -deleteeverything");
    $self->addHelpItem("[points][-total]", "Rank the rankers by total points given out. Usage: points -total");
    $self->addHelpItem("[points][-posneg]", "Rank the rankers by positivity. Usage: points -posneg");
-   $self->addHelpItem("[points][-most]", "Rank the rankers by number of things ranked. Usage: points -most");
+  # $self->addHelpItem("[points][-most]", "Rank the rankers by number of things ranked. Usage: points -most");
 }
 
 1;
