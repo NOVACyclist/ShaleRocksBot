@@ -157,7 +157,6 @@ sub getOutput {
 sub getGreeting{
 	my $self = shift;
 	my $c = $self->getCollection(__PACKAGE__, 'herald');
-	print "matching $self->{channel} and " . $self->accountNick() . "\n";
 	my @records = $c->matchRecords({val1=>$self->{channel}, val3=>$self->accountNick()});
 	my $rec;
 	if (@records){
