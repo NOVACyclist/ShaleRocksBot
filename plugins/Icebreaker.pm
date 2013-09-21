@@ -16,7 +16,7 @@ package plugins::Icebreaker;
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #-----------------------------------------------------------------------------
-
+# this was kind of piecemealed
 use strict;			
 use warnings;
 use base qw (modules::PluginBaseClass);
@@ -25,21 +25,89 @@ use JSON;
 use Data::Dumper;
 
 my $cache;
+my $subreddit;
+my $links_to_load;
+my $reload_at;
 
 sub getOutput {
 	my $self = shift;
 	my $cmd = $self->{command};			# the command
 	my $options = $self->{options};		# everything else on the line
-	my $nick = $self->{nick};				
-	my @output;
+	my $nick = $self->{nick};
 
 	$self->suppressNick("true");	
+	my $message;
+
+	if ($cmd eq 'icebreaker'){
+		$self->{subreddit} = 'AskReddit';
+		$self->{links_to_load} = 100;
+		$self->{reload_at} = 50;
+		$message = BOLD."Question for Everybody: ".NORMAL;
+	}
+
+	if ($cmd eq 'showerthought'){
+		$self->{subreddit} = 'showerthoughts';
+		$self->{links_to_load} = 200;
+		$self->{reload_at} = 1;
+		$message = BOLD."Shower thought: ".NORMAL;
+	}
+
+	if ($cmd eq 'firstworldproblem'){
+		$self->{subreddit} = 'firstworldproblems';
+		$self->{links_to_load} = 200;
+		$self->{reload_at} = 1;
+		$message = BOLD."First World Problem: ".NORMAL;
+	}
+
+	if ($cmd eq 'secondworldproblem'){
+		$self->{subreddit} = 'secondworldproblems';
+		$self->{links_to_load} = 200;
+		$self->{reload_at} = 1;
+		$message = BOLD."Second World Problem: ".NORMAL;
+	}
+
+	if ($cmd eq 'thirdworldproblem'){
+		$self->{subreddit} = 'thirdworldproblems';
+		$self->{links_to_load} = 200;
+		$self->{reload_at} = 1;
+		$message = BOLD."Third World Problem: ".NORMAL;
+	}
+
+	if ($cmd eq 'fourthworldproblem'){
+		$self->{subreddit} = 'fourthworldproblems';
+		$self->{links_to_load} = 200;
+		$self->{reload_at} = 1;
+		$message = BOLD."Fourth World Problem: ".NORMAL;
+	}
+
+	if ($cmd eq 'fifthworldproblem'){
+		$self->{subreddit} = 'fifthworldproblems';
+		$self->{links_to_load} = 200;
+		$self->{reload_at} = 1;
+		$message = BOLD."Fifth World Problem: ".NORMAL;
+	}
+
+	if ($cmd eq 'dae'){
+		$self->{subreddit} = 'dae';
+		$self->{links_to_load} = 200;
+		$self->{reload_at} = 1;
+		$message = BOLD."Does anyone else...: ".NORMAL;
+	}
+
+	if ($cmd eq 'ancientworldproblem'){
+		$self->{subreddit} = 'ancientworldproblems';
+		$self->{links_to_load} = 200;
+		$self->{reload_at} = 1;
+		$message = BOLD."Ancient World Problem: ".NORMAL;
+	}
+
+
 
 	if ($self->hasFlag("clearcache")){
 		$self->trimCache(0);
 		my $c = $self->getCollection(__PACKAGE__, 'questions');
-		$c->deleteAllRecords();
-		return "Icebreaker cache cleared";
+		$c->deleteByVal({val3=>$self->{subreddit}});
+		return "$cmd cache cleared";
 	}
 
 	my $question = $self->getQuestion();
@@ -48,21 +116,22 @@ sub getOutput {
 		return "Reddit seems slow right now. Try again in a bit.";
 	}
 
- 	my $message = BOLD."Question for Everybody: ".NORMAL . $question;
+ 	#my $message = BOLD."Question for Everybody: ".NORMAL . $question;
 	$self->trimCache(200);
 
-	return $message;
+	return $message . $question;
 }
+
 
 sub getQuestion(){
 	my $self = shift;
 	my $c = $self->getCollection(__PACKAGE__, 'questions');
-	my @records = $c->getAllRecords();
+	my @records = $c->matchRecords({val3=>$self->{subreddit}});
 
-	if (@records < 50){
+	if (@records < $self->{reload_at}){
 
   		## Get the json
- 	 	my $page = $self->getPage("http://www.reddit.com/r/AskReddit/.json?limit=100");
+ 	 	my $page = $self->getPage("http://www.reddit.com/r/".$self->{subreddit}."/.json?limit=".$self->{links_to_load});
 		if ($page eq ''){
 			return 0;
 		}		
@@ -88,11 +157,11 @@ sub getQuestion(){
 	  		my $id =  $story->{data}->{id};
 			if (!$self->checkCache($id)){
 				#print "added $title\n";
-				$c->add($id, $title);
+				$c->add($id, $title, $self->{subreddit});
 			}
   	 	}
 		
-		@records = $c->getAllRecords();
+		@records = $c->matchRecords({val3=>$self->{subreddit}});
 	}
 	
 	if (@records == 0){
@@ -102,7 +171,7 @@ sub getQuestion(){
 	my $question = @records[int(rand(@records))];
 	$c->delete($question->{row_id});
 	$self->saveCache($question->{val1});
-	return $question->{val2};
+	return $question->{val2} ." ". GREEN.UNDERLINE."http://redd.it/$question->{val1}".NORMAL;
 	
 }
 
@@ -124,7 +193,8 @@ sub saveCache{
 	my $val = shift;
 
 	my $c = $self->loadCache();
-	my @records = $c->getAllRecords();
+	#my @records = $c->getAllRecords();
+	my @records = $c->matchRecords({val2=>$self->{subreddit}});
 
 	foreach my $rec (@records){
 		if ($rec->{val1} eq $val){
@@ -133,8 +203,7 @@ sub saveCache{
 		}
 	}
 
-	print "saved $val\n";
-	$c->add($val);
+	$c->add($val, $self->{subreddit});
 }
 
 sub checkCache{
@@ -142,7 +211,8 @@ sub checkCache{
 	my $val = shift;
 
 	my $c = $self->loadCache();
-	my @records = $c->getAllRecords();
+	my @records = $c->matchRecords({val2=>$self->{subreddit}});
+	#my @records = $c->getAllRecords();
 
 	foreach my $rec (@records){
 		if ($rec->{val1} eq $val){
@@ -160,7 +230,7 @@ sub trimCache{
 	my $num = shift;
 
 	my $c = $self->loadCache();
-	my @records = $c->getAllRecords();
+	my @records = $c->matchRecords({val2=>$self->{subreddit}});
 
 	if (@records > $num){
 		for (my $i=$num; $i<@records; $i++){
@@ -173,7 +243,7 @@ sub trimCache{
 sub listeners{
 	my $self = shift;
 	
-	my @commands = [qw(icebreaker)];
+	my @commands = [qw(icebreaker showerthought firstworldproblem secondworldproblem thirdworldproblem fourthworldproblem fifthworldproblem dae ancientworldproblem)];
 
 	my @irc_events = [qw () ];
 
@@ -194,8 +264,16 @@ sub listeners{
 ##
 sub addHelp{
 	my $self = shift;
-	$self->addHelpItem("[plugin_description]", "Asks a question for everyone in the room to answer. Pulls questions from reddit.com/r/AskReddit.");
+	$self->addHelpItem("[plugin_description]", "Pulls headlines from reddit.com and announces them to the room.  Use the -clearcache flag to clear the cached questions and history for that particular flavor.");
    $self->addHelpItem("[icebreaker]", "Pull a random question from AskReddit & announce it to the room.  Use -clearcache to clear the icebreaker cache.");
+   $self->addHelpItem("[showerthought]", "Grab a random item from /r/showerthoughts on reddit.");
+   $self->addHelpItem("[firstworldproblem]", "Grab a random item from /r/firstworldproblems on reddit.");
+   $self->addHelpItem("[secondworldproblem]", "Grab a random item from /r/secondworldproblems on reddit.");
+   $self->addHelpItem("[thirdworldproblem]", "Grab a random item from /r/thirdworldproblems on reddit.");
+   $self->addHelpItem("[fourthworldproblem]", "Grab a random item from /r/fourthworldproblems on reddit.");
+   $self->addHelpItem("[fifthworldproblem]", "Grab a random item from /r/fifthworldproblems on reddit.");
+   $self->addHelpItem("[dae]", "Grab a random item from /r/dae on reddit.");
+   $self->addHelpItem("[ancientworldproblem]", "Grab a random item from /r/ancientworldproblems on reddit.");
 }
 1;
 __END__
