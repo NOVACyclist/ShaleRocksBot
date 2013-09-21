@@ -43,6 +43,14 @@ sub getOutput {
 	#print Dumper ($self->{BotPluginInfo});
 	my $plugins = $self->{BotPluginInfo};
 
+	if ($cmd eq 'plugins'){
+		$output = "My Plugins:";
+		foreach my $k (sort keys $plugins){
+			$output.=" $k";
+		}
+		return $output;
+	}
+
 
 	if ($cmd eq 'allhelp'){
 		my @commands;
@@ -50,7 +58,7 @@ sub getOutput {
 		$html.="Generated on " . strftime "%F %T %Z", localtime $^T;	
 		$html.="<p>$self->{BotName} is a <a href=\"http://is.gd/rocksbot\">RocksBot perl IRC bot</a> run by user $self->{BotOwnerNick}.  The command prefix is: $self->{BotCommandPrefix}</p>";
 		$html.="<p>You don't need an account to do most things with $self->{BotName}. But if you register for an account, the bot will keep track of you & your data if your nick changes.  To get an account, type /msg $self->{BotName} register -password = your_chosen_password.  Passwords are hashed and do not appear in the bot log files. See the <a href=\"#UserOptions\">UserOptions</a> section of this document for a listing of account related functions.</p>";
-		$html.="<p>Help is available via the $self->{BotCommandPrefix}help command.  Use $self->{BotCommandPrefix}help to get a list of plugins.  Use $self->{BotCommandPrefix}help PluginName to get a list of commands in each plugin. Use $self->{BotCommandPrefix}help command_name to see help for a particular command.  <i>Example:  $self->{BotCommandPrefix}help register.</i> Most commands work via PM as well. You don't need to use the command prefix ($self->{BotCommandPrefix}) in a PM window.</p>";
+		$html.="<p>Help is available via the $self->{BotCommandPrefix}help command.  Use $self->{BotCommandPrefix}help PluginName to get a list of commands in each plugin. Use $self->{BotCommandPrefix}help command_name to see help for a particular command. Use $self->{BotCommandPrefix}plugins to get a list of plugins. <i>Example:  $self->{BotCommandPrefix}help register.</i> Most commands work via PM as well. You don't need to use the command prefix ($self->{BotCommandPrefix}) in a PM window.</p>";
 		$html.="<p>Below is a listing of the enabled plugins and the available help messages.</p><hr>";
 
 		$html.="<b>Enabled Plugins</b><br>";
@@ -206,13 +214,7 @@ sub getOutput {
 	##
 
 	if (@tokens == 0){
-		$output = "My Plugins:";
-		foreach my $k (sort keys $plugins){
-			$output.=" $k";
-		}
-
-		return $output;
-
+		return $self->help($cmd);
 	}
 
 
@@ -360,7 +362,7 @@ sub getOutput {
 sub listeners{
 	my $self = shift;
 	##Command Listeners - put em here.  eg ['one', 'two']
-	my @commands = [qw(help allcommands allregex allhelp)];
+	my @commands = [qw(help allcommands allregex allhelp plugins)];
 
    my $default_permissions = [
 		{command=>'allregex',  require_group=>UA_ADMIN} 
@@ -376,10 +378,10 @@ sub listeners{
 sub addHelp{
 	my $self = shift;
 	$self->addHelpItem("[plugin_description]", "Help System. To get a pretty HTML file of all available help, use the command  $self->{BotCommandPrefix}allhelp.  Note that flags for the help command use --two hyphens. ");
-	$self->addHelpItem("[help]", "Usage: help <plugin name> [<command> ...].  Use help --info <plugin name> to get general plugin information.  Use help --all to see all of the help. Use the $self->{BotCommandPrefix}allhelp command to view an HTML help file for this bot.");
+	$self->addHelpItem("[help]", "Usage: help [<plugin name>] [<command>] [<-flag>].  Use $self->{BotCommandPrefix}plugins to get a list of installed plugins.  Use help --info <plugin name> to get general plugin information.  Use the $self->{BotCommandPrefix}allhelp command to view an HTML help file for this bot.");
 	$self->addHelpItem("[help][-info]", "Get the plugin description.");
-	$self->addHelpItem("[help][-all]", "See all help available for a particular plugin or command.");
-	$self->addHelpItem("[allcommands]", "List all commands that $self->{BotName} will respond to. By default will only list the commands that the requesting user has permission to run.  Use -all to see all commands. Use -fullname to include the plugin name with each command.");
+	#$self->addHelpItem("[help][-all]", "See all help available for a particular plugin or command.");
+	$self->addHelpItem("[allcommands]", "List all commands that $self->{BotName} will respond to. By default will only list the commands that the requesting user has permission to run.  Use -fullname to include the plugin name with each command.");
 	$self->addHelpItem("[allregex]", "List all currently registered regex matches.");
 	$self->addHelpItem("[allhelp]", "Create and publish an HTML document that lists all commands.");
 	#$self->addHelpItem("[man]", "Usage: help <plugin name> [<command> ...].  Use help --info <plugin name> to get general plugin information.  Use help --all to see all of the help.");
