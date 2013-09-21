@@ -552,7 +552,7 @@ sub addHelp{
    $self->addHelpItem("[badge][-add]", "Create a badge.  Usage: $self->{BotCommandPrefix}badge -add -name=\"Badge Name\" -date=\"some date\"");
    $self->addHelpItem("[badge][-update]", "Change the date on a badge.  Usage: $self->{BotCommandPrefix}badge -update -name=\"Badge Name\" -date=\"some date\"");
    $self->addHelpItem("[badge][-delete]", "Usage: $self->{BotCommandPrefix}badge -delete -name=\"Badge Name\"");
-   $self->addHelpItem("[badge][-cost]", "Set a daily cost for a badge. Example: $self->{BotCommandPrefix}badge -cost = 5.25 -name=\"Badge Name\"");
+   $self->addHelpItem("[badge][-cost]", "Set a daily cost for a badge. Example: $self->{BotCommandPrefix}badge -cost = 5.25 -name=\"Badge Name\". To clear a cost, use -cost = none");
    $self->addHelpItem("[badge][-all]", "See system wide badges.  Usage: $self->{BotCommandPrefix}badge -all.  To see all badges of a particular type, use $self->{BotCommandPrefix}badge -all -name=\"Badge Name\"");
    $self->addHelpItem("[badge][-nick]", "See another users badges.  Usage: $self->{BotCommandPrefix}badge -nick = someguy");
    $self->addHelpItem("[badge][-name]", "See a particular badge.  Usage: $self->{BotCommandPrefix}badge -name = \"Badge Name\"");
