@@ -22,25 +22,99 @@ use base qw (modules::PluginBaseClass);
 use modules::PluginBaseClass;
 use Data::Dumper;
 
-
 sub getOutput {
 	my $self = shift;
 	my $output = "";
 	my $options = $self->{options};
 	my $cmd = $self->{command};
 	my $nick = $self->{nick};
-
-   $self->suppressNick(1);
-
-	##
-	##	Seen
-	##
-
+	my $irc_event = $self->{irc_event} ||'';
+	my $mask = $self->{mask};  
 	my $channel;
 
 	if (! ($channel = $self->hasFlagValue("channel"))){
 		$channel = $self->{channel};
 	}
+
+   $self->suppressNick(1);
+
+	##
+	## Log irc_join Event
+	##
+
+	if ($irc_event eq 'irc_join'){
+		return if ($self->s("log_joins") eq 'no');
+		my $c = $self->getCollection(__PACKAGE__, ':joins:');
+		my @records = $c->matchRecords({val1=>$nick, val2=>$mask});
+		if (!@records){
+			$c->add($nick, $mask, $self->{channel});
+		}
+		return;
+	}
+
+
+	##
+	## Joins
+	##
+
+	if ($cmd eq 'joins'){
+		my $c = $self->getCollection(__PACKAGE__, ':joins:');
+		my @records;
+		my $desc;
+
+		if ($self->hasFlag('all')){
+			@records = $c->getAllRecords();
+			$desc = "All records";
+
+		}elsif($options){
+			$desc = "Matches for $options";
+			@records = $c->searchRecords($options, 1);
+			my @r2 = $c->searchRecords($options, 2);
+			foreach my $rec2 (@r2){
+				my $found = 0;
+				foreach my $rec (@records){
+					if ($rec->{row_id} eq $rec2->{row_id}){
+						$found =1;
+					}
+				}
+
+				if (!$found){
+					push @records, $rec2;
+				}
+			}
+		
+		}else{
+			return $self->help($cmd);
+		}
+
+		foreach my $rec(@records){
+			my $str = $rec->{val1} . " " . $rec->{val2};
+			if ($self->hasFlag("dates")){
+				$str.=" ($rec->{sys_creation_date})";
+			}
+			if ($self->hasFlag("html")){
+				$self->addToList($str, '<br>');
+			}else{
+				$self->addToList($str, $self->BULLET);
+			}
+		}
+
+		my $list = $self->getList();
+
+		if ($list){
+			return "$desc: $list";
+		}else{
+			return "No $desc.";
+		}
+
+		return;
+	}
+	
+		
+	##
+	##	Seen
+	##
+
 
 	if ($cmd eq 'seen'){
 		return $self->help($cmd) if ($options eq '');
@@ -200,17 +274,31 @@ sub getOutput {
 }
 
 
+sub settings{
+   my $self = shift;
+
+   $self->defineSetting({
+      name=>'log_joins',
+      default=>'no',
+		allowed_values=>[qw(yes no)],
+      desc=>'Log irc_join events'
+   });
+
+}
+
+
 sub listeners{
 	my $self = shift;
 	
-	my @commands = [qw(seen seendb tell)];
+	my @commands = [qw(seen seendb tell joins)];
 
-	my @irc_events = [qw () ];
+	my @irc_events = [qw (irc_join) ];
 
 	my @preg_matches = [ "/./" ];
 
 	my $default_permissions =[ 
-		{command=>"seendb", flag=>'cleardatabase', require_group=>UA_ADMIN}
+		{command=>"seendb", flag=>'cleardatabase', require_group=>UA_ADMIN},
+		{command=>"joins", require_group=>UA_ADMIN}
 	];
 
 	return {commands=>@commands, permissions=>$default_permissions, irc_events=>@irc_events, preg_matches=>@preg_matches};
@@ -224,6 +312,7 @@ sub addHelp{
 	$self->addHelpItem("[seendb]", "Some stats about who's been seen.  Usage: seendb.  Available flags: -listusers,  -cleardatabase -publish");
 	$self->addHelpItem("[seendb][-publish]", "publish the list to a temporary html page. Only applicable when used with -listusers.");
 	$self->addHelpItem("[tell]", "Tell someone something. Use -list to see what I'm waiting to say to whom. Use -delete=<number> to delete. (soon: Use -pm to tell that person via PM, otherwise they'll be told in-channel.");
+	$self->addHelpItem("[joins]", "Search the list of irc_join events.  Usage: joins <string>.  Flags: -all (show all)  -dates (include date of first join event) -html (use <br> instead of bullets as delimiters)");
 }
 1;
 __END__
