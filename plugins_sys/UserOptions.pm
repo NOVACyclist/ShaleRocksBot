@@ -236,7 +236,13 @@ sub getOutput {
 
 	if ($cmd eq 'chfn'){
 		return $self->help($cmd) if ( !$options);	
-		my $c = $self->getCollection(__PACKAGE__, $self->{nick});
+		
+		if (! $self->hasPermission($self->accountNick()) ){
+			return "You don't have permission to do that.";
+		}
+
+		$self->suppressNick(1);
+		my $c = $self->getCollection(__PACKAGE__, $self->accountNick());
 		my @records = $c->matchRecords({val1=>'finger_info'});
 
 		if (@records){
