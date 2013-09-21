@@ -105,6 +105,11 @@ sub getOutput {
 	if ($cmd eq "ask"){
 		return $self->help($cmd) if ($options eq '');
 		$options=~s/\?$//gis;
+		
+		if ($options!~/ or /){
+			my @choices = qw /yes yep no nope maybe perhaps/;
+			return @choices[int(rand(@choices))];
+		}
 
 		my @choices = split / or /, $options;
 		my $i = int(rand(@choices));
