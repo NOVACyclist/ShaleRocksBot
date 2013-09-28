@@ -24,6 +24,12 @@ use modules::PluginBaseClass;
 use Data::Dumper;
 use URI::Escape;
 
+sub onBotStart{
+	my $self = shift;
+	$self->globalCookie('last_word', ':none:');
+	$self->globalCookie('next_q_time', '0');
+}
+
 sub plugin_init{
 	my $self = shift;
 	$self->suppressNick("true");	# show Nick: in the response?
@@ -97,9 +103,17 @@ sub getOutput {
 		return "Scores cleared.";
 	}
 
+
 	if ($cmd eq 'udquiz' && ($self->hasFlag('answer') || $options)){
-		if ($self->globalCookie('last_word') eq ':none:'){	
-			return "There is no current quiz question. Get one using the udquiz command";
+
+
+		if ($self->globalCookie('last_word') eq ':none:'){
+			if ($self->globalCookie('last_q_answer_time') + 5  < time()){
+				return "There is no current quiz question. Get one using the udquiz command";
+			}else{
+				#return silently;
+				return "";
+			}
 		}
 
 		my $guess = $options;
@@ -110,6 +124,7 @@ sub getOutput {
 			$points++;
 			$self->cookie('score', $points);
 			my $ret = "Bingo!  $self->{nick} is correct, the last word was " . $self->globalCookie('last_word') . ".  $self->{nick} now has $points points.";
+			$self->globalCookie('last_q_answer_time', time());
 			$self->globalCookie('last_word', ':none:');
 			return $ret;
 
@@ -121,9 +136,24 @@ sub getOutput {
 
 	if ($self->hasFlag("random") || $cmd eq 'udquiz'){
 
+		if ($self->globalCookie('next_q_time') > time()){
+			## silently ignore
+			return "";
+		}
+
+		if ($cmd eq 'udquiz' && $self->hasFlag("show")){
+			return $self->globalCookie("current_q");
+		}
+
+		if ($cmd eq 'udquiz' && $self->globalCookie('last_word') ne ':none:'){
+			if (!$self->hasFlag('new')){
+				return "There is already a question in play.  $cmd -new get a new question.  $cmd -show to show the current question again."
+			}
+		}
+
 		if ($cmd eq 'udquiz'){
 			return $self->help($cmd) if ($options);
-			return $self->help($cmd) if ($self->numFlags());
+			#return $self->help($cmd) if ($self->numFlags());
 		}
 
 		$url = "http://www.urbandictionary.com/random.php";
@@ -168,10 +198,6 @@ sub getOutput {
 
 
 	if ($cmd eq 'udquiz'){
-		if ($self->globalCookie('next_q_time') > time()){
-			## silently ignore
-			return "";
-		}
 		$self->globalCookie('next_q_time', time() + 4);
 
 		$self->globalCookie("last_word", $word);
@@ -192,6 +218,7 @@ sub getOutput {
 
 		$output = BOLD."UrbanDictionary.com Quiz".NORMAL.GREEN." (answer with $cmd <answer>) ".BLUE."Word: $rep ".BLUE."Definition:".NORMAL." $def";
 		
+		$self->globalCookie("current_q", $output);
 
 	}else{
 		## Word lookup
