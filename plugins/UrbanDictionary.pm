@@ -54,6 +54,7 @@ sub getOutput {
 		for (my $i=0;$i<length($word); $i++){
 			if ($i <= $num_hints){
 				$ret.=substr($word, $i, 1);
+
 			}elsif (substr($word, $i, 1) eq "\'"){
 				$ret.="\'";
 			}else{
@@ -85,7 +86,7 @@ sub getOutput {
 			$self->addToList("$cookie->{owner}: $cookie->{value}", $self->BULLET );
 		}
 
-      my $list = $self->getList() || 'None yet.';
+		my $list = $self->getList() || 'None yet.';
 		return "Urban Dictionary Quiz ".BOLD."Scores".NORMAL." for $self->{channel}: ". $list;
 
 	}
@@ -175,7 +176,8 @@ sub getOutput {
 
 		$self->globalCookie("last_word", $word);
 		$self->globalCookie("last_word_hints", 0);
-		my $def =  $defs[$def_num]->{def};
+
+		my $def =  $defs[int(rand(@defs))]->{def};
 		my $rep = "";
 		for (my $i=0;$i<length($word); $i++){
 			if (substr($word, $i, 1) eq ' '){
