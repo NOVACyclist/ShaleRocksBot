@@ -210,13 +210,11 @@ sub getOutput {
 
 		my $def =  $defs[int(rand(@defs))]->{def};
 		my $rep = "";
+
 		for (my $i=0;$i<length($word); $i++){
-			if (substr($word, $i, 1) eq ' '){
-				$rep.=' ';
-			}elsif (substr($word, $i, 1) eq "\'"){
-				$rep.="\'";
-			}elsif (substr($word, $i, 1) eq '-'){
-				$rep.='-';
+		
+			if (substr($word, $i, 1) !~/[A-Za-z0-9]/){
+				$rep.= substr($word, $i, 1);
 			}else{
 				$rep.='*';
 			}
