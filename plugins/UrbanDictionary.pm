@@ -26,8 +26,8 @@ use URI::Escape;
 
 sub onBotStart{
 	my $self = shift;
-	$self->globalCookie('last_word', ':none:');
-	$self->globalCookie('next_q_time', '0');
+	#$self->globalCookie('last_word', ':none:');
+	#$self->globalCookie('next_q_time', '0');
 }
 
 sub plugin_init{
@@ -50,7 +50,7 @@ sub getOutput {
 	my $word;
 
 	if ($cmd eq 'udquiz' && $self->hasFlag('hint')){
-		if ($self->globalCookie('last_word') eq ':none:'){	
+		if ($self->globalCookie('last_word') eq ':none:' || $self->globalCookie('last_word') eq ''){	
 			return "There is no current quiz question. Get one using the udquiz command";
 		}
 		my $ret = "";
@@ -109,8 +109,7 @@ sub getOutput {
 
 	if ($cmd eq 'udquiz' && ($self->hasFlag('answer') || $options)){
 
-
-		if ($self->globalCookie('last_word') eq ':none:'){
+		if ($self->globalCookie('last_word') eq ':none:' || $self->globalCookie('last_word') eq ''){
 			if ($self->globalCookie('last_q_answer_time') + 5  < time()){
 				return "There is no current quiz question. Get one using the udquiz command";
 			}else{
@@ -128,7 +127,7 @@ sub getOutput {
 			$self->cookie('score', $points);
 			my @interjections = ("Bingo", "Nice", "Yep", "Yes", "Sweet", "Good show", "Fair play to you", "Impressive", "Right on", "Awesome", "Spot on", "A++", "Way to go", "You know it", "Whoa", "OMG");
 			my $interjection = $interjections[rand(@interjections)];
-			my $ret = "$interjection!  ".BOLD."$self->{nick}".NORMAL." is correct, the last word was " . $self->globalCookie('last_word') . ".  $self->{nick} now has $points points.";
+			my $ret = "$interjection!  ".BOLD."$self->{nick}".NORMAL." is correct, the last word was " . $self->globalCookie('last_word') . ".  $self->{nick} now has $points points. ".BLUE."(udquiz -scores to see all scores)";
 			$self->globalCookie('last_q_answer_time', time());
 			$self->globalCookie('last_word', ':none:');
 			return $ret;
@@ -153,13 +152,14 @@ sub getOutput {
 			return $self->globalCookie("current_q");
 		}
 
-		if ($cmd eq 'udquiz' && $self->globalCookie('last_word') ne ':none:'){
+		if ($cmd eq 'udquiz' && ($self->globalCookie('last_word') ne ':none:') && $self->globalCookie('last_word') ne ''){
 			if (!$self->hasFlag('new')){
 				return "There is already a question in play.  $cmd -new get a new question.  $cmd -show to show the current question again."
 			}
 		}
 
 		if ($cmd eq 'udquiz'){
+			$self->globalCookie('next_q_time', time() + 4);
 			return $self->help($cmd) if ($options);
 			#return $self->help($cmd) if ($self->numFlags());
 		}
@@ -206,8 +206,6 @@ sub getOutput {
 
 
 	if ($cmd eq 'udquiz'){
-		$self->globalCookie('next_q_time', time() + 4);
-
 		$self->globalCookie("last_word", $word);
 
 		my $def =  $defs[int(rand(@defs))]->{def};
