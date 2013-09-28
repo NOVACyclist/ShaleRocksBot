@@ -26,8 +26,8 @@ use URI::Escape;
 
 sub plugin_init{
 	my $self = shift;
-
 	$self->suppressNick("true");	# show Nick: in the response?
+	$self->useChannelCookies();
 	return $self;						#dont remove this line or RocksBot will cry
 }
 
@@ -39,10 +39,103 @@ sub getOutput {
 	my $channel	= $self->{channel};					
 	my $nick = $self->{nick};				
 	my $output = "";
+	my $url;
+	my $page;
+	my $word;
 
-	return $self->help($cmd) if (!$options);
-	my $url = "http://www.urbandictionary.com/define.php?term=" . uri_escape($options);
-	my $page = $self->getPage($url);
+	if ($cmd eq 'udquiz' && $self->hasFlag('hint')){
+		if ($self->globalCookie('last_word') eq ':none:'){	
+			return "There is no current quiz question. Get one using the udquiz command";
+		}
+		my $num_hints = $self->globalCookie('last_word_hints');
+		my $word = $self->globalCookie("last_word");
+		my $ret = "";
+
+		for (my $i=0;$i<length($word); $i++){
+			if ($i <= $num_hints){
+				$ret.=substr($word, $i, 1);
+			}elsif (substr($word, $i, 1) eq "\'"){
+				$ret.="\'";
+			}else{
+				if (substr($word, $i, 1) eq ' '){
+					$ret.=' ';
+				}else{
+					$ret.='*';
+				}
+			}
+		}
+
+		$self->globalCookie('last_word_hints', $num_hints+1);
+		return BOLD."Hint: ".NORMAL.$ret;
+	}
+
+
+	if ($cmd eq 'udquiz' && $self->hasFlag('scores')){
+		my @cookies = $self->allCookies();
+		my @scores;
+		foreach my $cookie (@cookies){
+			next if ($cookie->{owner} eq ':package');
+			push @scores, $cookie;
+		}
+
+		@scores = sort {$b->{value} <=> $a->{value}} @scores;
+
+		foreach my $cookie (@scores){
+			next if ($cookie->{owner} eq ':package');
+			$self->addToList("$cookie->{owner}: $cookie->{value}", $self->BULLET );
+		}
+
+      my $list = $self->getList() || 'None yet.';
+		return "Urban Dictionary Quiz ".BOLD."Scores".NORMAL." for $self->{channel}: ". $list;
+
+	}
+
+
+	if ($cmd eq 'udquiz' && $self->hasFlag('clearscores')){
+		$self->deletePackageCookies();
+		return "Scores cleared.";
+	}
+
+	if ($cmd eq 'udquiz' && ($self->hasFlag('answer') || $options)){
+		if ($self->globalCookie('last_word') eq ':none:'){	
+			return "There is no current quiz question. Get one using the udquiz command";
+		}
+
+		my $guess = $options;
+		$guess = $self->hasFlagValue('answer') if ($self->hasFlagValue('answer'));
+
+		if (lc($guess) eq lc($self->globalCookie('last_word'))){
+			my $points = $self->cookie('score') || 0;
+			$points++;
+			$self->cookie('score', $points);
+			my $ret = "Bingo!  $self->{nick} is correct, the last word was " . $self->globalCookie('last_word') . ".  $self->{nick} now has $points points.";
+			$self->globalCookie('last_word', ':none:');
+			return $ret;
+
+		}else{
+			return "Nope, $self->{nick}, keep guessing.";
+		}
+	}
+
+
+	if ($self->hasFlag("random") || $cmd eq 'udquiz'){
+
+		if ($cmd eq 'udquiz'){
+			return $self->help($cmd) if ($options);
+			return $self->help($cmd) if ($self->numFlags());
+		}
+
+		$url = "http://www.urbandictionary.com/random.php";
+		$page = $self->getPage($url);
+		$page=~/<meta content=["|'](.+?)["|'] property='og:title'>/;
+		$word = $1;
+
+	}else{
+		return $self->help($cmd) if (!$options);
+		$url = "http://www.urbandictionary.com/define.php?term=" . uri_escape($options);
+		$page = $self->getPage($url);
+		$word = $options;
+	}
 
 	$page=~ tr/\015//d;
 
@@ -52,13 +145,12 @@ sub getOutput {
 		my $def = $1;
 		my $example;
 
-
 		if ($def=~s#<div class="example">(.+?)</div>##gis){
 			$example = $1;		
+			$example=~s/<.+?>//gis;
 		}
 	
 		$def=~s/<.+?>//gis;
-		$example=~s/<.+?>//gis;
 		push @defs, {def=>$def, example=>$example};
 	}
 
@@ -73,12 +165,42 @@ sub getOutput {
 		$def_num = 0;
 	}
 
-	if (@defs){
-		$output = "UrbanDictionary.com on ".BOLD.$options.NORMAL.". [".($def_num+1)."/".(@defs)."] ".BLUE."Definition:".NORMAL." $defs[$def_num]->{def}  ".BLUE."Example:".NORMAL." $defs[$def_num]->{example}";
+
+	if ($cmd eq 'udquiz'){
+		if ($self->globalCookie('next_q_time') > time()){
+			## silently ignore
+			return "";
+		}
+		$self->globalCookie('next_q_time', time() + 4);
+
+		$self->globalCookie("last_word", $word);
+		$self->globalCookie("last_word_hints", 0);
+		my $def =  $defs[$def_num]->{def};
+		my $rep = "";
+		for (my $i=0;$i<length($word); $i++){
+			if (substr($word, $i, 1) eq ' '){
+				$rep.=' ';
+			}elsif (substr($word, $i, 1) eq "\'"){
+				$rep.="\'";
+			}else{
+				$rep.='*';
+			}
+		}
+		$def=~s/$word/$rep/gis;
+
+		$output = BOLD."UrbanDictionary.com Quiz".NORMAL.GREEN." (answer with $cmd <answer>) ".BLUE."Word: $rep ".BLUE."Definition:".NORMAL." $def";
+		
+
 	}else{
-		$output = "No hip definitions found for \"$options\"";
+		## Word lookup
+
+		if (@defs){
+			$output = "UrbanDictionary.com on ".BOLD.$word.NORMAL.". [".($def_num+1)."/".(@defs)."] ".BLUE."Definition:".NORMAL." $defs[$def_num]->{def}  ".BLUE."Example:".NORMAL." $defs[$def_num]->{example}";
+		}else{
+			$output = "No hip definitions found for \"$word\"";
+		}
 	}
-	return $output;
+		return $output;
 }
 
 
@@ -96,16 +218,16 @@ sub listeners{
 	
 	##	Which commands should this plugin respond to?
 	## Command Listeners - put em here.  eg [qw (cmd1 cmd2 cmd3)]
-	my @commands = [qw(ud)];
+	my @commands = [qw(ud udquiz)];
 
 	## Values: irc_join
 	my @irc_events = [qw () ];
 
-	## Example:  ["/^$self->{BotName}/i",  '/hug (\w+)\W*'.$self->{BotName}.'/i' ]
-	## The only modifier you can use is /i
-	my @preg_matches = [qw () ];
+	my @preg_matches = [
+ 	];
 
-	my $default_permissions =[ ];
+	my $default_permissions =[
+      {command=>"udquiz",  flag=>'clearscores', require_group => UA_ADMIN } ];
 
 	return {commands=>@commands, permissions=>$default_permissions, 
 		irc_events=>@irc_events, preg_matches=>@preg_matches};
@@ -119,8 +241,13 @@ sub listeners{
 ##
 sub addHelp{
 	my $self = shift;
-	$self->addHelpItem("[plugin_description]", "Interface to UrbanDictionary.com.");
-   $self->addHelpItem("[ud]", "Usage: ud <query> [ -n=<definition number> ]");
+	$self->addHelpItem("[plugin_description]", "Interface to UrbanDictionary.com. Look up a word, get a random word, or try to guess a word based on the definition.");
+   $self->addHelpItem("[ud]", "Usage: ud <query> [ -n=<definition number> ] [-random]");
+   $self->addHelpItem("[ud][-random]", "Get a random word from Urban Dictionary.  Usage: ud <query> [-random]");
+   $self->addHelpItem("[udquiz]", "Get a random word from Urban Dictionary and wait for people to guess the answer.  Use udquiz <answer> to guess the answer.  Use udquiz -hint to get a hit.  Use udquiz -scores to see the current scores. Admins can clear scores with the -clearscores flag");
+   $self->addHelpItem("[udquiz][-scores]", "Get the scores of the current Urban Dictionary quiz game for this channel.");
+   $self->addHelpItem("[udquiz][-answer]", "Answer the current Urban Dictionary quiz question.  Note that this flag isn't required, you can answer with udquiz <answer>");
+   $self->addHelpItem("[udquiz][-clearscores]", "Clear the scores of the Urban Dictionary quiz game for this channel.");
 }
 1;
 __END__
