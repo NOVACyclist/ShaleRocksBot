@@ -53,26 +53,29 @@ sub getOutput {
 		if ($self->globalCookie('last_word') eq ':none:'){	
 			return "There is no current quiz question. Get one using the udquiz command";
 		}
-		my $num_hints = $self->globalCookie('last_word_hints');
-		my $word = $self->globalCookie("last_word");
 		my $ret = "";
 
-		for (my $i=0;$i<length($word); $i++){
-			if ($i <= $num_hints){
-				$ret.=substr($word, $i, 1);
+		my $word = $self->globalCookie("last_word");
+		my $hint = $self->globalCookie("last_word_hint");
+		my $num_stars = () = $hint=~/\*/g;
+		my $reveal = int(rand($num_stars)) + 1;
+		my $star_count = 0;
 
-			}elsif (substr($word, $i, 1) eq "\'"){
-				$ret.="\'";
-			}else{
-				if (substr($word, $i, 1) eq ' '){
-					$ret.=' ';
+		for(my $i=0; $i<length($hint); $i++){
+			if (substr($hint, $i, 1) eq '*'){
+				$star_count++;
+				if ($star_count == $reveal){
+					$ret.=substr($word, $i, 1);
 				}else{
-					$ret.='*';
+					$ret.=substr($hint, $i, 1);
 				}
+
+			}else{
+				$ret.=substr($hint, $i, 1);
 			}
 		}
 
-		$self->globalCookie('last_word_hints', $num_hints+1);
+		$self->globalCookie("last_word_hint", $ret);
 		return BOLD."Hint: ".NORMAL.$ret;
 	}
 
@@ -123,20 +126,25 @@ sub getOutput {
 			my $points = $self->cookie('score') || 0;
 			$points++;
 			$self->cookie('score', $points);
-			my $ret = "Bingo!  $self->{nick} is correct, the last word was " . $self->globalCookie('last_word') . ".  $self->{nick} now has $points points.";
+			my @interjections = ("Bingo", "Nice", "Yep", "Yes", "Sweet", "Good show", "Fair play to you", "Impressive", "Right on", "Awesome", "Spot on", "A++", "Way to go", "You know it", "Whoa", "OMG");
+			my $interjection = $interjections[rand(@interjections)];
+			my $ret = "$interjection!  ".BOLD."$self->{nick}".NORMAL." is correct, the last word was " . $self->globalCookie('last_word') . ".  $self->{nick} now has $points points.";
 			$self->globalCookie('last_q_answer_time', time());
 			$self->globalCookie('last_word', ':none:');
 			return $ret;
 
 		}else{
-			return "Nope, $self->{nick}, keep guessing.";
+			my @interjections = ("Nope", "No", "Wrong", "No dice", "You wish", "Not quite", "I don't think so", "Negative");
+			my $interjection = $interjections[rand(@interjections)];
+			
+			return "$interjection, $self->{nick}, keep guessing.";
 		}
 	}
 
 
 	if ($self->hasFlag("random") || $cmd eq 'udquiz'){
 
-		if ($self->globalCookie('next_q_time') > time()){
+		if ($cmd eq 'udquiz' && $self->globalCookie('next_q_time') > time()){
 			## silently ignore
 			return "";
 		}
@@ -201,7 +209,6 @@ sub getOutput {
 		$self->globalCookie('next_q_time', time() + 4);
 
 		$self->globalCookie("last_word", $word);
-		$self->globalCookie("last_word_hints", 0);
 
 		my $def =  $defs[int(rand(@defs))]->{def};
 		my $rep = "";
@@ -210,11 +217,14 @@ sub getOutput {
 				$rep.=' ';
 			}elsif (substr($word, $i, 1) eq "\'"){
 				$rep.="\'";
+			}elsif (substr($word, $i, 1) eq '-'){
+				$rep.='-';
 			}else{
 				$rep.='*';
 			}
 		}
 		$def=~s/$word/$rep/gis;
+		$self->globalCookie("last_word_hint", $rep);
 
 		$output = BOLD."UrbanDictionary.com Quiz".NORMAL.GREEN." (answer with $cmd <answer>) ".BLUE."Word: $rep ".BLUE."Definition:".NORMAL." $def";
 		
@@ -277,6 +287,8 @@ sub addHelp{
    $self->addHelpItem("[udquiz][-scores]", "Get the scores of the current Urban Dictionary quiz game for this channel.");
    $self->addHelpItem("[udquiz][-answer]", "Answer the current Urban Dictionary quiz question.  Note that this flag isn't required, you can answer with udquiz <answer>");
    $self->addHelpItem("[udquiz][-clearscores]", "Clear the scores of the Urban Dictionary quiz game for this channel.");
+   $self->addHelpItem("[udquiz][-show]", "Show the current question in play, if there is one.");
+   $self->addHelpItem("[udquiz][-new]", "Forces a new question to be loaded & discards the current question.");
 }
 1;
 __END__
