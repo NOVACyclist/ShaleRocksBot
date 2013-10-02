@@ -47,21 +47,21 @@ sub getOutput {
 	## Show scores
 	##
 	if ($self->hasFlag('scores')){
-			my @cookies = $self->allCookies();
-			my @scores;
-			foreach my $cookie (@cookies){
-				next if ($cookie->{owner} eq ':package');
-				push @scores, $cookie;
-			}
+		my @cookies = $self->allCookies();
+		my @scores;
+		foreach my $cookie (@cookies){
+			next if ($cookie->{owner} eq ':package');
+			push @scores, $cookie;
+		}
 
-			@scores = sort {$b->{value} <=> $a->{value}} @scores;
+		@scores = sort {$b->{value} <=> $a->{value}} @scores;
 
-			foreach my $cookie (@scores){
-				$self->addToList("$cookie->{owner}: $cookie->{value}", $self->BULLET );
-			}
+		foreach my $cookie (@scores){
+			$self->addToList("$cookie->{owner}: $cookie->{value}", $self->BULLET );
+		}
 
-			my $list = $self->getList() || 'None yet.';
-			return "MasterMind game ".BOLD."Scores".NORMAL." for $self->{channel}: ". $list;
+		my $list = $self->getList() || 'None yet.';
+		return "MasterMind game ".BOLD."Scores".NORMAL." for $self->{channel}: ". $list;
    }
 
 
