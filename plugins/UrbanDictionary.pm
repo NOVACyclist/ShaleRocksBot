@@ -153,7 +153,7 @@ sub getOutput {
 					command => 'udquiz',
 					options => '-new',
 					desc => 'Next question for Urban Dictionary Quiz'
-   		   };
+				};
 
 				$self->scheduleEvent($timer_args);
 			}
@@ -282,36 +282,33 @@ sub settings{
 		default=>'first',
 		allowed_values=>['random', 'first'],
 		desc=>'Should the udquiz show the most popular definition for each term, or should it pick a random definition?'
-   });
+	});
 
 	$self->defineSetting({
 		name=>'quiz_disable_channels',
 		default=>'none',
 		desc=>'A space-separated list of channels in which the game should be disabled. If quiz_active_channel is set, users will be advised to join that channel. Set to "none" if appropriate.'
-   });
+	});
 
 	$self->defineSetting({
 		name=>'quiz_advertise_channel',
 		default=>'none',
 		desc=>'If this is set, users will be told to join this channel when sdquiz is called from a channel listed in quiz_disable_channels list.  Set to "none" for no advertise channel.'
-   });
+	});
 
 	$self->defineSetting({
 		name=>'quiz_auto_show_next',
 		default=>'yes',
 		allowed_values=>['yes', 'no'],
 		desc=>'Should the bot automatically show the next question when the previous question is answered correctly?'
-   });
+	});
 
 
 	$self->defineSetting({
 		name=>'quiz_auto_show_next_delay',
 		default=>'20',
 		desc=>'Number of seconds to delay before showing the next question.  Only used if quiz_auto_show_next is set.'
-   });
-
-
-
+	});
 
 }
 
