@@ -140,6 +140,8 @@ my $cookies_channels;	#keep cookies channel specific 0 or 1
 my $cookies_c;   # collection, loaded only if necessary
 my $settings_c;  # collection. loaded only if necessary
 
+my $getPage_last_url;	# the final url (after redirects) of the the getPage function;
+
 sub new {
 	my ($class, @args) = @_;
 	my $self = bless {}, $class;
@@ -683,6 +685,7 @@ sub getPage {
 	$self->keepStats({a=>'end', data=>$url});
 
 	if ($res->is_success) {
+		$self->{getPage_last_url} = $res->request()->uri();
 		return decode_entities($res->content);
 	}
 	
