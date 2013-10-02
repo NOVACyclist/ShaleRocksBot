@@ -101,6 +101,13 @@ sub getOutput {
 		$message = BOLD."Ancient World Problem: ".NORMAL;
 	}
 
+	if ($cmd eq 'crazyidea'){
+		$self->{subreddit} = 'crazyideas';
+		$self->{links_to_load} = 200;
+		$self->{reload_at} = 1;
+		$message = BOLD."Crazy Idea: ".NORMAL;
+	}
+
 
 
 	if ($self->hasFlag("clearcache")){
@@ -243,7 +250,7 @@ sub trimCache{
 sub listeners{
 	my $self = shift;
 	
-	my @commands = [qw(icebreaker showerthought firstworldproblem secondworldproblem thirdworldproblem fourthworldproblem fifthworldproblem dae ancientworldproblem)];
+	my @commands = [qw(icebreaker showerthought firstworldproblem secondworldproblem thirdworldproblem fourthworldproblem fifthworldproblem dae ancientworldproblem crazyidea)];
 
 	my @irc_events = [qw () ];
 
@@ -274,6 +281,7 @@ sub addHelp{
    $self->addHelpItem("[fifthworldproblem]", "Grab a random item from /r/fifthworldproblems on reddit.");
    $self->addHelpItem("[dae]", "Grab a random item from /r/dae on reddit.");
    $self->addHelpItem("[ancientworldproblem]", "Grab a random item from /r/ancientworldproblems on reddit.");
+   $self->addHelpItem("[crazyidea]", "Grab a random item from /r/crazyideas on reddit.");
 }
 1;
 __END__
