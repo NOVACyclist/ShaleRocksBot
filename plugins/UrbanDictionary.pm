@@ -49,6 +49,18 @@ sub getOutput {
 	my $page;
 	my $word;
 
+	if ($cmd eq 'udquiz'){
+		my @dchannels = split (/ /, $self->s('quiz_disable_channels'));
+		if ($self->{channel} ~~ @dchannels){
+			my $msg = "The Urban Dictionary Quiz game is disabled in this channel. ";
+			my $adchannel = $self->s('quiz_advertise_channel') || 'none';
+			if ($adchannel ne 'none'){
+				$msg.="If you'd like to play, join the $adchannel channel. Type /join $adchannel";
+			}
+			return $msg;
+		}
+	}
+
 	if ($cmd eq 'udquiz' && $self->hasFlag('hint')){
 		if ($self->globalCookie('last_word') eq ':none:' || $self->globalCookie('last_word') eq ''){	
 			return "There is no current quiz question. Get one using the udquiz command";
@@ -127,9 +139,25 @@ sub getOutput {
 			$self->cookie('score', $points);
 			my @interjections = ("Bingo", "Nice", "Yep", "Yes", "Sweet", "Good show", "Fair play to you", "Impressive", "Right on", "Awesome", "Spot on", "A++", "Way to go", "You know it", "Whoa", "OMG");
 			my $interjection = $interjections[rand(@interjections)];
-			my $ret = "$interjection!  ".BOLD."$self->{nick}".NORMAL." is correct, the last word was " . $self->globalCookie('last_word') . ".  $self->{nick} now has $points points. ".BLUE."(udquiz -scores to see all scores)";
+			my $ret = "$interjection!  ".BOLD."$self->{nick}".NORMAL." is correct, the last word was " . $self->globalCookie('last_word').". ". UNDERLINE.$self->globalCookie("last_page_url").NORMAL." $self->{nick} now has $points points. ".BLUE."(udquiz -scores to see all scores)".NORMAL;
 			$self->globalCookie('last_q_answer_time', time());
 			$self->globalCookie('last_word', ':none:');
+
+	
+			## auto show next question, if set in -settings
+			if ($self->s('quiz_auto_show_next') eq 'yes'){
+				my $delay = $self->s('quiz_auto_show_next_delay');
+				$ret.=RED.BOLD." Next question in $delay seconds.";
+				my $timer_args = {
+					timestamp => (int(time()) + $delay),
+					command => 'udquiz',
+					options => '-new',
+					desc => 'Next question for Urban Dictionary Quiz'
+   		   };
+
+				$self->scheduleEvent($timer_args);
+			}
+
 			return $ret;
 
 		}else{
@@ -208,7 +236,13 @@ sub getOutput {
 	if ($cmd eq 'udquiz'){
 		$self->globalCookie("last_word", $word);
 
-		my $def =  $defs[int(rand(@defs))]->{def};
+		my $def;
+		if ($self->s('quiz_question') eq 'first'){
+			$def = $defs[0]->{def};
+		}else{	
+			$def = $defs[int(rand(@defs))]->{def};
+		}
+
 		my $rep = "";
 
 		for (my $i=0;$i<length($word); $i++){
@@ -222,9 +256,11 @@ sub getOutput {
 		$def=~s/$word/$rep/gis;
 		$self->globalCookie("last_word_hint", $rep);
 
-		$output = BOLD."UrbanDictionary.com Quiz".NORMAL.GREEN." (answer with $cmd <answer>) ".BLUE."Word: $rep ".BLUE."Definition:".NORMAL." $def";
+		$output = BOLD."UrbanDictionary.com Quiz".NORMAL.GREEN." (answer with $cmd <answer>) ".BLUE."Word: $rep (".length($rep).") ".BLUE."Definition:".NORMAL." $def";
 		
 		$self->globalCookie("current_q", $output);
+		my $url = $self->getShortURL($self->{getPage_last_url});
+		$self->globalCookie("last_page_url", $url);
 
 	}else{
 		## Word lookup
@@ -237,6 +273,48 @@ sub getOutput {
 	}
 		return $output;
 }
+
+sub settings{
+	my $self = shift;
+
+	$self->defineSetting({
+		name=>'quiz_question',
+		default=>'first',
+		allowed_values=>['random', 'first'],
+		desc=>'Should the udquiz show the most popular definition for each term, or should it pick a random definition?'
+   });
+
+	$self->defineSetting({
+		name=>'quiz_disable_channels',
+		default=>'none',
+		desc=>'A space-separated list of channels in which the game should be disabled. If quiz_active_channel is set, users will be advised to join that channel. Set to "none" if appropriate.'
+   });
+
+	$self->defineSetting({
+		name=>'quiz_advertise_channel',
+		default=>'none',
+		desc=>'If this is set, users will be told to join this channel when sdquiz is called from a channel listed in quiz_disable_channels list.  Set to "none" for no advertise channel.'
+   });
+
+	$self->defineSetting({
+		name=>'quiz_auto_show_next',
+		default=>'yes',
+		allowed_values=>['yes', 'no'],
+		desc=>'Should the bot automatically show the next question when the previous question is answered correctly?'
+   });
+
+
+	$self->defineSetting({
+		name=>'quiz_auto_show_next_delay',
+		default=>'20',
+		desc=>'Number of seconds to delay before showing the next question.  Only used if quiz_auto_show_next is set.'
+   });
+
+
+
+
+}
+
 
 
 ## listeners() and addHelp()
