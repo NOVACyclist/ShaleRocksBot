@@ -22,7 +22,6 @@ use warnings;
 use base qw (modules::PluginBaseClass);
 use modules::PluginBaseClass;
 use Data::Dumper;
-use URI::Escape;
 
 sub plugin_init{
 	my $self = shift;
