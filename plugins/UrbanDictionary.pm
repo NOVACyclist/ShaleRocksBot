@@ -151,7 +151,7 @@ sub getOutput {
 				my $timer_args = {
 					timestamp => (int(time()) + $delay),
 					command => 'udquiz',
-					options => '-new',
+					options => '',
 					desc => 'Next question for Urban Dictionary Quiz'
 				};
 
