@@ -279,7 +279,7 @@ sub listeners{
 sub addHelp{
 	my $self = shift;
 	$self->addHelpItem("[plugin_description]", "Welcomes people to the room. Set custom welcome messages for users.");
-	$self->addHelpItem("[herald]", "Welcomes people to the room, or set a custom welcome message for a particular user. Flags: -add -list -delete, with -nick=<nick> -channel=<#channel> -message=\"message\" -command -action -id=<#>");
+	$self->addHelpItem("[herald]", "Welcomes people to the room, or set a custom welcome message for a particular user. Flags: -add -list -delete, with -nick=<nick> [-channel=<#channel>] -message=\"message\" [-command] [-action] [-id=<#>]");
 	$self->addHelpItem("[herald][-add]", "Add a herald message for a nick.  Use -command to indicate that the message should be executed as a command.  Use -action to indicate that the message should be announced as an action. (e.g. /me).  Example: herald -add -nick=\"SomeGuy\" -channel=\"#somechannel\"  -message=\"hello there!\" ");
 }
 1;
