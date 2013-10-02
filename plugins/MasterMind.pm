@@ -61,7 +61,7 @@ sub getOutput {
 
 		my $list = $self->getList() || 'None yet.';
 		return "MasterMind game ".BOLD."Scores".NORMAL." for $self->{channel}: ". $list;
-   }
+	}
 
 
 	##
