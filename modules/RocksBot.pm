@@ -592,13 +592,14 @@ sub printOutputAction{
 	
 	if (loopProtect($output, $channel)){
 		if (int(rand(2))){
-			$irc->yield(ctcp => $channel => 'ACTION ' . "takes a time out.");
+			$output= "takes a time out.";
 		}else{
-			$irc->yield(ctcp => $channel => 'ACTION ' . "... is growing tired of this.");
+			$output= "... is growing tired of this.";
 		}
-	}else{
-		$irc->yield(ctcp => $channel => 'ACTION ' . $output);
 	}
+
+	print theTime() . $channel . " $BotName(action) " . $output . "\n";
+	$irc->yield(ctcp => $channel => 'ACTION ' . $output);
 }
 
 ## 
@@ -721,13 +722,14 @@ sub printOutput{
 
 	if (loopProtect($message, $channel)){
 		if (int(rand(2))){
-			$irc->yield( privmsg => $channel => "I think we're going in circles here. Let's agree to disagree.");
+			$message = "$nick: I think we're going in circles here. Let's agree to disagree.";
 		}else{
-			$irc->yield( privmsg => $channel => " . . . break time! bbl");
+			$message = "$nick:  . . . break time! bbl";
 		}
-	}else{
-		$irc->yield( privmsg => $channel => $message );
 	}
+
+	print theTime() . $channel . " $BotName(output) " . $message . "\n";
+	$irc->yield( privmsg => $channel => $message );
 	
 
 	if (@msgs){
@@ -1177,6 +1179,6 @@ sub rateLimit{
 
 sub theTime{
 	my @t = localtime(time);
-	return sprintf("[%02d:%02d:%02d] ", $t[2], $t[1], $t[0]);
+	return sprintf("[%02d-%02d %02d:%02d:%02d] ", $t[4]+1, $t[3], $t[2], $t[1], $t[0]);
 }
 1;
