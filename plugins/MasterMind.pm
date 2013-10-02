@@ -256,7 +256,7 @@ sub listeners{
  	];
 
 	my $default_permissions =[
-      {command=>"udquiz",  flag=>'clearscores', require_group => UA_ADMIN } ];
+      {command=>"mm",  flag=>'clearscores', require_group => UA_ADMIN } ];
 
 	return {commands=>@commands, permissions=>$default_permissions, 
 		irc_events=>@irc_events, preg_matches=>@preg_matches};
