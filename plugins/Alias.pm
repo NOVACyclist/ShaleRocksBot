@@ -243,7 +243,7 @@ sub addHelp{
    $self->addHelpItem("[alias][-add]", "Create a new alias: alias -add -name=<alias> -command=<command>. When adding aliases, use \$1, \$2, etc., to refer to required arguments.  Use \@3, \@4, etc., to refer to optional arguments.  Optional argument numbering starts where requirement argument numbering left off.  Use \$* to refer to all arguments, or all remaining arguments.");
 
 	foreach my $alias (@{$self->{aliases}}){
-		 $self->addHelpItem("[".$alias->{alias}."]", "The command '$alias->{alias}' is an alias to \"$alias->{command}\", and was created by $alias->{created_by}.");
+		$self->addHelpItem("[".$alias->{alias}."]", "The command '$alias->{alias}' is an alias to \"$alias->{command}\", and was created by $alias->{created_by}.");
 	}
 }
 1;
