@@ -215,9 +215,31 @@ sub getOutput {
 		my $board = "";
 		my $letters = 'EEEEEEEEEEEEEEEEEEETTTTTTTTTTTTTAAAAAAAAAAAARRRRRRRRRRRRIIIIIIIIIINNNNNNNNNNOOOOOOOOOOSSSSSSSSDDDDDDCCCCCHHHHHLLLLLFFFFMMMMPPPPUUUUGGGYYYWWBJKQVXZ';
 
-		for (my $i=0; $i<10; $i++){
-			my $rand = int(rand(length($letters)));
-			$board.=substr($letters, $rand, 1);
+		my $vowels = 0;
+
+		do {
+			$board = "";
+			$vowels = 0;
+
+			for (my $i=0; $i<10; $i++){
+				my $rand = int(rand(length($letters)));
+				$board.=substr($letters, $rand, 1);
+			}
+			$vowels++ while ($board=~/A|E|I|O|U/g);
+
+		}while ($vowels < 2);
+
+		# add a U if Q & no U
+		if ($board=~/Q/){
+			if ($board!~/U/){
+				$board.="U";
+			}
+		}
+
+		## bonus E on friday.  Because, fuck, it's a friday
+		my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime(time);
+		if ($wday == 5){
+			$board.="E";
 		}
 
 		$self->globalCookie('board', $board);
