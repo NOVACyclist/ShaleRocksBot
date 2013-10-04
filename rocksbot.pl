@@ -1,7 +1,7 @@
 #!/usr/bin/perl
-#	RocksBot
-#	Usage: rocksbot.pl	(will read rocksbot.cfg in local directory)
-#	or: rocksbot.pl <config filename> 	(will read specified config file)
+#   RocksBot
+#   Usage: rocksbot.pl  (will read rocksbot.cfg in local directory)
+#   or: rocksbot.pl <config filename>   (will read specified config file)
 #---------------------------------------------------------------------------
 #    Copyright (C) 2013  egretsareherons@gmail.com
 #    https://github.com/egretsareherons/RocksBot
@@ -30,15 +30,15 @@ my $config_file;
 
 ## Look for config file on command line
 if (@ARGV){
-	my $full_name = abs_path($ARGV[0]);
-	if (! -f $full_name){
-		die "Couldn't find that file: $ARGV[0]";
-	}
+    my $full_name = abs_path($ARGV[0]);
+    if (! -f $full_name){
+        die "Couldn't find that file: $ARGV[0]";
+    }
 
-	$config_file = $full_name;
+    $config_file = $full_name;
 }else{
-	my $cwd = getcwd();
-	$config_file = "$cwd/rocksbot.cfg";
+    my $cwd = getcwd();
+    $config_file = "$cwd/rocksbot.cfg";
 }
 
 my $RocksBot = RocksBot->new($config_file);
