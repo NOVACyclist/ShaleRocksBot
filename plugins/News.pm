@@ -27,60 +27,60 @@ use Data::Dumper;
 #use HTML::Entities;
 
 sub getOutput {
-	my $self = shift;
-	my $output = "";
+    my $self = shift;
+    my $output = "";
 
-	my $URL;
-	my $term;
+    my $URL;
+    my $term;
 
    if ($self->{'options'} eq '' ){
-		$URL = "http://news.google.com/news?ned=us&topic=h&output=rss";
+        $URL = "http://news.google.com/news?ned=us&topic=h&output=rss";
    }else{
-		$term = uri_escape($self->{'options'});
-		$URL = "http://news.google.com/news?q=".$term."&output=rss";
-	}
+        $term = uri_escape($self->{'options'});
+        $URL = "http://news.google.com/news?q=".$term."&output=rss";
+    }
 
-	my $feed = XML::Feed->parse(URI->new($URL))
-		or return "Error retriving news about that. " . XML::Feed->errstr;
-	
-	#for my $entry ($feed->entries) {
-		#print "----------------------------\n";
-		#print Dumper($entry);
-		#print $entry->{'entry'}->{'title'} . "\n";
-		#my $shorturl = $self->getShortURL($entry->{'entry'}->{'link'});
-		#print $shorturl . "\n";
-		#print "----------------------------\n";
-	#}
-	
-	if ($feed->entries > 2){
-		for (my $i=0; $i<5; $i++){
-			my $title = ($feed->entries)[$i]->{'entry'}->{'title'};
-			my $link = ($feed->entries)[$i]->{'entry'}->{'link'};
-			my $shorturl = $self->getShortURL($link);
-			if ($i > 0){
-				$output .= " ".BULLET." ";
-			}
-			$output .= "$title ".UNDERLINE."$shorturl".NORMAL;
-		}
-	}else{
-		$output = "No news found for " . $self->{'options'}.".";
-	}
+    my $feed = XML::Feed->parse(URI->new($URL))
+        or return "Error retriving news about that. " . XML::Feed->errstr;
+    
+    #for my $entry ($feed->entries) {
+        #print "----------------------------\n";
+        #print Dumper($entry);
+        #print $entry->{'entry'}->{'title'} . "\n";
+        #my $shorturl = $self->getShortURL($entry->{'entry'}->{'link'});
+        #print $shorturl . "\n";
+        #print "----------------------------\n";
+    #}
+    
+    if ($feed->entries > 2){
+        for (my $i=0; $i<5; $i++){
+            my $title = ($feed->entries)[$i]->{'entry'}->{'title'};
+            my $link = ($feed->entries)[$i]->{'entry'}->{'link'};
+            my $shorturl = $self->getShortURL($link);
+            if ($i > 0){
+                $output .= " ".BULLET." ";
+            }
+            $output .= "$title ".UNDERLINE."$shorturl".NORMAL;
+        }
+    }else{
+        $output = "No news found for " . $self->{'options'}.".";
+    }
 
-	return $output;
+    return $output;
 }
 
 sub listeners{
-	my $self = shift;
+    my $self = shift;
 
-	my @commands = [qw(news)];
+    my @commands = [qw(news)];
 
    return {commands=>@commands};
 }
 
 sub addHelp{
-	my $self = shift;
-	$self->addHelpItem("[plugin_description]", "Google News Search");
-	$self->addHelpItem("[news]", "Usage: news [<search term>]");
+    my $self = shift;
+    $self->addHelpItem("[plugin_description]", "Google News Search");
+    $self->addHelpItem("[news]", "Usage: news [<search term>]");
 }
 
 1;

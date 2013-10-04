@@ -18,8 +18,8 @@ package plugins::Diss;
 #-----------------------------------------------------------------------------
 
 ##
-##	This module is an example of a module that can create new commands.
-##	It also loads sample data using perl's special __DATA__ thingy.
+##  This module is an example of a module that can create new commands.
+##  It also loads sample data using perl's special __DATA__ thingy.
 ##
 
 use base qw (modules::PluginBaseClass);
@@ -34,308 +34,308 @@ my @types;
 sub onBotStart{
    my $self = shift;
 
-	## Create default entries. Only do it the first time this plugin ever runs.
+    ## Create default entries. Only do it the first time this plugin ever runs.
 
-	my $c = $self->getCollection(__PACKAGE__, ':options');
-	my @records = $c->matchRecords({val1=>'first_run_complete'});
-	return if (@records);
-	
-	# mark as complete so we don't run this again.
-	$c->add("first_run_complete");
+    my $c = $self->getCollection(__PACKAGE__, ':options');
+    my @records = $c->matchRecords({val1=>'first_run_complete'});
+    return if (@records);
+    
+    # mark as complete so we don't run this again.
+    $c->add("first_run_complete");
 
-	$c = $self->getCollection(__PACKAGE__, ':types');
-	@records = $c->matchRecords({val1=>"diss"});
-	if (!@records){
-		$c->add('diss', 'action', $self->{BotName});
-	}
+    $c = $self->getCollection(__PACKAGE__, ':types');
+    @records = $c->matchRecords({val1=>"diss"});
+    if (!@records){
+        $c->add('diss', 'action', $self->{BotName});
+    }
 
-	@records = $c->matchRecords({val1=>"pickup"});
-	if (!@records){
-		$c->add('pickup', 'text', $self->{BotName});
-	}
+    @records = $c->matchRecords({val1=>"pickup"});
+    if (!@records){
+        $c->add('pickup', 'text', $self->{BotName});
+    }
 
-	@records = $c->matchRecords({val1=>"miss"});
-	if (!@records){
-		$c->add('miss', 'action', $self->{BotName});
-	}
+    @records = $c->matchRecords({val1=>"miss"});
+    if (!@records){
+        $c->add('miss', 'action', $self->{BotName});
+    }
 
-	my @data = <DATA>;
-	while (my $line = shift @data){
-		chomp $line;
-		my ($type, $text, $num) = split /\//, $line;
-		next if (!$type || !$text || !$num);
-		my $c = $self->getCollection(__PACKAGE__, $type);
-		$c->add($text, $num, $self->{BotName});
-		print "Diss module added data: type:$type, $text\n";
-	}
+    my @data = <DATA>;
+    while (my $line = shift @data){
+        chomp $line;
+        my ($type, $text, $num) = split /\//, $line;
+        next if (!$type || !$text || !$num);
+        my $c = $self->getCollection(__PACKAGE__, $type);
+        $c->add($text, $num, $self->{BotName});
+        print "Diss module added data: type:$type, $text\n";
+    }
 }
 
 sub plugin_init{
-	my $self = shift;
-	$self->returnType("text");
-	$self->suppressNick(1);
+    my $self = shift;
+    $self->returnType("text");
+    $self->suppressNick(1);
 
-	my $c = $self->getCollection(__PACKAGE__, ':types');
+    my $c = $self->getCollection(__PACKAGE__, ':types');
 
-	my @records = $c->getAllRecords();
+    my @records = $c->getAllRecords();
 
-	foreach my $rec (@records){
-		push @{$self->{types}}, {type=>$rec->{val1}, return_type=>$rec->{val2}};
-	}
+    foreach my $rec (@records){
+        push @{$self->{types}}, {type=>$rec->{val1}, return_type=>$rec->{val2}};
+    }
 
-	return $self;	
+    return $self;   
 }
 
 sub getOutput {
 
-	my $self = shift;
-	my $output = "";
-	my $options = $self->{'options'};
-	my $cmd = $self->{command};
-	my $type = $cmd;
+    my $self = shift;
+    my $output = "";
+    my $options = $self->{'options'};
+    my $cmd = $self->{command};
+    my $type = $cmd;
 
-	my $c = $self->getCollection(__PACKAGE__, $cmd);
+    my $c = $self->getCollection(__PACKAGE__, $cmd);
 
 
-	##
-	##	Show specific #
-	##
+    ##
+    ##  Show specific #
+    ##
 
-	if (my $num = $self->hasFlagValue("show")){
+    if (my $num = $self->hasFlagValue("show")){
 
-		my @records = $c->matchRecords({ display_id => $num});
-		if (@records == 1){
-			return ("[$num][added by ".$records[0]->{val3}."] " . $records[0]->{val1} );
-	
-		}else{
-			return "Something went wrong.  Maybe that record ID doesn't exist?";
-		}
+        my @records = $c->matchRecords({ display_id => $num});
+        if (@records == 1){
+            return ("[$num][added by ".$records[0]->{val3}."] " . $records[0]->{val1} );
+    
+        }else{
+            return "Something went wrong.  Maybe that record ID doesn't exist?";
+        }
    }
 
 
-	##
-	##	Search
-	##
+    ##
+    ##  Search
+    ##
 
-	if (my $term = $self->hasFlagValue("search")){
+    if (my $term = $self->hasFlagValue("search")){
 
-	#	if ( $options eq "" ){
-	#		return $self->help($cmd);
-	#	}
-	
-		my $num_records = $c->numRecords();
+    #   if ( $options eq "" ){
+    #       return $self->help($cmd);
+    #   }
+    
+        my $num_records = $c->numRecords();
 
-		my @records = $c->searchRecords($term, 1);
+        my @records = $c->searchRecords($term, 1);
 
-		if (!@records){
-			return ("I know $num_records ".$type." and nothing matches.  Quit talkin jibberish.");
-	
-		}else{
-			$output = "Matching records: ";
-			foreach my $rec (@records){
-				$output.= "[" .$rec->{display_id} . "]";
-			}
-			return $output;
-		}
+        if (!@records){
+            return ("I know $num_records ".$type." and nothing matches.  Quit talkin jibberish.");
+    
+        }else{
+            $output = "Matching records: ";
+            foreach my $rec (@records){
+                $output.= "[" .$rec->{display_id} . "]";
+            }
+            return $output;
+        }
    }
 
 
-	##
-	## Add
-	##
+    ##
+    ## Add
+    ##
 
-	if ($self->hasFlag("add")){
+    if ($self->hasFlag("add")){
 
-		if ( $options eq "" ){
-			return $self->help($cmd);
-		}
+        if ( $options eq "" ){
+            return $self->help($cmd);
+        }
 
-		my %nums;
+        my %nums;
 
-		while ($options=~/\{([0-9]+)\}/gis){
-			$nums{$1} = 1;
-		}
-		my @n = keys(%nums);
-		my $count = @n;
+        while ($options=~/\{([0-9]+)\}/gis){
+            $nums{$1} = 1;
+        }
+        my @n = keys(%nums);
+        my $count = @n;
 
-		my $display_id = $c->add($options, $count, $self->accountNick());
-		return "added #$display_id to the collection:  $options";
-	}
+        my $display_id = $c->add($options, $count, $self->accountNick());
+        return "added #$display_id to the collection:  $options";
+    }
 
 
-	##
-	##	Delete
-	##
+    ##
+    ##  Delete
+    ##
 
-	if ($self->hasFlag("delete")){
-	
-		return $self->help($cmd, '-delete') if (!(my $num = $self->hasFlagValue("delete")));
+    if ($self->hasFlag("delete")){
+    
+        return $self->help($cmd, '-delete') if (!(my $num = $self->hasFlagValue("delete")));
 
-		my @records = $c->matchRecords({ display_id => $num});
+        my @records = $c->matchRecords({ display_id => $num});
 
-		if (@records == 1){
+        if (@records == 1){
 
-			if (!$self->hasPermission($records[0]->{val3})){
-				return ("You can only delete records that you added");
+            if (!$self->hasPermission($records[0]->{val3})){
+                return ("You can only delete records that you added");
 
-			}else{
-				$c->delete($records[0]->{row_id});
-				return ("baleeted #$num. ($records[0]->{row_id})");
-			}
+            }else{
+                $c->delete($records[0]->{row_id});
+                return ("baleeted #$num. ($records[0]->{row_id})");
+            }
 
-		}else{
-			return "Couldn't find that $type";
-		}
+        }else{
+            return "Couldn't find that $type";
+        }
    }
 
-		
-	##
-	##	New Type
-	##
+        
+    ##
+    ##  New Type
+    ##
 
-	if (my $newtype =  $self->hasFlagValue("newtype")){
-		#return $self->help($cmd, '-newtype');
+    if (my $newtype =  $self->hasFlagValue("newtype")){
+        #return $self->help($cmd, '-newtype');
 
-		my $rt = $self->hasFlagValue("return_type");
-		$rt = 'action' if ($rt ne 'text');
+        my $rt = $self->hasFlagValue("return_type");
+        $rt = 'action' if ($rt ne 'text');
 
-		foreach my $type (@{$self->{types}}){
-			if ($newtype eq $type->{type}){
-				return "That type already exists";
-			}
-		}
+        foreach my $type (@{$self->{types}}){
+            if ($newtype eq $type->{type}){
+                return "That type already exists";
+            }
+        }
 
-		if ($newtype =~/^\:/){
-			return "Command must start with an alpha-numeric character.";
-		}
+        if ($newtype =~/^\:/){
+            return "Command must start with an alpha-numeric character.";
+        }
 
-		if ($newtype =~/^_/){
-			if (!$self->hasFlag("force")){
-				return "Command can't start with an underscore.";	
-			}
-		}
-
-
-		my $c = $self->getCollection(__PACKAGE__, ':types');
-		$c->add($newtype, $rt, $self->accountNick());
-
-		$self->returnType("reloadPlugins");
-		$output = "New type created. Now add something to the collection.  ";
-		$output.= $self->{BotCommandPrefix}.$newtype." -add";
-		return $output;
-	}
+        if ($newtype =~/^_/){
+            if (!$self->hasFlag("force")){
+                return "Command can't start with an underscore.";   
+            }
+        }
 
 
-	##
-	##	Remove Type
-	##
+        my $c = $self->getCollection(__PACKAGE__, ':types');
+        $c->add($newtype, $rt, $self->accountNick());
 
-	if (my $rmtype =  $self->hasFlagValue("rmtype")){
-
-		my $found = 0;
-		foreach my $type (@{$self->{types}}){
-			if ($rmtype eq $type->{type}){
-				$found=1;
-			}
-		}
-
-		if (!$found){
-			return "That type doesn't appear to exist.";
-		}
-
-		my $c = $self->getCollection(__PACKAGE__, ':types');	
-		my @records = $c->matchRecords({val1=>$rmtype});
-		$c->delete($records[0]->{row_id});
-	
-		$c = $self->getCollection(__PACKAGE__, $rmtype);	
-		@records = $c->getAllRecords();
-		foreach my $rec (@records){
-			$c->delete($rec->{row_id});
-		}
-
-		$self->returnType("reloadPlugins");
-		$output = "$rmtype removed.";
-		return $output;
-	}
+        $self->returnType("reloadPlugins");
+        $output = "New type created. Now add something to the collection.  ";
+        $output.= $self->{BotCommandPrefix}.$newtype." -add";
+        return $output;
+    }
 
 
+    ##
+    ##  Remove Type
+    ##
 
-	##
-	##	default
-	##
-	#if ($options!~/(.+?)$/ && !$self->hasFlag("force")){
-	#	return $self->help($cmd);
-	#}
+    if (my $rmtype =  $self->hasFlagValue("rmtype")){
 
-	my $target;
-	if ($options=~/(.+?)$/){
-		$target = $1;
-	}else{
-		$target = "";
-	}
+        my $found = 0;
+        foreach my $type (@{$self->{types}}){
+            if ($rmtype eq $type->{type}){
+                $found=1;
+            }
+        }
 
-	my $req = "";
-	if ($target =~s/^#([0-9]+) //){
-		$req = $1;
-	}
+        if (!$found){
+            return "That type doesn't appear to exist.";
+        }
 
-	my @targets = split (/ and /, $target);
-	my $num_targets = @targets;
-	my $diss;
+        my $c = $self->getCollection(__PACKAGE__, ':types');    
+        my @records = $c->matchRecords({val1=>$rmtype});
+        $c->delete($records[0]->{row_id});
+    
+        $c = $self->getCollection(__PACKAGE__, $rmtype);    
+        @records = $c->getAllRecords();
+        foreach my $rec (@records){
+            $c->delete($rec->{row_id});
+        }
 
-	if ($req){
-		my @records = $c->matchRecords({display_id=>$req});
-		if (@records){
-			$diss = $records[0]->{val1};
-		}else{
-			return "Couldn't find that $type. Sorry. $target will have to wait.";
-		}
+        $self->returnType("reloadPlugins");
+        $output = "$rmtype removed.";
+        return $output;
+    }
 
 
-	}else{
-		my @records = $c->matchRecords({val2=>$num_targets});
 
-		if (@records){
-			my $rn = int(rand(@records));
-			$diss = $records[$rn]->{val1};
-		}else{
-			if (@targets){
-				return "I don't know nuthin bout dat.";
-			}else{
-				return $self->help($cmd);
-			}
-		}
-	}
+    ##
+    ##  default
+    ##
+    #if ($options!~/(.+?)$/ && !$self->hasFlag("force")){
+    #   return $self->help($cmd);
+    #}
 
-	for (--$num_targets; $num_targets >=0; $num_targets--){
-		$diss=~s/\{$num_targets\}/$targets[$num_targets]/gis;
-	}
+    my $target;
+    if ($options=~/(.+?)$/){
+        $target = $1;
+    }else{
+        $target = "";
+    }
 
-	foreach my $t (@{$self->{types}}){
-		if ($type eq $t->{type}){
-			$self->returnType($t->{return_type});
-		}
-	}
+    my $req = "";
+    if ($target =~s/^#([0-9]+) //){
+        $req = $1;
+    }
 
-	return $diss;
+    my @targets = split (/ and /, $target);
+    my $num_targets = @targets;
+    my $diss;
+
+    if ($req){
+        my @records = $c->matchRecords({display_id=>$req});
+        if (@records){
+            $diss = $records[0]->{val1};
+        }else{
+            return "Couldn't find that $type. Sorry. $target will have to wait.";
+        }
+
+
+    }else{
+        my @records = $c->matchRecords({val2=>$num_targets});
+
+        if (@records){
+            my $rn = int(rand(@records));
+            $diss = $records[$rn]->{val1};
+        }else{
+            if (@targets){
+                return "I don't know nuthin bout dat.";
+            }else{
+                return $self->help($cmd);
+            }
+        }
+    }
+
+    for (--$num_targets; $num_targets >=0; $num_targets--){
+        $diss=~s/\{$num_targets\}/$targets[$num_targets]/gis;
+    }
+
+    foreach my $t (@{$self->{types}}){
+        if ($type eq $t->{type}){
+            $self->returnType($t->{return_type});
+        }
+    }
+
+    return $diss;
 }
 
 
 
 sub listeners{
-	my $self = shift;
-	my @commands = ();
+    my $self = shift;
+    my @commands = ();
    my @default_permissions;
 
-	push @default_permissions, {command=>"PLUGIN", flag=>"newtype", require_group=>UA_TRUSTED};
-	push @default_permissions, {command=>"PLUGIN", flag=>"rmtype", require_group=>UA_TRUSTED};
-	push @default_permissions, {command=>"PLUGIN", flag=>"force", require_group=>UA_ADMIN};
-	foreach my $type (@{$self->{types}}){
-		push @commands, $type->{type};
+    push @default_permissions, {command=>"PLUGIN", flag=>"newtype", require_group=>UA_TRUSTED};
+    push @default_permissions, {command=>"PLUGIN", flag=>"rmtype", require_group=>UA_TRUSTED};
+    push @default_permissions, {command=>"PLUGIN", flag=>"force", require_group=>UA_ADMIN};
+    foreach my $type (@{$self->{types}}){
+        push @commands, $type->{type};
 
-		#push @default_permissions, {command=>$type->{type}, flag=>'newtype', require_group=>UA_ADMIN};
-		#push @default_permissions, {command=>$type->{type}, flag=>'rmtype', require_group=>UA_ADMIN};
-	}
+        #push @default_permissions, {command=>$type->{type}, flag=>'newtype', require_group=>UA_ADMIN};
+        #push @default_permissions, {command=>$type->{type}, flag=>'rmtype', require_group=>UA_ADMIN};
+    }
 
    return {commands=>\@commands, permissions=>\@default_permissions};
 }
@@ -343,19 +343,19 @@ sub listeners{
 
 sub addHelp{
    my $self = shift;
-	
+    
    $self->addHelpItem("[plugin_description]", "Compliment or Diss people.  Add new entries using the -add flag. Those with permission can create new types (and the associated new commands) using the -newtype flag.");
 
-	foreach my $type (@{$self->{types}}){
-		
-		$self->addHelpItem("[$type->{type}]", "Usage: $type->{type} [#<number>] <target> [and <target>] Available flags: add, delete, show, search, newtype, rmtype");
-	   $self->addHelpItem("[$type->{type}][-add]", "Usage example: $type->{type} -add makes yo mama jokes about {0}'s mother.  Use {0} {1}... to specify targets.");
-		$self->addHelpItem("[$type->{type}][-delete]","Delete a $type->{type} from the $type->{type} database.  Usage: $type->{type} -delete=<diss number>");
-		$self->addHelpItem("[$type->{type}][-show]","Show a $type->{type}.  Usage: $type->{type} -show=<number>");
-		$self->addHelpItem("[$type->{type}][-search]","Usage: $type->{type} -search <text to search for>");
-		$self->addHelpItem("[$type->{type}][-newtype]","Usage: $type->{type} -newtype=<trigger> -return_type=<text or action>.  Use -force to allow commands to start with an underscore.");
-		$self->addHelpItem("[$type->{type}][-rmtype]","Remove a type from the system. This will delete all of the data associated with that type as well.  Usage: $type->{type} -rmtype=<trigger>");
-	}
+    foreach my $type (@{$self->{types}}){
+        
+        $self->addHelpItem("[$type->{type}]", "Usage: $type->{type} [#<number>] <target> [and <target>] Available flags: add, delete, show, search, newtype, rmtype");
+       $self->addHelpItem("[$type->{type}][-add]", "Usage example: $type->{type} -add makes yo mama jokes about {0}'s mother.  Use {0} {1}... to specify targets.");
+        $self->addHelpItem("[$type->{type}][-delete]","Delete a $type->{type} from the $type->{type} database.  Usage: $type->{type} -delete=<diss number>");
+        $self->addHelpItem("[$type->{type}][-show]","Show a $type->{type}.  Usage: $type->{type} -show=<number>");
+        $self->addHelpItem("[$type->{type}][-search]","Usage: $type->{type} -search <text to search for>");
+        $self->addHelpItem("[$type->{type}][-newtype]","Usage: $type->{type} -newtype=<trigger> -return_type=<text or action>.  Use -force to allow commands to start with an underscore.");
+        $self->addHelpItem("[$type->{type}][-rmtype]","Remove a type from the system. This will delete all of the data associated with that type as well.  Usage: $type->{type} -rmtype=<trigger>");
+    }
 }
 
 1;

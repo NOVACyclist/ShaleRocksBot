@@ -16,8 +16,8 @@ package plugins::Sleep;
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #-----------------------------------------------------------------------------
-#	
-#	There's really no point to this plugin, just a way of playing around with 
+#   
+#   There's really no point to this plugin, just a way of playing around with 
 #  threads. It also provides an example of using a reentryCommand. (rare)
 #
 use strict;
@@ -29,83 +29,83 @@ use modules::PluginBaseClass;
 use Data::Dumper;
 
 sub getOutput {
-	my $self = shift;
-	my $command = $self->{'command'};
-	my $options = $self->{options};
-	my $nick = $self->{nick};
+    my $self = shift;
+    my $command = $self->{'command'};
+    my $options = $self->{options};
+    my $nick = $self->{nick};
    my $irc_event = $self->{irc_event};
 
 
-	if ($command eq 'sleep'){ 
-		if ($options=~/([0-9]+)/){
-			my $tts= $1;
-			$self->setReentryCommand("_sleep", $tts);
-			return "Sleeping for $tts seconds";
-		}else{
-			return ($self->help("sleep"));
-		}
+    if ($command eq 'sleep'){ 
+        if ($options=~/([0-9]+)/){
+            my $tts= $1;
+            $self->setReentryCommand("_sleep", $tts);
+            return "Sleeping for $tts seconds";
+        }else{
+            return ($self->help("sleep"));
+        }
 
-	
-	}elsif($command eq '_sleep'){
-		$self->clearReentryCommand();
-		my $tts;
-		if ($self->{'options'}=~/([0-9]+)/){
-			$tts= $1;
-			sleep ($tts);
-		}
-		return "Done Sleeping for $tts seconds.";
+    
+    }elsif($command eq '_sleep'){
+        $self->clearReentryCommand();
+        my $tts;
+        if ($self->{'options'}=~/([0-9]+)/){
+            $tts= $1;
+            sleep ($tts);
+        }
+        return "Done Sleeping for $tts seconds.";
 
 
 
-	}elsif($command eq 'sleeptest'){
-	
-		my $line;
+    }elsif($command eq 'sleeptest'){
+    
+        my $line;
 
-		if ($self->{options}=~/([0-9]+)/){
-			$line = $1;
-			sleep 3;
-		}else{
-			$line = 0;
-			$self->{rn} = int(rand()*100);
-		}
+        if ($self->{options}=~/([0-9]+)/){
+            $line = $1;
+            sleep 3;
+        }else{
+            $line = 0;
+            $self->{rn} = int(rand()*100);
+        }
 
-		my @lines = qw(one two three four five six seven eight nine ten);
+        my @lines = qw(one two three four five six seven eight nine ten);
 
-		if ($line == (@lines-1)){
-			print "Clearing ReentryCommand\n";
-			$self->clearReentryCommand();
+        if ($line == (@lines-1)){
+            print "Clearing ReentryCommand\n";
+            $self->clearReentryCommand();
 
-		}else{
-			print "Setting entry for line $line + 1\n";
-			$self->setReentryCommand($command, $line+1);
-		}
-		
-		print "returning line $line\n";
-		return ("RN: $self->{rn}.  Line " . $lines[$line] . " Doing reentry, sleeping 3. ".time());
-	}
+        }else{
+            print "Setting entry for line $line + 1\n";
+            $self->setReentryCommand($command, $line+1);
+        }
+        
+        print "returning line $line\n";
+        return ("RN: $self->{rn}.  Line " . $lines[$line] . " Doing reentry, sleeping 3. ".time());
+    }
 }
 
 sub listeners{
-	my $self = shift;
+    my $self = shift;
 
-	my @commands = [qw(sleep sleeptest)];
-	
-	my @irc_events = [];
+    my @commands = [qw(sleep sleeptest)];
+    
+    my @irc_events = [];
 
-	my $default_permissions =[ 
-		{command=>"PLUGIN", require_group => UA_ADMIN},
-	];
+    my $default_permissions =[ 
+        {command=>"PLUGIN", require_group => UA_ADMIN},
+    ];
 
-	return {commands=>@commands, permissions=>$default_permissions,  irc_events=>@irc_events};
+    return {commands=>@commands, permissions=>$default_permissions,  irc_events=>@irc_events};
 }
 
 sub addHelp{
-	my $self = shift;
-	$self->addHelpItem("[plugin_description]", 
-		"This module is pretty useless. You can use it to test out parallel command processing.");
+    my $self = shift;
+    $self->addHelpItem("[plugin_description]", 
+        "This module is pretty useless. You can use it to test out parallel command processing.");
 
-	$self->addHelpItem("[sleep]", "Usage: sleep <seconds to sleep>");
-	$self->addHelpItem("[sleeptest]", "This will print 10 lines, sleeping 3 seconds between each line.");
+    $self->addHelpItem("[sleep]", "Usage: sleep <seconds to sleep>");
+    $self->addHelpItem("[sleeptest]", "This will print 10 lines, sleeping 3 seconds between each line.");
 }
 1;
 __END__

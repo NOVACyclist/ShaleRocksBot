@@ -25,174 +25,174 @@ use modules::PluginBaseClass;
 use Data::Dumper;
 
 sub getOutput {
-	my $self = shift;
-	my $options = $self->{options};
-	my $nick = $self->{nick};
-	my $ret;
+    my $self = shift;
+    my $options = $self->{options};
+    my $nick = $self->{nick};
+    my $ret;
 
-	my $c = $self->getCollection(__PACKAGE__, $self->accountNick());
-	$c->load();
+    my $c = $self->getCollection(__PACKAGE__, $self->accountNick());
+    $c->load();
 
-	##
-	##  No Arguments - print notes
-	##
+    ##
+    ##  No Arguments - print notes
+    ##
 
-	if (!$self->numFlags()){
+    if (!$self->numFlags()){
 
-		my @records = $c->getAllRecords();
+        my @records = $c->getAllRecords();
 
-		if (@records){
-			$ret = "your notes: ";
-			foreach my $note (@records){
-				$ret = $ret . '[#'.$note->{'display_id'}.'] '.$note->{'val1'}.' ';
-			}
+        if (@records){
+            $ret = "your notes: ";
+            foreach my $note (@records){
+                $ret = $ret . '[#'.$note->{'display_id'}.'] '.$note->{'val1'}.' ';
+            }
 
-			return ($ret);
-		}
-		return ("You don't have any notes. Use 'notes -add <note> to add one.");
+            return ($ret);
+        }
+        return ("You don't have any notes. Use 'notes -add <note> to add one.");
 
-	}
+    }
 
-	##
-	## add a note
-	## 
+    ##
+    ## add a note
+    ## 
 
-	if ($self->hasFlag("add")){
+    if ($self->hasFlag("add")){
 
-	#	if (! $self->hasPermission() ){
+    #   if (! $self->hasPermission() ){
    #      return ("You don't have permission to do that.");
    #  }
 
-		my $id = $c->add($options);
+        my $id = $c->add($options);
 
-		return "added note #$id to your personal collection.";
+        return "added note #$id to your personal collection.";
 
 
-	}
+    }
 
-	##
-	## delete a note
-	##	 
+    ##
+    ## delete a note
+    ##   
 
-	if (my $num = $self->hasFlagValue("delete")){
-	
+    if (my $num = $self->hasFlagValue("delete")){
+    
      #if (! $self->hasPermission() ){
      #    return ("You don't have permission to do that.");
      #}
 
-		my @records = $c->matchRecords({display_id=>$num});
-		if (@records){
-			$c->delete($records[0]->{row_id});
-			return "Deleted note #$num";
-		}else{
-			return "Couldn't find that note number in your collection.";
-		}
+        my @records = $c->matchRecords({display_id=>$num});
+        if (@records){
+            $c->delete($records[0]->{row_id});
+            return "Deleted note #$num";
+        }else{
+            return "Couldn't find that note number in your collection.";
+        }
 
-	}
+    }
 
 
-	##
-	## Search notes
-	## 
+    ##
+    ## Search notes
+    ## 
 
-	if (my $terms = $self->hasFlagValue("search")){
-	
-		#return ("For simple search, ',notes search term1 term2' returns all matching notes (OR implied).  For advanced search, ',notes search +term1 +term2 -term3' does AND on +terms and NOT on -terms.");
-		#}
+    if (my $terms = $self->hasFlagValue("search")){
+    
+        #return ("For simple search, ',notes search term1 term2' returns all matching notes (OR implied).  For advanced search, ',notes search +term1 +term2 -term3' does AND on +terms and NOT on -terms.");
+        #}
 
-		my @records = $c->searchRecords($terms);
+        my @records = $c->searchRecords($terms);
 
-		if (@records){
-			foreach my $note (@records){
-				$ret .=  '[#'.$note->{'display_id'}.'] '.$note->{'val1'}.' ';
-			}
+        if (@records){
+            foreach my $note (@records){
+                $ret .=  '[#'.$note->{'display_id'}.'] '.$note->{'val1'}.' ';
+            }
 
-			return ($ret);
-		}
+            return ($ret);
+        }
 
-		return ("No matching notes.");
+        return ("No matching notes.");
 
-	}
+    }
 
-	##
-	## renumber notes
-	##
+    ##
+    ## renumber notes
+    ##
 
-	if ($self->hasFlag("renumber")){
-		
-		$c->renumber();
+    if ($self->hasFlag("renumber")){
+        
+        $c->renumber();
 
-		return ("Notes have been renumbered .");
-	}
+        return ("Notes have been renumbered .");
+    }
 
-	##
-	## print note by number
-	##
+    ##
+    ## print note by number
+    ##
 
-	if (my $id = $self->hasFlagValue("id")){
-		my $nums = $self->{'options'};
-		
-		my @records = $c->matchRecords({display_id=>$id});
+    if (my $id = $self->hasFlagValue("id")){
+        my $nums = $self->{'options'};
+        
+        my @records = $c->matchRecords({display_id=>$id});
 
-		if (@records){
-			$ret = $ret . '[#'.$records[0]->{'display_id'}.'] '.$records[0]->{'val1'}.' ';
-			return ($ret);
-		}else{
-			return ("No matching notes.");
-		}
-	}
+        if (@records){
+            $ret = $ret . '[#'.$records[0]->{'display_id'}.'] '.$records[0]->{'val1'}.' ';
+            return ($ret);
+        }else{
+            return ("No matching notes.");
+        }
+    }
 
 =pod
-	##
-	## Search ALL notes
-	## 
+    ##
+    ## Search ALL notes
+    ## 
 
-	if ($self->hasFlag("searchall")){
+    if ($self->hasFlag("searchall")){
 
-		#	return ("For simple search, ',notes search term1 term2' returns all matching notes (OR implied).  For advanced search, ',notes search +term1 +term2 -term3' does AND on +terms and NOT on -terms.");
+        #   return ("For simple search, ',notes search term1 term2' returns all matching notes (OR implied).  For advanced search, ',notes search +term1 +term2 -term3' does AND on +terms and NOT on -terms.");
 
-		my $oc = $self->getCollection(__PACKAGE__, $self->{nick});
-		$oc->load();
+        my $oc = $self->getCollection(__PACKAGE__, $self->{nick});
+        $oc->load();
 
-		@records = $oc->searchRecords($str);
-		$ret="";
-		foreach $note (@records){
-			$ret = $ret . '['.$note->{'collection_name'}.' #'.$note->{'display_id'}.'] '.$note->{'val1'}.' ';
-		}
+        @records = $oc->searchRecords($str);
+        $ret="";
+        foreach $note (@records){
+            $ret = $ret . '['.$note->{'collection_name'}.' #'.$note->{'display_id'}.'] '.$note->{'val1'}.' ';
+        }
 
-		if (@records){
-			return ($ret);
+        if (@records){
+            return ($ret);
 
-		}else{
-			return ("No matching notes.");
-		}
+        }else{
+            return ("No matching notes.");
+        }
 
-	##
-	##  show another user's notes.  This has to come last
-	## 
+    ##
+    ##  show another user's notes.  This has to come last
+    ## 
 
 =cut
 
-	if(my $other_user = $self->hasFlagValue("nick")){
+    if(my $other_user = $self->hasFlagValue("nick")){
 
-		my $oc = $self->getCollection(__PACKAGE__, $other_user);
-		$oc->load();
+        my $oc = $self->getCollection(__PACKAGE__, $other_user);
+        $oc->load();
 
-		my @records;
-		@records = $oc->getAllRecords();
-	
-		if (@records == 0){
-			return "User $other_user doesn't have any notes.";
-		}
+        my @records;
+        @records = $oc->getAllRecords();
+    
+        if (@records == 0){
+            return "User $other_user doesn't have any notes.";
+        }
 
-		$ret=$other_user."'s notes: ";
+        $ret=$other_user."'s notes: ";
 
-		foreach my $note (@records){
-			$ret = $ret . '[#'.$note->{'display_id'}.'] '.$note->{'val1'}.' ';
-		}
+        foreach my $note (@records){
+            $ret = $ret . '[#'.$note->{'display_id'}.'] '.$note->{'val1'}.' ';
+        }
 
-		return ($ret);
-	}
+        return ($ret);
+    }
 
 }
 

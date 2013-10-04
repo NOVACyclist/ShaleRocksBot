@@ -38,110 +38,110 @@ sub plugin_init{
 }
 
 sub getOutput {
-	my $self = shift;
-	my $output = "";
-	my $options = $self->{'options'};
-	my $cmd = $self->{'command'};
+    my $self = shift;
+    my $output = "";
+    my $options = $self->{'options'};
+    my $cmd = $self->{'command'};
 
-	my $translation = "";
-	my $translation_intro = "";
+    my $translation = "";
+    my $translation_intro = "";
 
    if ( $options eq ''){
-		return $self->help();
+        return $self->help();
    }
 
-	my $degrave = { af => 'canadian',
-						'boston' => 'boston',
-						'smurf' => 'smurf',
-						'ayb' => 'ayb',
-						'yoda' => 'yoda',
-						'valley' => 'valley',
-						'piglatin' => 'piglatin',
-						'l33t' => 'ultraleet',
-						'hax0r' => 'haxor',
-	};
+    my $degrave = { af => 'canadian',
+                        'boston' => 'boston',
+                        'smurf' => 'smurf',
+                        'ayb' => 'ayb',
+                        'yoda' => 'yoda',
+                        'valley' => 'valley',
+                        'piglatin' => 'piglatin',
+                        'l33t' => 'ultraleet',
+                        'hax0r' => 'haxor',
+    };
 
-	my $rinkworks= { redneck => 'redneck', 
-							cockney => 'cockney',
-							fudd => 'fudd',
-							bork => 'bork',
-							jive => 'jive',
-							moron => 'moron'
-	};
+    my $rinkworks= { redneck => 'redneck', 
+                            cockney => 'cockney',
+                            fudd => 'fudd',
+                            bork => 'bork',
+                            jive => 'jive',
+                            moron => 'moron'
+    };
 
-	my $google = {
-						english => 'en',
-						german => 'de',
-						french => 'fr',
-						spanish => 'es',
-						irish => 'ga',
-						italian => 'it',
-						arabic => 'ar',
-						armenian => 'hy',
-						chinese => 'zh-CN',
-						hebrew => 'iw',
-						japanese => 'ja',
-						polish	=> 'pl',
-						russian	=> 'ru',
-						swedish	=> 'sv',
-						welsh		=> 'cy',
-						norwegian=> 'no',
-						
-	};
+    my $google = {
+                        english => 'en',
+                        german => 'de',
+                        french => 'fr',
+                        spanish => 'es',
+                        irish => 'ga',
+                        italian => 'it',
+                        arabic => 'ar',
+                        armenian => 'hy',
+                        chinese => 'zh-CN',
+                        hebrew => 'iw',
+                        japanese => 'ja',
+                        polish  => 'pl',
+                        russian => 'ru',
+                        swedish => 'sv',
+                        welsh       => 'cy',
+                        norwegian=> 'no',
+                        
+    };
 
-	if ($degrave->{$cmd}){
-		my $url = "http://www.degraeve.com/cgi-bin/babel.cgi?d=".$degrave->{$cmd}."&w=" . uri_escape($options);
-		my $page = $self->getPage($url);
-		$page=~m#blockquote>(.+?)</blockquote#gis;
-		my $stuff = $1; $stuff=~s/<.+?>//gis; $stuff=~s/\n//gis;
-		$stuff = decode_entities($stuff);
+    if ($degrave->{$cmd}){
+        my $url = "http://www.degraeve.com/cgi-bin/babel.cgi?d=".$degrave->{$cmd}."&w=" . uri_escape($options);
+        my $page = $self->getPage($url);
+        $page=~m#blockquote>(.+?)</blockquote#gis;
+        my $stuff = $1; $stuff=~s/<.+?>//gis; $stuff=~s/\n//gis;
+        $stuff = decode_entities($stuff);
 
-		$translation_intro = "translates to $cmd for ".$self->{nick}.": "; 
-		$translation = $stuff;
-	}
+        $translation_intro = "translates to $cmd for ".$self->{nick}.": "; 
+        $translation = $stuff;
+    }
 
 
-	if ($rinkworks->{$cmd}){
-		my $url = "http://www.rinkworks.com/dialect/dialectt.cgi";
+    if ($rinkworks->{$cmd}){
+        my $url = "http://www.rinkworks.com/dialect/dialectt.cgi";
 
-		my $ua      = LWP::UserAgent->new();
-		my $request = POST( $url, [ text => $options,
-											dialect => $rinkworks->{$cmd} 
+        my $ua      = LWP::UserAgent->new();
+        my $request = POST( $url, [ text => $options,
+                                            dialect => $rinkworks->{$cmd} 
                      ] );
-		my $content = $ua->request($request);
-		$output = $content->content;
-		$output=~m#<div class='dialectized_text'>(.+?)</div>#gis;
-		$output = $1;
-		$output=~s/\n//gis;
-		$output=~s/<.+?>//gis;
-		$output = decode_entities($output);
+        my $content = $ua->request($request);
+        $output = $content->content;
+        $output=~m#<div class='dialectized_text'>(.+?)</div>#gis;
+        $output = $1;
+        $output=~s/\n//gis;
+        $output=~s/<.+?>//gis;
+        $output = decode_entities($output);
 
-		$translation_intro = "translates to $cmd for ".$self->{nick}.": "; 
-		$translation = $output;
+        $translation_intro = "translates to $cmd for ".$self->{nick}.": "; 
+        $translation = $output;
 
-	}
+    }
 
-	if ($google->{$cmd}){
-		my $url = "http://translate.google.com/?hl=".$google->{$cmd}."&ie=UTF8&text=" . uri_escape($options);
-		my $page = $self->getPage($url);
+    if ($google->{$cmd}){
+        my $url = "http://translate.google.com/?hl=".$google->{$cmd}."&ie=UTF8&text=" . uri_escape($options);
+        my $page = $self->getPage($url);
 
-		$page =~/.+?<span id=result_box class=".+?_text">(.+?)<\/div>.+?/;
-		$output = $1;
-		$output =~s/<.+?>//gis;
+        $page =~/.+?<span id=result_box class=".+?_text">(.+?)<\/div>.+?/;
+        $output = $1;
+        $output =~s/<.+?>//gis;
 
-		$output = decode_entities($output);
-		utf8::decode($output);
-		$translation_intro = "translates to $cmd for ".$self->{nick}.": "; 
-		$translation = $output;
-	}
+        $output = decode_entities($output);
+        utf8::decode($output);
+        $translation_intro = "translates to $cmd for ".$self->{nick}.": "; 
+        $translation = $output;
+    }
 
-	if ($self->hasFlag("q")){
-		$self->returnType("text");
-		return $translation;
-	}else{
-		#return $translation_intro . $translation;
-		return $translation;
-	}
+    if ($self->hasFlag("q")){
+        $self->returnType("text");
+        return $translation;
+    }else{
+        #return $translation_intro . $translation;
+        return $translation;
+    }
 
 }
 
@@ -149,9 +149,9 @@ sub listeners{
    my $self = shift;
 
    my @commands = ['af','boston','smurf','ayb','yoda','valley','piglatin','l33t','hax0r',
-				'redneck','cockney','fudd','bork','moron','jive', 
-				'english','german','french','spanish', 'irish','italian','arabic', 'armenian',
-				'chinese', 'hebrew','japanese','polish','russian','swedish','welsh','norwegian'];
+                'redneck','cockney','fudd','bork','moron','jive', 
+                'english','german','french','spanish', 'irish','italian','arabic', 'armenian',
+                'chinese', 'hebrew','japanese','polish','russian','swedish','welsh','norwegian'];
 
    my $default_permissions =[ ];
 

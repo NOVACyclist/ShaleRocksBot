@@ -21,34 +21,36 @@ BEGIN {
   $modules::Publish::VERSION = '1.0';
 }
 
-##	How to make your own publish module: Call it whatever you'd like.
-##	It needs a new() (no args) and a publish() (accepts $content, returns $url).
+##  How to make your own publish module: Call it whatever you'd like.
+##  It needs a new() (no args) and a publish() (accepts $content, returns $url).
 ## Specify this module as publish_module in the [BotSettings] section of the config file.
 use strict;
 use warnings;
 use Data::Dumper;
 use HTTP::Request::Common qw(POST);
 use LWP::UserAgent;
-use MIME::Base64;
 
 sub new{
-	my ($class, @args) = @_;
-	my $self = bless {}, $class;
-	return $self;
+    my ($class, @args) = @_;
+    my $self = bless {}, $class;
+    return $self;
 }
 
 sub publish{
-	my $self = shift;
-	my $html = shift;
-	
-	my $url = "http://htmlpaste.com/index.php";
-	my $ua      = LWP::UserAgent->new();
-	my $request = POST( $url, [ 'code' => $html , newcont => "true" ] );
-	my $content = $ua->request($request)->as_string();
-	$content=~m#target="_blank">(http:.+?)</a>#;
-	my $link = $1;
+    my $self = shift;
+    my $html = shift;
+    
+    #my $url = "http://htmlpaste.com/index.php";
+    my $url = "http://pastehtml.com/upload/create?input_type=html&result=address";
+    my $ua      = LWP::UserAgent->new();
+    #my $request = POST( $url, [ 'code' => $html , newcont => "true" ] );
+    my $request = POST( $url, [ 'text' => $html ] );
+    my $content = $ua->request($request)->as_string();
+    print $content;
+    $content=~m#target="_blank">(http:.+?)</a>#;
+    my $link = $1;
    return $link;
-	
+    
 }
 1;
 __END__

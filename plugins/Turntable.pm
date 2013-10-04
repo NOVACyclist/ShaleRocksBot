@@ -24,58 +24,58 @@ use warnings;
 use Data::Dumper;
 
 sub getOutput {
-	my $self = shift;
+    my $self = shift;
 
-	##
-	##	Admin can set URL
-	##
-	if (my $url = $self->hasFlagValue("set")){
-		my $c = $self->getCollection(__PACKAGE__, 'settings');
-		my @records = $c->matchRecords({val1=>"url", val2=>$self->{channel}});
+    ##
+    ##  Admin can set URL
+    ##
+    if (my $url = $self->hasFlagValue("set")){
+        my $c = $self->getCollection(__PACKAGE__, 'settings');
+        my @records = $c->matchRecords({val1=>"url", val2=>$self->{channel}});
 
-		if (@records){
-			$c->updateRecord($records[0]->{row_id}, {val3=>$url});
-		}else{
-			$c->add("url", $self->{channel}, $url);
-		}
-		return ("Turntable.fm URL Set.");
-	}
+        if (@records){
+            $c->updateRecord($records[0]->{row_id}, {val3=>$url});
+        }else{
+            $c->add("url", $self->{channel}, $url);
+        }
+        return ("Turntable.fm URL Set.");
+    }
 
 
-	##
-	##	Output a link to the room & name the currently playing song, if any.
-	##
+    ##
+    ##  Output a link to the room & name the currently playing song, if any.
+    ##
 
-	$self->suppressNick(1);
+    $self->suppressNick(1);
 
-	my $c = $self->getCollection(__PACKAGE__, 'settings');
-	my @records = $c->matchRecords({val1=>"url", val2=>$self->{channel}});
-	if (!@records){
-		return "The admin has not set a turntable.fm room for this channel.  $self->{BotOwner} can do so using the tt -set=\"url\" command";
-	}
-	
-	my $url = $records[0]->{val3};
+    my $c = $self->getCollection(__PACKAGE__, 'settings');
+    my @records = $c->matchRecords({val1=>"url", val2=>$self->{channel}});
+    if (!@records){
+        return "The admin has not set a turntable.fm room for this channel.  $self->{BotOwner} can do so using the tt -set=\"url\" command";
+    }
+    
+    my $url = $records[0]->{val3};
 
-	my $page = $self->getPage($url);
+    my $page = $self->getPage($url);
 
-	my $title;
-	my $artist;
+    my $title;
+    my $artist;
 
-	if ($page=~m#<div id="title">(.+?)</div>#s){
-		$title= $1;
-	}
+    if ($page=~m#<div id="title">(.+?)</div>#s){
+        $title= $1;
+    }
 
-	if ($page=~m#<div id="artist">(.+?)</div>#s){
-		$artist= $1;
-	}
+    if ($page=~m#<div id="artist">(.+?)</div>#s){
+        $artist= $1;
+    }
 
-	my $msg = "Play some music for the room: ".UNDERLINE.GREEN.$self->getShortURL($url).NORMAL;
+    my $msg = "Play some music for the room: ".UNDERLINE.GREEN.$self->getShortURL($url).NORMAL;
 
-	if ($title && $artist){
-		$msg.=" Currently playing:  $title by $artist";
-	}
-		
-	return $msg;
+    if ($title && $artist){
+        $msg.=" Currently playing:  $title by $artist";
+    }
+        
+    return $msg;
 }
 
 sub listeners{

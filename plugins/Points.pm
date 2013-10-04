@@ -25,207 +25,207 @@ use Data::Dumper;
 
 sub plugin_init{
 my $self = shift;
-	$self->returnType("text");    
-	$self->outputDelimiter($self->BULLET);
-	$self->suppressNick("true"); 
-	return $self;              
+    $self->returnType("text");    
+    $self->outputDelimiter($self->BULLET);
+    $self->suppressNick("true"); 
+    return $self;              
 }
 
 sub getOutput {
-	my $self = shift;
-	my $output = "";
-	my $options = $self->{'options'};
-	my $cmd = $self->{'command'};
+    my $self = shift;
+    my $output = "";
+    my $options = $self->{'options'};
+    my $cmd = $self->{'command'};
 
-	#return $self->help(["plugin_description"]) if $self->hasFlag("help");
+    #return $self->help(["plugin_description"]) if $self->hasFlag("help");
 
-	my $c = $self->getCollection(__PACKAGE__, $self->accountNick());
+    my $c = $self->getCollection(__PACKAGE__, $self->accountNick());
 
-	if ($cmd eq 'points'){
+    if ($cmd eq 'points'){
 
-		if ($self->hasFlag("all")){
-			if ($options){
+        if ($self->hasFlag("all")){
+            if ($options){
 
-				my $c = $self->getCollection(__PACKAGE__, '%');
-				my @records = $c->matchRecords({val1=>$options});
-				return ("No one has rated $options. Yet.") if (@records == 0);
-				my @sorted = sort { $b->{val2} <=> $a->{val2} } @records;
+                my $c = $self->getCollection(__PACKAGE__, '%');
+                my @records = $c->matchRecords({val1=>$options});
+                return ("No one has rated $options. Yet.") if (@records == 0);
+                my @sorted = sort { $b->{val2} <=> $a->{val2} } @records;
 
-				foreach my $rec (@sorted){
-					$self->addToList($rec->{'collection_name'} .": " . $rec->{'val2'}, $self->BULLET);
-				}
+                foreach my $rec (@sorted){
+                    $self->addToList($rec->{'collection_name'} .": " . $rec->{'val2'}, $self->BULLET);
+                }
 
-				return  "How $options rates: " . $self->getList();
-			}else{
-				return "Usage: points -all <thing>";
-			}
-		}
-
-
-		if ($self->hasFlag("posneg") || $self->hasFlag("toprankers") ||$self->hasFlag("total") ) {
-
-			my $c = $self->getCollection(__PACKAGE__, '%');
-			my @records = $c->getAllRecords();
-
-			return ("No data. Yet.")  if (@records == 0);
-	
-			my (%total, %num, %ratio);
-
-			foreach my $rec (@records){
-				$total{$rec->{collection_name}} += $rec->{val2};
-				$num{$rec->{collection_name}}++;
-			}
-
-			foreach my $n (keys %num){
-				print "$n: $total{$n} / $num{$n} \n";
-				$ratio{$n} = $total{$n} / $num{$n};
-			}
-		
-			my %data;
-			if ($self->hasFlag("posneg")){
-				$output = "Positivity Rankings: ";
-				%data = %ratio;
-			}elsif ($self->hasFlag("toprankers")){
-				$output = "People Rankings the Most Things: ";
-				%data = %num;
-			}elsif ($self->hasFlag("total")){
-				$output = "Points given out: ";
-				%data = %total;
-			}
-
-			foreach (sort { ($data{$b} <=> $data{$a}) } keys %data){
-				if ($self->hasFlag("posneg")){
-					$self->addToList( "$_: ". sprintf("%.2f",$data{$_}), $self->BULLET);;
-				}else{
-					$self->addToList( "$_: ". sprintf("%d",$data{$_}), $self->BULLET );;
-				}
-			}
-
-			return $output . $self->getList();
-		}
+                return  "How $options rates: " . $self->getList();
+            }else{
+                return "Usage: points -all <thing>";
+            }
+        }
 
 
-		if($self->hasFlag("delete")){
-			# Make sure people who have an account have their stuff protected
-			return ("You don't have permission to do that.") if (!$self->hasPermission($self->accountNick()));
+        if ($self->hasFlag("posneg") || $self->hasFlag("toprankers") ||$self->hasFlag("total") ) {
 
-			my $what;
-			if (! ($what = $self->hasFlagValue("delete"))){
-				return "Usage: $cmd -delete=<thing>. Or do -deleteeverything to delete everything.";
-			}
+            my $c = $self->getCollection(__PACKAGE__, '%');
+            my @records = $c->getAllRecords();
 
-			my @records = $c->matchRecords({val1=>$what});
-			if (@records == 1){	
-				$c->delete($records[0]->{'row_id'});
-				return ("$self->{'nick'}: deleted $what from your leaderboard");
-			}else{
-				return ("$self->{'nick'}: \"$what\" doesn't currently appear in your points list.");
-			}
-		}
+            return ("No data. Yet.")  if (@records == 0);
+    
+            my (%total, %num, %ratio);
 
+            foreach my $rec (@records){
+                $total{$rec->{collection_name}} += $rec->{val2};
+                $num{$rec->{collection_name}}++;
+            }
 
-		if ($self->hasFlag("deleteeverything")){
-			# Make sure people who have an account have their stuff protected
-			return ("You don't have permission to do that.") if (!$self->hasPermission($self->accountNick()));
+            foreach my $n (keys %num){
+                print "$n: $total{$n} / $num{$n} \n";
+                $ratio{$n} = $total{$n} / $num{$n};
+            }
+        
+            my %data;
+            if ($self->hasFlag("posneg")){
+                $output = "Positivity Rankings: ";
+                %data = %ratio;
+            }elsif ($self->hasFlag("toprankers")){
+                $output = "People Rankings the Most Things: ";
+                %data = %num;
+            }elsif ($self->hasFlag("total")){
+                $output = "Points given out: ";
+                %data = %total;
+            }
 
-			my @records = $c->getAllRecords();
-			my @sorted = sort { $b->{display_id} <=> $a->{display_id} } @records;
+            foreach (sort { ($data{$b} <=> $data{$a}) } keys %data){
+                if ($self->hasFlag("posneg")){
+                    $self->addToList( "$_: ". sprintf("%.2f",$data{$_}), $self->BULLET);;
+                }else{
+                    $self->addToList( "$_: ". sprintf("%d",$data{$_}), $self->BULLET );;
+                }
+            }
 
-			foreach my $rec (@sorted){
-				$c->delete($rec->{'row_id'});
-			}
-
-			return "$self->{'nick'}: ALL of your points have been deleted. I hope you're happy.";
-		}
-
-
-		if ($self->hasFlagValue("nick") || $options){
-			my $user = $self->hasFlagValue("nick") || $options;
-
-			my $c = $self->getCollection(__PACKAGE__, $user);
-			my @records = $c->getAllRecords();
-
-			if (@records == 0){
-				return ("$user hasn't assigned anything any points yet.");
-			}
-
-			$output = "According to $user: ";
-		
-			my @sorted = sort { $b->{val2} <=> $a->{val2} } @records;
-
-			my $comma = "";
-			foreach my $rec (@sorted){
-				$self->addToList( $rec->{'val1'} .": " . $rec->{'val2'}, $self->BULLET);
-			}
-			return $output . $self->getList();
+            return $output . $self->getList();
+        }
 
 
-		}else{
+        if($self->hasFlag("delete")){
+            # Make sure people who have an account have their stuff protected
+            return ("You don't have permission to do that.") if (!$self->hasPermission($self->accountNick()));
 
-			my @records = $c->getAllRecords();
+            my $what;
+            if (! ($what = $self->hasFlagValue("delete"))){
+                return "Usage: $cmd -delete=<thing>. Or do -deleteeverything to delete everything.";
+            }
 
-			if (@records == 0){
-				return ("You haven't assigned anything any points yet. Use addpoint & rmpoint to do that.");
-			}
-
-			$output = "$self->{'nick'}'s view: ";
-		
-			my @sorted = sort { $b->{val2} <=> $a->{val2} } @records;
-
-			foreach my $rec (@sorted){
-				$self->addToList( $rec->{'val1'} .": " . $rec->{'val2'}, $self->BULLET);
-			}
-			return $output . $self->getList();
-		}
-	}
-
-	# Make sure people who have an account have their stuff protected
-	return ("You don't have permission to do that.") if (!$self->hasPermission($self->accountNick()));
-	
-	if ($cmd eq 'addpoint' || ($cmd eq 'rmpoint') && (lc($options) eq lc($self->{BotName}))){
-
-		return "Usage: $cmd <whatever>" if ($options eq "");
-
-		my @records = $c->matchRecords({val1=>$options});
-
-		if (@records == 0){
-			$c->add($options, 1);
-			return ("$options is now worth 1 in $self->{'nick'}'s eyes.");
-
-		}else{
-			my $counter_val = $records[0]->{'val2'};
-			$counter_val++;
-			if ($c->updateRecord($records[0]->{row_id}, {val2 => $counter_val} )){
-				return ("$options is now worth $counter_val in $self->{'nick'}'s eyes.");
-			}else{
-				return ("Something went wrong.  Let's just pretend this didn't happen.");
-			}
-		}
-
-	}elsif($cmd eq 'rmpoint'){
-
-		return "Usage: $cmd <whatever>" if ($options eq "");
-
-		my @records = $c->matchRecords({val1=>$options});
-
-		if (@records == 0){	
-			$c->add($options, -1);
-			return ("$options is now worth -1 in $self->{'nick'}'s eyes.");
-
-		}else{
-			my $counter_val = $records[0]->{'val2'};
-			$counter_val--;
-			if ($c->updateRecord($records[0]->{row_id}, {val2 => $counter_val} )){
-				return ("$options is now worth $counter_val in $self->{'nick'}'s eyes.");
-			}else{
-				return ("Something went wrong.  Let's just pretend this didn't happen.");
-			}
-		}
-
-	}
+            my @records = $c->matchRecords({val1=>$what});
+            if (@records == 1){ 
+                $c->delete($records[0]->{'row_id'});
+                return ("$self->{'nick'}: deleted $what from your leaderboard");
+            }else{
+                return ("$self->{'nick'}: \"$what\" doesn't currently appear in your points list.");
+            }
+        }
 
 
-	return $output;
+        if ($self->hasFlag("deleteeverything")){
+            # Make sure people who have an account have their stuff protected
+            return ("You don't have permission to do that.") if (!$self->hasPermission($self->accountNick()));
+
+            my @records = $c->getAllRecords();
+            my @sorted = sort { $b->{display_id} <=> $a->{display_id} } @records;
+
+            foreach my $rec (@sorted){
+                $c->delete($rec->{'row_id'});
+            }
+
+            return "$self->{'nick'}: ALL of your points have been deleted. I hope you're happy.";
+        }
+
+
+        if ($self->hasFlagValue("nick") || $options){
+            my $user = $self->hasFlagValue("nick") || $options;
+
+            my $c = $self->getCollection(__PACKAGE__, $user);
+            my @records = $c->getAllRecords();
+
+            if (@records == 0){
+                return ("$user hasn't assigned anything any points yet.");
+            }
+
+            $output = "According to $user: ";
+        
+            my @sorted = sort { $b->{val2} <=> $a->{val2} } @records;
+
+            my $comma = "";
+            foreach my $rec (@sorted){
+                $self->addToList( $rec->{'val1'} .": " . $rec->{'val2'}, $self->BULLET);
+            }
+            return $output . $self->getList();
+
+
+        }else{
+
+            my @records = $c->getAllRecords();
+
+            if (@records == 0){
+                return ("You haven't assigned anything any points yet. Use addpoint & rmpoint to do that.");
+            }
+
+            $output = "$self->{'nick'}'s view: ";
+        
+            my @sorted = sort { $b->{val2} <=> $a->{val2} } @records;
+
+            foreach my $rec (@sorted){
+                $self->addToList( $rec->{'val1'} .": " . $rec->{'val2'}, $self->BULLET);
+            }
+            return $output . $self->getList();
+        }
+    }
+
+    # Make sure people who have an account have their stuff protected
+    return ("You don't have permission to do that.") if (!$self->hasPermission($self->accountNick()));
+    
+    if ($cmd eq 'addpoint' || ($cmd eq 'rmpoint') && (lc($options) eq lc($self->{BotName}))){
+
+        return "Usage: $cmd <whatever>" if ($options eq "");
+
+        my @records = $c->matchRecords({val1=>$options});
+
+        if (@records == 0){
+            $c->add($options, 1);
+            return ("$options is now worth 1 in $self->{'nick'}'s eyes.");
+
+        }else{
+            my $counter_val = $records[0]->{'val2'};
+            $counter_val++;
+            if ($c->updateRecord($records[0]->{row_id}, {val2 => $counter_val} )){
+                return ("$options is now worth $counter_val in $self->{'nick'}'s eyes.");
+            }else{
+                return ("Something went wrong.  Let's just pretend this didn't happen.");
+            }
+        }
+
+    }elsif($cmd eq 'rmpoint'){
+
+        return "Usage: $cmd <whatever>" if ($options eq "");
+
+        my @records = $c->matchRecords({val1=>$options});
+
+        if (@records == 0){ 
+            $c->add($options, -1);
+            return ("$options is now worth -1 in $self->{'nick'}'s eyes.");
+
+        }else{
+            my $counter_val = $records[0]->{'val2'};
+            $counter_val--;
+            if ($c->updateRecord($records[0]->{row_id}, {val2 => $counter_val} )){
+                return ("$options is now worth $counter_val in $self->{'nick'}'s eyes.");
+            }else{
+                return ("Something went wrong.  Let's just pretend this didn't happen.");
+            }
+        }
+
+    }
+
+
+    return $output;
 }
 
 
@@ -237,7 +237,6 @@ sub listeners{
    my @irc_events = [qw () ];
 
    my @preg_matches = [qw () ];
-
 
    my $default_permissions =[ ];
 

@@ -22,145 +22,145 @@ use base qw (modules::PluginBaseClass);
 use modules::PluginBaseClass;
 
 sub getOutput {
-	my $self = shift;
-	my $cmd = $self->{command};
-	my $options = $self->{options};
-	my $output;
+    my $self = shift;
+    my $cmd = $self->{command};
+    my $options = $self->{options};
+    my $output;
 
-	
-	# 8 ball
-	if ($cmd eq '8ball'){
+    
+    # 8 ball
+    if ($cmd eq '8ball'){
 
-		return $self->help($cmd) if ($options eq '');
+        return $self->help($cmd) if ($options eq '');
 
-		my @responses = ('It is certain', 'It is decidedly so', 'Without a doubt', 'Yes, definitely',
-			'You may rely on it', 'As I see it, yes', 'Most likely', 'Outlook good', 'Yes',
-			'Signs point to yes', 'Reply hazy, try again', 'Ask again later', 'Better not tell you now',
-			'Cannot predict now', 'Concentrate and ask again', 'Don\'t count on it', 'My reply is no',
-			'My sources say no', 'Outlook not so good', 'Very doubtful');
+        my @responses = ('It is certain', 'It is decidedly so', 'Without a doubt', 'Yes, definitely',
+            'You may rely on it', 'As I see it, yes', 'Most likely', 'Outlook good', 'Yes',
+            'Signs point to yes', 'Reply hazy, try again', 'Ask again later', 'Better not tell you now',
+            'Cannot predict now', 'Concentrate and ask again', 'Don\'t count on it', 'My reply is no',
+            'My sources say no', 'Outlook not so good', 'Very doubtful');
 
-		my $pos = int(rand (@responses));
+        my $pos = int(rand (@responses));
 
-		return "\x{2787} " . $responses[$pos];
-	}
-
-
-	#fortune
-	if ($cmd eq 'fortune'){
-
-		unless (-e "/usr/games/fortune"){	
-			return "Sorry, fortune is not installed on this machine.";
-		}
-
-		my $fortune = `/usr/games/fortune`;
-		$fortune =~s/\n/ /gis;
-		#return ($fortune x 40);	
-		return $fortune;
-	}
+        return "\x{2787} " . $responses[$pos];
+    }
 
 
-	# powerball numbers
-	if ($cmd eq "powerball"){
-		my @NUMBERS;
-		my @WHITE;
+    #fortune
+    if ($cmd eq 'fortune'){
 
-		for (my $i=1; $i<=59; $i++){
-			push @WHITE, $i;
-		}
+        unless (-e "/usr/games/fortune"){   
+            return "Sorry, fortune is not installed on this machine.";
+        }
 
-		my $i = @WHITE;
-		while ( --$i ){
-			my $j = int rand( $i+1 );
-			@WHITE[$i,$j] = @WHITE[$j,$i];	
-		}
-
-		for (my $i=0; $i<5; $i++){
-			push @NUMBERS, pop(@WHITE);
-		}
-
-		my $pb = int (rand(35 +1));
-
-		@NUMBERS = sort{$a<=>$b} @NUMBERS;
-
-		$output = "I picked these powerball numbers for you: ";
-		foreach my $n (@NUMBERS){
-			$output .= "$n "
-		}
-
-		$output .= " POWERBALL: $pb";
-
-		return $output;
-	}
+        my $fortune = `/usr/games/fortune`;
+        $fortune =~s/\n/ /gis;
+        #return ($fortune x 40);    
+        return $fortune;
+    }
 
 
-	#random number
-	if ($cmd eq "rand"){
-		my $min = $self->hasFlagValue("min") || 1;
-		my $max = $self->hasFlagValue("max") || 10;
-		return int (rand(($max + 1) - $min) + $min);
-	}
+    # powerball numbers
+    if ($cmd eq "powerball"){
+        my @NUMBERS;
+        my @WHITE;
+
+        for (my $i=1; $i<=59; $i++){
+            push @WHITE, $i;
+        }
+
+        my $i = @WHITE;
+        while ( --$i ){
+            my $j = int rand( $i+1 );
+            @WHITE[$i,$j] = @WHITE[$j,$i];  
+        }
+
+        for (my $i=0; $i<5; $i++){
+            push @NUMBERS, pop(@WHITE);
+        }
+
+        my $pb = int (rand(35 +1));
+
+        @NUMBERS = sort{$a<=>$b} @NUMBERS;
+
+        $output = "I picked these powerball numbers for you: ";
+        foreach my $n (@NUMBERS){
+            $output .= "$n "
+        }
+
+        $output .= " POWERBALL: $pb";
+
+        return $output;
+    }
 
 
-	#ask
-	if ($cmd eq "ask"){
-		return $self->help($cmd) if ($options eq '');
-		$options=~s/\?$//gis;
-		
-		if ($options!~/ or /){
-			my @choices = qw /yes yep no nope maybe perhaps/;
-			return @choices[int(rand(@choices))];
-		}
+    #random number
+    if ($cmd eq "rand"){
+        my $min = $self->hasFlagValue("min") || 1;
+        my $max = $self->hasFlagValue("max") || 10;
+        return int (rand(($max + 1) - $min) + $min);
+    }
 
-		my @choices = split / or /, $options;
-		my $i = int(rand(@choices));
-		return $choices[$i];
-	}
 
-	
-	# Rock Paper Scissors
-	if ($cmd eq 'rock' || $cmd eq 'paper' || $cmd eq 'scissors'){
-		my $choice = ('rock', 'paper', 'scissors')[int(rand(3))];
+    #ask
+    if ($cmd eq "ask"){
+        return $self->help($cmd) if ($options eq '');
+        $options=~s/\?$//gis;
+        
+        if ($options!~/ or /){
+            my @choices = qw /yes yep no nope maybe perhaps/;
+            return @choices[int(rand(@choices))];
+        }
 
-		my $status = "";
-		if ($choice eq $cmd){
-			$status = "It's a tie!";
+        my @choices = split / or /, $options;
+        my $i = int(rand(@choices));
+        return $choices[$i];
+    }
 
-		}elsif($choice eq 'rock'){
-			if ($cmd eq 'paper'){
-				$status = "You win!";
-			}else{
-				$status = "I win!";
-			}
-		}elsif($choice eq 'paper'){
-			if ($cmd eq 'scissors'){
-				$status = "You win!";
-			}else{
-				$status = "I win!";
-			}
-		}elsif($choice eq 'scissors'){
-			if ($cmd eq 'rock'){
-				$status = "You win!";
-			}else{
-				$status = "I win!";
-			}
-		}
+    
+    # Rock Paper Scissors
+    if ($cmd eq 'rock' || $cmd eq 'paper' || $cmd eq 'scissors'){
+        my $choice = ('rock', 'paper', 'scissors')[int(rand(3))];
 
-		my $my_score = $self->globalCookie("rps_me") || 0;
-		my $world_score = $self->globalCookie("rps_world") || 0;
-	
-		if ($status eq 'You win!'){
-			$self->globalCookie("rps_world", ++$world_score);
-		}elsif($status eq 'I win!'){
-			$self->globalCookie("rps_me", ++$my_score);
-		}
+        my $status = "";
+        if ($choice eq $cmd){
+            $status = "It's a tie!";
 
-		
-		my $ret = NORMAL."You chose $cmd. I chose $choice.".BOLD." $status".NORMAL;
-		$ret.=" ... ".RED."$self->{BotName}:".NORMAL." $my_score ".RED." World: ".NORMAL."$world_score";
-		return $ret;
-	}
+        }elsif($choice eq 'rock'){
+            if ($cmd eq 'paper'){
+                $status = "You win!";
+            }else{
+                $status = "I win!";
+            }
+        }elsif($choice eq 'paper'){
+            if ($cmd eq 'scissors'){
+                $status = "You win!";
+            }else{
+                $status = "I win!";
+            }
+        }elsif($choice eq 'scissors'){
+            if ($cmd eq 'rock'){
+                $status = "You win!";
+            }else{
+                $status = "I win!";
+            }
+        }
 
-	return $output;
+        my $my_score = $self->globalCookie("rps_me") || 0;
+        my $world_score = $self->globalCookie("rps_world") || 0;
+    
+        if ($status eq 'You win!'){
+            $self->globalCookie("rps_world", ++$world_score);
+        }elsif($status eq 'I win!'){
+            $self->globalCookie("rps_me", ++$my_score);
+        }
+
+        
+        my $ret = NORMAL."You chose $cmd. I chose $choice.".BOLD." $status".NORMAL;
+        $ret.=" ... ".RED."$self->{BotName}:".NORMAL." $my_score ".RED." World: ".NORMAL."$world_score";
+        return $ret;
+    }
+
+    return $output;
 
 }
 

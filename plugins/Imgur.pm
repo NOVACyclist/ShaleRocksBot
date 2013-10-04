@@ -16,7 +16,7 @@ package plugins::Imgur;
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #-----------------------------------------------------------------------------
-use strict;			
+use strict;         
 use warnings;
 use base qw (modules::PluginBaseClass);
 use modules::PluginBaseClass;
@@ -24,61 +24,61 @@ use Data::Dumper;
 use Digest::MD5 qw(md5_hex);
 
 sub getOutput {
-	my $self = shift;
-	my $cmd = $self->{command};	
-	my $options = $self->{options};
-	
-	$self->suppressNick("true");
+    my $self = shift;
+    my $cmd = $self->{command}; 
+    my $options = $self->{options};
+    
+    $self->suppressNick("true");
 
-	if ($cmd eq 'imgur_stats'){
-		my $runs = $self->globalCookie("total_tries") || 0;
-		my $hits = $self->globalCookie("hits") || 0;
-		my $misses = $self->globalCookie("misses") || 0;
-		my $mg = $self->globalCookie("monopoly_guy") || 0;
-		
-		my $full = sprintf("%.2f", $hits/$runs * 100);
-		my $popularity = sprintf("%.2f", $mg/$hits);
-		my $num_monopoly_guys = sprintf("%d", 62**5 * $full / 100  * $popularity);
-		my $pm = int($num_monopoly_guys * sqrt($mg) / $mg);
-		$pm = $self->commify($pm);
-		$num_monopoly_guys = $self->commify($num_monopoly_guys);
+    if ($cmd eq 'imgur_stats'){
+        my $runs = $self->globalCookie("total_tries") || 0;
+        my $hits = $self->globalCookie("hits") || 0;
+        my $misses = $self->globalCookie("misses") || 0;
+        my $mg = $self->globalCookie("monopoly_guy") || 0;
+        
+        my $full = sprintf("%.2f", $hits/$runs * 100);
+        my $popularity = sprintf("%.2f", $mg/$hits);
+        my $num_monopoly_guys = sprintf("%d", 62**5 * $full / 100  * $popularity);
+        my $pm = int($num_monopoly_guys * sqrt($mg) / $mg);
+        $pm = $self->commify($pm);
+        $num_monopoly_guys = $self->commify($num_monopoly_guys);
 
-		my $ret = "I have requested $runs randomly generated image id's from imgur. There have been $hits hits and $misses misses. I have seen the Monopoly Guy $mg times. Based on these numbers, the imgur 5-character namespace is $full% full, and $num_monopoly_guys +/- $pm copies of Monopoly Guy live on imgur. ";
-		
-		if ($mg){
-			my $mg_den = int ($hits / $mg);
-			$ret.="Roughly 1/$mg_den images is Monopoly Guy.";
-		}
+        my $ret = "I have requested $runs randomly generated image id's from imgur. There have been $hits hits and $misses misses. I have seen the Monopoly Guy $mg times. Based on these numbers, the imgur 5-character namespace is $full% full, and $num_monopoly_guys +/- $pm copies of Monopoly Guy live on imgur. ";
+        
+        if ($mg){
+            my $mg_den = int ($hits / $mg);
+            $ret.="Roughly 1/$mg_den images is Monopoly Guy.";
+        }
 
-		return $ret;
-	}
+        return $ret;
+    }
 
-	# The md5 of the not found image
-	my $NF = 'd835884373f4d6c8f24742ceabe74946';
-	
-	# The md5 of the monopoly guy
-	my $MG = 'd5dad890bfc37eccf1226453410a0db2';
+    # The md5 of the not found image
+    my $NF = 'd835884373f4d6c8f24742ceabe74946';
+    
+    # The md5 of the monopoly guy
+    my $MG = 'd5dad890bfc37eccf1226453410a0db2';
 
-	my $tries = 10;
+    my $tries = 10;
 
-	while ($tries--){
-		my $id = $self->getRandID();
-		$self->globalCookie("total_tries", ($self->globalCookie("total_tries") || 0) + 1);
-		my $image = $self->getPage("http://i.imgur.com/" . $id . '.jpg');
+    while ($tries--){
+        my $id = $self->getRandID();
+        $self->globalCookie("total_tries", ($self->globalCookie("total_tries") || 0) + 1);
+        my $image = $self->getPage("http://i.imgur.com/" . $id . '.jpg');
 
-		if (md5_hex($image) eq $NF){
-			$self->globalCookie("misses", ($self->globalCookie("misses") || 0) + 1);
-			next;
-		}
+        if (md5_hex($image) eq $NF){
+            $self->globalCookie("misses", ($self->globalCookie("misses") || 0) + 1);
+            next;
+        }
 
-		if (md5_hex($image) eq $MG){
-			$self->globalCookie("monopoly_guy", ($self->globalCookie("monopoly_guy") || 0) + 1);
-		}
+        if (md5_hex($image) eq $MG){
+            $self->globalCookie("monopoly_guy", ($self->globalCookie("monopoly_guy") || 0) + 1);
+        }
 
-		$self->globalCookie("hits", ($self->globalCookie("hits") || 0) + 1);
-		return BOLD."A random image from imgur: ".NORMAL.GREEN.UNDERLINE."http://i.imgur.com/$id.jpg".NORMAL."  (Note: Nondeterministically NSFW)";
-	}
-	
+        $self->globalCookie("hits", ($self->globalCookie("hits") || 0) + 1);
+        return BOLD."A random image from imgur: ".NORMAL.GREEN.UNDERLINE."http://i.imgur.com/$id.jpg".NORMAL."  (Note: Nondeterministically NSFW)";
+    }
+    
 }
 
 sub commify {
@@ -91,7 +91,7 @@ sub commify {
 
 
 sub getRandID{
-	no strict;
+    no strict;
    my @chars=("A".."Z","a".."z",0..9);
    my $str = "";
    for (my $i=0;$i<5; $i++){
@@ -102,20 +102,20 @@ sub getRandID{
 
 
 sub listeners{
-	my $self = shift;
-	
-	my @commands = [qw(imgur imgur_stats)];
+    my $self = shift;
+    
+    my @commands = [qw(imgur imgur_stats)];
 
-	my $default_permissions =[ ];
+    my $default_permissions =[ ];
 
-	return { commands=>@commands, permissions=>$default_permissions };
+    return { commands=>@commands, permissions=>$default_permissions };
 
 }
 
 sub addHelp{
-	my $self = shift;
-	$self->addHelpItem("[plugin_description]", "Get a random image from imgur.");
-	$self->addHelpItem("[imgur]", "Get a random image from imgur");
+    my $self = shift;
+    $self->addHelpItem("[plugin_description]", "Get a random image from imgur.");
+    $self->addHelpItem("[imgur]", "Get a random image from imgur");
 }
 1;
 __END__

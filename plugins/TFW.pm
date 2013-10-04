@@ -25,47 +25,47 @@ use Data::Dumper;
 
 
 sub plugin_init{
-	my $self = shift;
+    my $self = shift;
 
-	return $self;
+    return $self;
 }
 
 
 sub getOutput {
-	my $self = shift;
-	my $command = $self->{'command'};
-	my $options = $self->{options};
-	my $output = "";
-	my $ret;
+    my $self = shift;
+    my $command = $self->{'command'};
+    my $options = $self->{options};
+    my $output = "";
+    my $ret;
 
    if ($options eq '' ){
-		return $self->help($command);
+        return $self->help($command);
 
-	}else{
+    }else{
 
-		my $URL = "http://thefuckingweather.com/?where=". $options ;
-		my $page = $self->getPage($URL);
-	
-		$page =~/<span id="locationDisplaySpan" class="small">(.+?)<\/span>/;
-		my $place = $1;
+        my $URL = "http://thefuckingweather.com/?where=". $options ;
+        my $page = $self->getPage($URL);
+    
+        $page =~/<span id="locationDisplaySpan" class="small">(.+?)<\/span>/;
+        my $place = $1;
 
-		$page=~/<span class="temperature".+?>(.+?)<\/span>/gis;	
-		my $temp = $1;
-	
-		$page =~/<p class="remark">(.+?)<\/p>/gis;
-		my $comment = $1;
+        $page=~/<span class="temperature".+?>(.+?)<\/span>/gis; 
+        my $temp = $1;
+    
+        $page =~/<p class="remark">(.+?)<\/p>/gis;
+        my $comment = $1;
 
-		$page =~/<p class="flavor">(.+?)<\/p>/gis;
-		my $flavor = $1;
-	
-		if ($place){
-			$URL = $self->getShortURL($URL);
-			return "The Fucking Weather for $place: $temp".$self->DEGREE."F  $comment. $flavor ".GREEN.UNDERLINE.$URL.NORMAL;
-		}else{	
-			return "Couldn't find that fucking place!";
-		}
+        $page =~/<p class="flavor">(.+?)<\/p>/gis;
+        my $flavor = $1;
+    
+        if ($place){
+            $URL = $self->getShortURL($URL);
+            return "The Fucking Weather for $place: $temp".$self->DEGREE."F  $comment. $flavor ".GREEN.UNDERLINE.$URL.NORMAL;
+        }else{  
+            return "Couldn't find that fucking place!";
+        }
 
-	}
+    }
 }
 
 sub listeners{
@@ -79,7 +79,7 @@ sub listeners{
 sub addHelp{
    my $self = shift;
    $self->addHelpItem("[plugin_description]", "Get the fucking weather forecast.");
-	$self->addHelpItem("[tfw]", "Usage: tfw <zip code>");
+    $self->addHelpItem("[tfw]", "Usage: tfw <zip code>");
 }
 
 1;

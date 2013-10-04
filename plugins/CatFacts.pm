@@ -16,7 +16,7 @@ package plugins::CatFacts;
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #--
-use strict;			
+use strict;         
 use warnings;
 use base qw (modules::PluginBaseClass);
 use modules::PluginBaseClass;
@@ -24,46 +24,46 @@ use Data::Dumper;
 use JSON;
 
 sub getOutput {
-	my $self = shift;
-	my $output = "";
-	
-	$self->suppressNick(1);
-	my $page = $self->getPage("http://facts.cat/getfact");
-	my $json  = JSON->new->allow_nonref;
-	my $j = $json->decode($page);
-	return "Cat Fact #".$j->{id}.": ".$j->{factoid};
+    my $self = shift;
+    my $output = "";
+    
+    $self->suppressNick(1);
+    my $page = $self->getPage("http://facts.cat/getfact");
+    my $json  = JSON->new->allow_nonref;
+    my $j = $json->decode($page);
+    return "Cat Fact #".$j->{id}.": ".$j->{factoid};
 }
 
 
 sub listeners{
-	my $self = shift;
-	
-	my @commands = [qw(catfact)];
+    my $self = shift;
+    
+    my @commands = [qw(catfact)];
 
-	my @irc_events = [qw () ];
+    my @irc_events = [qw () ];
 
-	my @preg_matches = [qw () ];
+    my @preg_matches = [qw () ];
 
-	my @preg_excludes = [ qw() ];
+    my @preg_excludes = [ qw() ];
 
-	my $default_permissions =[ ];
+    my $default_permissions =[ ];
 
-	return { commands=>@commands,
-		permissions=>$default_permissions,
-		irc_events=>@irc_events,
-		preg_matches=>@preg_matches,
-		preg_excludes=>@preg_excludes
-	};
+    return { commands=>@commands,
+        permissions=>$default_permissions,
+        irc_events=>@irc_events,
+        preg_matches=>@preg_matches,
+        preg_excludes=>@preg_excludes
+    };
 
 }
 
 ##
 ## addHelp()
-##	The help system will pull from here using PluginBaseClass->help(key).
+##  The help system will pull from here using PluginBaseClass->help(key).
 ##
 sub addHelp{
-	my $self = shift;
-	$self->addHelpItem("[plugin_description]", "Cat Facts. Facts about cats.");
+    my $self = shift;
+    $self->addHelpItem("[plugin_description]", "Cat Facts. Facts about cats.");
    $self->addHelpItem("[catfact]", "Usage: catfact");
 }
 1;

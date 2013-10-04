@@ -19,7 +19,7 @@ package plugins::DuckHunt;
 # I ripped this idea off from Matthias Meusburger.
 # His supybot plugin:  https://github.com/veggiematts/supybot-duckhunt/blob/master/plugin.py
 #-----------------------------------------------------------------------------
-use strict;			
+use strict;         
 use warnings;
 use base qw (modules::PluginBaseClass);
 use modules::PluginBaseClass;
@@ -27,200 +27,200 @@ use Data::Dumper;
 
 use constant DUCK => '\_o<';
 
-my $testing;	#launch ducks every 8 seconds
+my $testing;    #launch ducks every 8 seconds
 
 sub plugin_init{
-	my $self = shift;
-	$self->{testing} = 0;
-	$self->useChannelCookies();
-	return $self;
+    my $self = shift;
+    $self->{testing} = 0;
+    $self->useChannelCookies();
+    return $self;
 }
 
 sub getOutput {
-	my $self = shift;
+    my $self = shift;
 
-	my $cmd = $self->{command};			
-	my $options = $self->{options};	
-	my $channel	= $self->{channel};					
-	my $nick = $self->{nick};
+    my $cmd = $self->{command};         
+    my $options = $self->{options}; 
+    my $channel = $self->{channel};                 
+    my $nick = $self->{nick};
 
-	my $output = "";
-
-
-	#	
-	# bang bang bang
-	#
-
-	if ($cmd eq 'bang'){
-		return "You can't do that via PM. Sorry, bud." if ($channel!~/^#/);
-
-		if (!$self->globalCookie("hunt_on")){
-			return "A hunt is not currently in progress.";
-		}
-
-		if (!$self->globalCookie("duck_launched")){
-			$self->returnType("irc_yield");
-			$self->yieldCommand('kick');
-			$self->yieldArgs([$self->{channel}, $nick, "There was no duck! You shot yourself right out of the channel!"]);
-			return "There was no duck, you fool!";
-		}
-		$self->globalCookie("duck_launched", 0);
-
-		# shoot this duck
-		my $ducks = $self->cookie("num_ducks");
-		$ducks++;
-		$self->cookie("num_ducks", $ducks);
-
-		# schedule next duck
-		$self->scheduleDuck();
-
-		return "Nice shot! You have shot $ducks ducks in $self->{channel}";
-	}
-	
-
-	#
-	# start the hunt
-	#
-
-	if ($cmd eq 'start'){
-		return "You can't do that via PM. Sorry, bud." if ($channel!~/^#/);
-		if ($self->globalCookie("hunt_on")){
-			return "A hunt is already in progress."
-		}
-
-		$self->scheduleDuck();
-		$self->globalCookie("hunt_on", 1);
-		return "Hunt started";
-	}
+    my $output = "";
 
 
+    #   
+    # bang bang bang
+    #
 
-	#
-	# stop the hunt
-	#
+    if ($cmd eq 'bang'){
+        return "You can't do that via PM. Sorry, bud." if ($channel!~/^#/);
 
-	if ($cmd eq 'stop'){
-		return "You can't do that via PM. Sorry, bud." if ($channel!~/^#/);
-		if (!$self->globalCookie("hunt_on")){
-			return "A hunt is not currently in progress.";
-		}
+        if (!$self->globalCookie("hunt_on")){
+            return "A hunt is not currently in progress.";
+        }
 
-		$self->globalCookie("hunt_on", 0);
-		return "Hunt ended";
-	}
+        if (!$self->globalCookie("duck_launched")){
+            $self->returnType("irc_yield");
+            $self->yieldCommand('kick');
+            $self->yieldArgs([$self->{channel}, $nick, "There was no duck! You shot yourself right out of the channel!"]);
+            return "There was no duck, you fool!";
+        }
+        $self->globalCookie("duck_launched", 0);
+
+        # shoot this duck
+        my $ducks = $self->cookie("num_ducks");
+        $ducks++;
+        $self->cookie("num_ducks", $ducks);
+
+        # schedule next duck
+        $self->scheduleDuck();
+
+        return "Nice shot! You have shot $ducks ducks in $self->{channel}";
+    }
+    
+
+    #
+    # start the hunt
+    #
+
+    if ($cmd eq 'start'){
+        return "You can't do that via PM. Sorry, bud." if ($channel!~/^#/);
+        if ($self->globalCookie("hunt_on")){
+            return "A hunt is already in progress."
+        }
+
+        $self->scheduleDuck();
+        $self->globalCookie("hunt_on", 1);
+        return "Hunt started";
+    }
 
 
-	#
-	# launch a duck
-	#
 
-	if ($cmd eq '_launchduck'){
+    #
+    # stop the hunt
+    #
 
-		return if (!$self->globalCookie("hunt_on"));
+    if ($cmd eq 'stop'){
+        return "You can't do that via PM. Sorry, bud." if ($channel!~/^#/);
+        if (!$self->globalCookie("hunt_on")){
+            return "A hunt is not currently in progress.";
+        }
 
-		if ($self->globalCookie("duck_launched")){
-			# a duck is already launched.
-			return;
-		}
-
-		$self->suppressNick("true");	
-		$self->globalCookie("duck_launched", 1);
-		return $self->DUCK;
-	}
+        $self->globalCookie("hunt_on", 0);
+        return "Hunt ended";
+    }
 
 
-	#
-	# scores	
-	#
+    #
+    # launch a duck
+    #
 
-	if ($cmd eq 'scores'){
-		my @cookies = $self->allCookies();
-		@cookies = sort {$b->{value} <=> $a->{value}} @cookies;
-		#print Dumper (@cookies);
+    if ($cmd eq '_launchduck'){
 
-		foreach my $cookie (@cookies){
-			next if ($cookie->{owner} eq ':package');
-			$self->addToList("$cookie->{owner}: $cookie->{value}", $self->BULLET );
-		}
+        return if (!$self->globalCookie("hunt_on"));
 
-		my $list = $self->getList();
-		if ($list){
-			$output = BOLD."DuckHunt Scores for $self->{channel}: ".NORMAL . $list;
-		}else{
-			$output = 'No one has shot any ducks in '.$self->{channel}.' yet.';
-		}
-		return $output;
-	}
+        if ($self->globalCookie("duck_launched")){
+            # a duck is already launched.
+            return;
+        }
 
-	#
-	#	clear_scores
-	#
+        $self->suppressNick("true");    
+        $self->globalCookie("duck_launched", 1);
+        return $self->DUCK;
+    }
 
-	if ($cmd eq 'clear_scores'){
-		$self->deletePackageCookies();
-		return ("Scores cleared");
-	}
+
+    #
+    # scores    
+    #
+
+    if ($cmd eq 'scores'){
+        my @cookies = $self->allCookies();
+        @cookies = sort {$b->{value} <=> $a->{value}} @cookies;
+        #print Dumper (@cookies);
+
+        foreach my $cookie (@cookies){
+            next if ($cookie->{owner} eq ':package');
+            $self->addToList("$cookie->{owner}: $cookie->{value}", $self->BULLET );
+        }
+
+        my $list = $self->getList();
+        if ($list){
+            $output = BOLD."DuckHunt Scores for $self->{channel}: ".NORMAL . $list;
+        }else{
+            $output = 'No one has shot any ducks in '.$self->{channel}.' yet.';
+        }
+        return $output;
+    }
+
+    #
+    #   clear_scores
+    #
+
+    if ($cmd eq 'clear_scores'){
+        $self->deletePackageCookies();
+        return ("Scores cleared");
+    }
 
 }
 
 sub scheduleDuck{
-	my $self = shift;
+    my $self = shift;
 
-	my $next_time;
-	if ($self->{testing}){
-		$next_time = time() + 8;
-	}else{
-		$next_time = time() + int(rand($self->s('duck_window'))) + $self->s('duck_delay');
-	}
+    my $next_time;
+    if ($self->{testing}){
+        $next_time = time() + 8;
+    }else{
+        $next_time = time() + int(rand($self->s('duck_window'))) + $self->s('duck_delay');
+    }
 
-	print "now is " . time() . " next duck at " . $next_time . " which is in " . ($next_time - time ()) . " seconds\n";
+    print "now is " . time() . " next duck at " . $next_time . " which is in " . ($next_time - time ()) . " seconds\n";
 
-	my $args = {
-	  timestamp => $next_time,	
-	  command => '_launchduck',
-	  options => '',
-	  internal => 1,
-	  desc => 'quack'	
-	};
+    my $args = {
+      timestamp => $next_time,  
+      command => '_launchduck',
+      options => '',
+      internal => 1,
+      desc => 'quack'   
+    };
 
-	$self->scheduleEvent($args);
+    $self->scheduleEvent($args);
 }
 
-	
+    
 sub listeners{
-	my $self = shift;
-	
-	my @commands = [qw(bang clear_scores _launchduck start stop scores)];
+    my $self = shift;
+    
+    my @commands = [qw(bang clear_scores _launchduck start stop scores)];
 
-	my $default_permissions =[
-		{command=>"_launchduck", require_group => UA_INTERNAL },
-		{command=>"clear_scores", require_group => UA_TRUSTED},
-	];
+    my $default_permissions =[
+        {command=>"_launchduck", require_group => UA_INTERNAL },
+        {command=>"clear_scores", require_group => UA_TRUSTED},
+    ];
 
-	return { commands=>@commands,
-		permissions=>$default_permissions,
-	};
+    return { commands=>@commands,
+        permissions=>$default_permissions,
+    };
 }
 
 sub settings{
-	my $self = shift;
+    my $self = shift;
 
-	$self->defineSetting({
-		name=>'duck_delay', 
-		default=>60*5,
-		desc=>'The minimum time (in seconds) until the next duck appears.'
-	});
+    $self->defineSetting({
+        name=>'duck_delay', 
+        default=>60*5,
+        desc=>'The minimum time (in seconds) until the next duck appears.'
+    });
 
-	$self->defineSetting({
-		name=>'duck_window', 
-		default=>60*15,
-		desc=>'The window of time (in seconds) in which the next duck might appear.  We\'ll pick a random time in this window, following the duck_delay period.'
-	});
+    $self->defineSetting({
+        name=>'duck_window', 
+        default=>60*15,
+        desc=>'The window of time (in seconds) in which the next duck might appear.  We\'ll pick a random time in this window, following the duck_delay period.'
+    });
 }
 
 sub addHelp{
-	my $self = shift;
-	$self->addHelpItem("[plugin_description]", "Duck Hunt!");
+    my $self = shift;
+    $self->addHelpItem("[plugin_description]", "Duck Hunt!");
    $self->addHelpItem("[bang]", "Command: bang.  Shoot a duck");
    $self->addHelpItem("[clear_scores]", "clear the duck hunting scores");
 }

@@ -25,492 +25,492 @@ use Data::Dumper;
 use Date::Manip;
 
 sub getOutput {
-	my $self = shift;
-	my $options = $self->{options};
-	my $output;
-	
-	my $c = $self->getCollection(__PACKAGE__, $self->accountNick());
-
-	##
-	##  No Arguments - print Badges
-	##
+    my $self = shift;
+    my $options = $self->{options};
+    my $output;
+    
+    my $c = $self->getCollection(__PACKAGE__, $self->accountNick());
+
+    ##
+    ##  No Arguments - print Badges
+    ##
 
-	if ( ($self->numFlags() == 0 && $options eq '')|| $self->hasFlag("list")){
-		
-		my @records = $c->getAllRecords();
+    if ( ($self->numFlags() == 0 && $options eq '')|| $self->hasFlag("list")){
+        
+        my @records = $c->getAllRecords();
 
-		$output = "Your badges: ";
+        $output = "Your badges: ";
 
-		foreach my $badge (@records){
-			my $badge_name = $badge->{'val1'};
-			my $badge_date = $badge->{'val2'};
-			my $badge_dollar = $badge->{'val3'};
+        foreach my $badge (@records){
+            my $badge_name = $badge->{'val1'};
+            my $badge_date = $badge->{'val2'};
+            my $badge_dollar = $badge->{'val3'};
 
-			if ($self->hasTime($badge_date)){
-				$output .= $self->timeSince($badge_date). " with $badge_name";
+            if ($self->hasTime($badge_date)){
+                $output .= $self->timeSince($badge_date). " with $badge_name";
 
-				if ($badge_dollar){
-					my $saved = $badge_dollar * $self->daysSince($badge_date);
-					$saved = commify($saved);
-					$output .= ' ($'.$saved. ' saved)';
-				}
-				$output .=".  ";
+                if ($badge_dollar){
+                    my $saved = $badge_dollar * $self->daysSince($badge_date);
+                    $saved = commify($saved);
+                    $output .= ' ($'.$saved. ' saved)';
+                }
+                $output .=".  ";
 
-			}else{
-				$output .= "On day ".$self->daysSince($badge_date). " with $badge_name";
+            }else{
+                $output .= "On day ".$self->daysSince($badge_date). " with $badge_name";
 
-				if ($badge_dollar){
-					my $saved = $badge_dollar * $self->daysSince($badge_date);
-					$saved = commify($saved);
-					$output.= ' ($'.$saved. ' saved)';
-				}
+                if ($badge_dollar){
+                    my $saved = $badge_dollar * $self->daysSince($badge_date);
+                    $saved = commify($saved);
+                    $output.= ' ($'.$saved. ' saved)';
+                }
 
-				$output .=".  ";
-			}
+                $output .=".  ";
+            }
 
-		}
-			
-		if (@records){
-			return ($output);
-		}else{
-			return ("You don't have any badges. " . $self->help('badge'));
-		}
+        }
+            
+        if (@records){
+            return ($output);
+        }else{
+            return ("You don't have any badges. " . $self->help('badge'));
+        }
 
 
-	##
-	## add a badge
-	## 
+    ##
+    ## add a badge
+    ## 
 
-	}elsif($self->hasFlag("add")){
+    }elsif($self->hasFlag("add")){
 
-		if (! $self->hasPermission($self->accountNick()) ){
-   	    return ("You don't have permission to do that.");
-		}
-
-		my ($badge_date, $badge_name);
+        if (! $self->hasPermission($self->accountNick()) ){
+        return ("You don't have permission to do that.");
+        }
+
+        my ($badge_date, $badge_name);
 
-		if (!($badge_name = $self->hasFlagValue("name"))){
-			return ("A badge name is required.  Example: -name = QuitSmoking  Example: -name=\"Quit Smoking\"");
-		}
-
-		if (! ($badge_date = $self->hasFlagValue("date"))){
-			return ("A date is required.  Example: -date=\"10/31/2012\"  Example: -date=\"January 4, 2013\"  Example: -date=\"4 days ago\"  Example: -date=\"last tuesday\"");
-		}		
-
-		my $date = new Date::Manip::Date;
-
-		my $err;
-		eval{
-			$err = $date->parse($badge_date);
-		};
-
-		if ($@){
-			return ("Whoops.  An error occurred.");
-		}
-
-		if ($err){
-			print "ERROR PARSING DATE : $err\n";
-			return ("There was an error parsing that date. Badge not added");
-		}
-		
-
-		my $date_db  = $date->value();
-		#print "Date value is " . $date_db . "\n";
-		my $date_printable = $date->printf("%m/%d/%Y");
-
-		my @records = $c->matchRecords({val1=>$badge_name});
-
-		if (@records > 0){
-			return("Looks like you already have a badge by that name. Use delete or reset.");
-		}
-
-		my $temp = $badge_name;
-		$temp=~s/[A-Za-z0-9 ]//g;
-		if ($temp){
-			return "'$temp' You can't use special characters in your badge name. Only letters and numbers, and spaces if you must."
-		}
-
-		$c->add($badge_name, $date_db);
-
-		return "added badge '$badge_name' with a date of $date_printable for user ". $self->{'nick'}.".";
-
-
-	##
-	## all - see all badges of a particular type
-	##	 
-
-	}elsif($self->hasFlag("all")){
-
-		my $badge_name;
-
-		my $oc = $self->getCollection(__PACKAGE__, '%');
-
-		if ($badge_name = $self->hasFlagValue("name")){
-			my @records = $oc->matchRecords({val1=>$badge_name});
-			my $ret = "$badge_name badges: ";
-			foreach my $badge (@records){
-				my $badge_user = $badge->{'collection_name'};
-				my $badge_name = $badge->{'val1'};
-				my $badge_date = $badge->{'val2'};
-
-				if ($self->hasTime($badge_date)){
-					$ret .= "$badge_user: " . $self->timeSince($badge_date). ". ";
-
-				}else{
-					$ret .= "$badge_user: " . $self->daysSince($badge_date). " Days. ";
-				}
-			}
-
-			return ($ret) if (@records);
-			return ("No one has a badge called $badge_name.");
-
-		}else{
-			my @records = $oc->getAllRecords();
-
-			my %badge_list;
-			foreach my $badge (@records){
-				my $badge_name = $badge->{'val1'};
-				$badge_list{$badge_name}++;
-			}
-		
-			my $ret = "All user badges: ";
-
-			foreach my $k (sort keys %badge_list){
-				$ret.= $k . "(".$badge_list{$k}.") ";
-			}
-
-			return ($ret) if (@records);
-			return ("No one has a badge!  Man, you guys are L-A-M-E.");
-		}
-			
-	##
-	## user - see another user's badge
-	##	 
-
-	}elsif( (my $nick = $self->hasFlagValue("nick"))){
-		
-		my $oc = $self->getCollection(__PACKAGE__, $nick);
-		my @records = $oc->getAllRecords();
-		my $ret = $nick."'s badges: ";
-
-		foreach my $badge (@records){
-			my $badge_name = $badge->{'val1'};
-			my $badge_date = $badge->{'val2'};
-			my $badge_dollar = $badge->{'val3'};
-
-			if ($self->hasTime($badge_date)){
-				$ret .= $self->timeSince($badge_date). " with $badge_name";
-
-				if ($badge_dollar){
-					my $saved = $badge_dollar * $self->daysSince($badge_date);
-					$saved = commify($saved);
-					$ret .= ' ($'.$saved. ' saved)';
-				}
-				$ret .= ". ";
-
-			}else{
-				$ret .= "On day ".$self->daysSince($badge_date). " with $badge_name";
-
-				if ($badge_dollar){
-					my $saved = $badge_dollar * $self->daysSince($badge_date);
-					$saved = commify($saved);
-					$ret .= ' ($'.$saved. ' saved)';
-				}
-				$ret .= ". ";
-			}
-		}
-			
-		return ($ret) if (@records);
-		return ($nick. " doesn't have any badges.");
+        if (!($badge_name = $self->hasFlagValue("name"))){
+            return ("A badge name is required.  Example: -name = QuitSmoking  Example: -name=\"Quit Smoking\"");
+        }
+
+        if (! ($badge_date = $self->hasFlagValue("date"))){
+            return ("A date is required.  Example: -date=\"10/31/2012\"  Example: -date=\"January 4, 2013\"  Example: -date=\"4 days ago\"  Example: -date=\"last tuesday\"");
+        }       
+
+        my $date = new Date::Manip::Date;
+
+        my $err;
+        eval{
+            $err = $date->parse($badge_date);
+        };
+
+        if ($@){
+            return ("Whoops.  An error occurred.");
+        }
+
+        if ($err){
+            print "ERROR PARSING DATE : $err\n";
+            return ("There was an error parsing that date. Badge not added");
+        }
+        
+
+        my $date_db  = $date->value();
+        #print "Date value is " . $date_db . "\n";
+        my $date_printable = $date->printf("%m/%d/%Y");
+
+        my @records = $c->matchRecords({val1=>$badge_name});
+
+        if (@records > 0){
+            return("Looks like you already have a badge by that name. Use delete or reset.");
+        }
+
+        my $temp = $badge_name;
+        $temp=~s/[A-Za-z0-9 ]//g;
+        if ($temp){
+            return "'$temp' You can't use special characters in your badge name. Only letters and numbers, and spaces if you must."
+        }
+
+        $c->add($badge_name, $date_db);
+
+        return "added badge '$badge_name' with a date of $date_printable for user ". $self->{'nick'}.".";
+
+
+    ##
+    ## all - see all badges of a particular type
+    ##   
+
+    }elsif($self->hasFlag("all")){
+
+        my $badge_name;
+
+        my $oc = $self->getCollection(__PACKAGE__, '%');
+
+        if ($badge_name = $self->hasFlagValue("name")){
+            my @records = $oc->matchRecords({val1=>$badge_name});
+            my $ret = "$badge_name badges: ";
+            foreach my $badge (@records){
+                my $badge_user = $badge->{'collection_name'};
+                my $badge_name = $badge->{'val1'};
+                my $badge_date = $badge->{'val2'};
+
+                if ($self->hasTime($badge_date)){
+                    $ret .= "$badge_user: " . $self->timeSince($badge_date). ". ";
+
+                }else{
+                    $ret .= "$badge_user: " . $self->daysSince($badge_date). " Days. ";
+                }
+            }
+
+            return ($ret) if (@records);
+            return ("No one has a badge called $badge_name.");
+
+        }else{
+            my @records = $oc->getAllRecords();
+
+            my %badge_list;
+            foreach my $badge (@records){
+                my $badge_name = $badge->{'val1'};
+                $badge_list{$badge_name}++;
+            }
+        
+            my $ret = "All user badges: ";
+
+            foreach my $k (sort keys %badge_list){
+                $ret.= $k . "(".$badge_list{$k}.") ";
+            }
+
+            return ($ret) if (@records);
+            return ("No one has a badge!  Man, you guys are L-A-M-E.");
+        }
+            
+    ##
+    ## user - see another user's badge
+    ##   
+
+    }elsif( (my $nick = $self->hasFlagValue("nick"))){
+        
+        my $oc = $self->getCollection(__PACKAGE__, $nick);
+        my @records = $oc->getAllRecords();
+        my $ret = $nick."'s badges: ";
+
+        foreach my $badge (@records){
+            my $badge_name = $badge->{'val1'};
+            my $badge_date = $badge->{'val2'};
+            my $badge_dollar = $badge->{'val3'};
+
+            if ($self->hasTime($badge_date)){
+                $ret .= $self->timeSince($badge_date). " with $badge_name";
+
+                if ($badge_dollar){
+                    my $saved = $badge_dollar * $self->daysSince($badge_date);
+                    $saved = commify($saved);
+                    $ret .= ' ($'.$saved. ' saved)';
+                }
+                $ret .= ". ";
+
+            }else{
+                $ret .= "On day ".$self->daysSince($badge_date). " with $badge_name";
+
+                if ($badge_dollar){
+                    my $saved = $badge_dollar * $self->daysSince($badge_date);
+                    $saved = commify($saved);
+                    $ret .= ' ($'.$saved. ' saved)';
+                }
+                $ret .= ". ";
+            }
+        }
+            
+        return ($ret) if (@records);
+        return ($nick. " doesn't have any badges.");
 
 
 
-	##
-	##  dollar amounts
-	##	 
+    ##
+    ##  dollar amounts
+    ##   
 
-	}elsif($self->hasFlag("cost")){
- 	  if (! $self->hasPermission($self->accountNick()) ){
-   	   return ("You don't have permission to do that.");
- 	  }
+    }elsif($self->hasFlag("cost")){
+      if (! $self->hasPermission($self->accountNick()) ){
+       return ("You don't have permission to do that.");
+      }
 
-		my $ret = "";
-		my ($badge_name, $badge_cost);
+        my $ret = "";
+        my ($badge_name, $badge_cost);
 
-		if (!($badge_name=$self->hasFlagValue("name"))){
-			return "You must specify a badge name.  Example:  -name = \"QuitSmoking\" ";
-		}
-		
-		if (!($badge_cost=$self->hasFlagValue("cost"))){
-			return "You must specify a daily cost.  Example:  -cost = 15.99.  To clear the cost, use -cost = none";
-		}
+        if (!($badge_name=$self->hasFlagValue("name"))){
+            return "You must specify a badge name.  Example:  -name = \"QuitSmoking\" ";
+        }
+        
+        if (!($badge_cost=$self->hasFlagValue("cost"))){
+            return "You must specify a daily cost.  Example:  -cost = 15.99.  To clear the cost, use -cost = none";
+        }
 
-		$badge_cost =~ s/\$//;
-		if ($badge_cost eq "none"){
-			$badge_cost = 0;
-		}
+        $badge_cost =~ s/\$//;
+        if ($badge_cost eq "none"){
+            $badge_cost = 0;
+        }
 
-		my @records = $c->matchRecords({val1=>$badge_name});
+        my @records = $c->matchRecords({val1=>$badge_name});
 
-		if (@records == 1){
-			if ($c->updateRecord($records[0]->{'row_id'}, {val3 => $badge_cost} )){
-				return "Badge $badge_name updated.";
+        if (@records == 1){
+            if ($c->updateRecord($records[0]->{'row_id'}, {val3 => $badge_cost} )){
+                return "Badge $badge_name updated.";
 
-			}else{
-				return "Whoops.  Something went wrong. (#3pr)";
-			}
+            }else{
+                return "Whoops.  Something went wrong. (#3pr)";
+            }
 
-		}elsif(@records > 1){
-			print "POSSIBLE ERROR - MORE THAN ONE RECORD\n";
-			return ("Whoops, something went wrong.");
+        }elsif(@records > 1){
+            print "POSSIBLE ERROR - MORE THAN ONE RECORD\n";
+            return ("Whoops, something went wrong.");
 
-		}else{
-			return ("Can't find a badge for you with that name." );
-		}
+        }else{
+            return ("Can't find a badge for you with that name." );
+        }
 
 
 
-	##
-	## delete a badge
-	##	 
+    ##
+    ## delete a badge
+    ##   
 
-	}elsif($self->hasFlag("delete")){
- 	  if (! $self->hasPermission($self->accountNick()) ){
-   	   return ("You don't have permission to do that.");
- 	  }
+    }elsif($self->hasFlag("delete")){
+      if (! $self->hasPermission($self->accountNick()) ){
+       return ("You don't have permission to do that.");
+      }
 
-		my $ret = "";
-		my $badge_name;
-		if (!($badge_name=$self->hasFlagValue("name"))){
-			return "You must specify a badge name.  Example:  -name = \"QuitSmoking\" ";
-		}
-		
-		my @records = $c->matchRecords({val1=>$badge_name});
+        my $ret = "";
+        my $badge_name;
+        if (!($badge_name=$self->hasFlagValue("name"))){
+            return "You must specify a badge name.  Example:  -name = \"QuitSmoking\" ";
+        }
+        
+        my @records = $c->matchRecords({val1=>$badge_name});
 
-		if (@records == 1){
-			$c->delete($records[0]->{'row_id'});
-			return "Deleted badge $badge_name";
+        if (@records == 1){
+            $c->delete($records[0]->{'row_id'});
+            return "Deleted badge $badge_name";
 
-		}elsif(@records > 1){
-			print "POSSIBLE ERROR - MORE THAN ONE RECORD\n";
-			return ("Whoops, something went wrong.");
+        }elsif(@records > 1){
+            print "POSSIBLE ERROR - MORE THAN ONE RECORD\n";
+            return ("Whoops, something went wrong.");
 
-		}else{
-			return ("Can't find a badge for you with that name.  Use '".$self->{BotCommandPrefix}."badge list' to list your current badges.");
-		}
+        }else{
+            return ("Can't find a badge for you with that name.  Use '".$self->{BotCommandPrefix}."badge list' to list your current badges.");
+        }
 
 
-	##
-	## Reset Badge
-	## 
+    ##
+    ## Reset Badge
+    ## 
 
-	}elsif( $self->hasFlag("update")){
+    }elsif( $self->hasFlag("update")){
 
- 	  if (! $self->hasPermission($self->accountNick()) ){
-   	   return ("You don't have permission to do that.");
- 	  }
+      if (! $self->hasPermission($self->accountNick()) ){
+       return ("You don't have permission to do that.");
+      }
 
-		my ($badge_name, $badge_date);
+        my ($badge_name, $badge_date);
 
 
-		if (!($badge_name = $self->hasFlagValue("name"))){
-			return ("A badge name is required.  Example: -name = QuitSmoking  Example: -name=\"Quit Smoking\"");
-		}
+        if (!($badge_name = $self->hasFlagValue("name"))){
+            return ("A badge name is required.  Example: -name = QuitSmoking  Example: -name=\"Quit Smoking\"");
+        }
 
-		if (!($badge_date = $self->hasFlagValue("date"))){
-			return ("A date is required.  Example: -date=\"10/31/2012\"  Example: -date=\"January 4, 2013\"  Example: -date=\"4 days ago\"  Example: -date=\"last tuesday\"");
-		}
+        if (!($badge_date = $self->hasFlagValue("date"))){
+            return ("A date is required.  Example: -date=\"10/31/2012\"  Example: -date=\"January 4, 2013\"  Example: -date=\"4 days ago\"  Example: -date=\"last tuesday\"");
+        }
 
-		my @records = $c->matchRecords({val1=>$badge_name});
+        my @records = $c->matchRecords({val1=>$badge_name});
 
-		if (@records == 1){
-			my $date = new Date::Manip::Date;
+        if (@records == 1){
+            my $date = new Date::Manip::Date;
 
-			if ($badge_date){
-				my $err;
-				eval{ $err = $date->parse($badge_date); };
-				if ($@){ return ("Whoops.  An error occurred."); }
+            if ($badge_date){
+                my $err;
+                eval{ $err = $date->parse($badge_date); };
+                if ($@){ return ("Whoops.  An error occurred."); }
 
-				if ($err){
-					print "ERROR PARSING DATE : $err\n";
-					return ("There was an error parsing that date. Badge not updated");
-				}
+                if ($err){
+                    print "ERROR PARSING DATE : $err\n";
+                    return ("There was an error parsing that date. Badge not updated");
+                }
 
-			}else{
+            }else{
 
-				if ($self->hasTime($records[0]->{'val2'})){
-					$date->parse("now");
-				}else{
-					$date->parse("today");
-				}
-			}
+                if ($self->hasTime($records[0]->{'val2'})){
+                    $date->parse("now");
+                }else{
+                    $date->parse("today");
+                }
+            }
 
-			my $date_db  = $date->value();
-			my $date_printable = $date->printf("%m/%d/%Y");
+            my $date_db  = $date->value();
+            my $date_printable = $date->printf("%m/%d/%Y");
 
 
-			if ($c->updateRecord($records[0]->{'row_id'}, {val2 => $date_db} )){
-				return ("Badge $badge_name updated to $date_printable.");
+            if ($c->updateRecord($records[0]->{'row_id'}, {val2 => $date_db} )){
+                return ("Badge $badge_name updated to $date_printable.");
 
-			}else{
-				return ("There was an error updating that badge.");
-			}
+            }else{
+                return ("There was an error updating that badge.");
+            }
 
-		}elsif(@records > 1){
-			print "POSSIBLE ERROR - MORE THAN ONE RECORD\n";
-			return ("Whoops, something went wrong. #4rpo");
+        }elsif(@records > 1){
+            print "POSSIBLE ERROR - MORE THAN ONE RECORD\n";
+            return ("Whoops, something went wrong. #4rpo");
 
-		}else{
-			return ("Can't find a badge for you with that name.");
-		}
+        }else{
+            return ("Can't find a badge for you with that name.");
+        }
 
 
-	##
-	## show single badge by name
-	##
+    ##
+    ## show single badge by name
+    ##
 
-	}elsif($self->hasFlag("name") || $self->{'options'}=~/^(\w+)\b/){
-		my $badge_name;
+    }elsif($self->hasFlag("name") || $self->{'options'}=~/^(\w+)\b/){
+        my $badge_name;
 
-		if (!($badge_name = $self->hasFlagValue("name"))){
-			$badge_name = $1;
-		}
-	
-		my $ret="";
-		my @records = $c->getAllRecords();
+        if (!($badge_name = $self->hasFlagValue("name"))){
+            $badge_name = $1;
+        }
+    
+        my $ret="";
+        my @records = $c->getAllRecords();
 
 
-		foreach my $badge (@records){
+        foreach my $badge (@records){
 
-			if ($badge->{'val1'} eq $badge_name){
+            if ($badge->{'val1'} eq $badge_name){
 
-				my $badge_date = $badge->{'val2'};
-				my $badge_dollar = $badge->{'val3'};
+                my $badge_date = $badge->{'val2'};
+                my $badge_dollar = $badge->{'val3'};
 
-				if ($self->hasTime($badge_date)){
-					$ret .= $self->timeSince($badge_date). " with $badge_name";
-				
-					if ($badge_dollar){
-						my $saved = $badge_dollar * $self->daysSince($badge_date);
-						$saved = commify($saved);
-						$ret .= ' ($'.$saved. ' saved)';
-					}
+                if ($self->hasTime($badge_date)){
+                    $ret .= $self->timeSince($badge_date). " with $badge_name";
+                
+                    if ($badge_dollar){
+                        my $saved = $badge_dollar * $self->daysSince($badge_date);
+                        $saved = commify($saved);
+                        $ret .= ' ($'.$saved. ' saved)';
+                    }
 
-					$ret .= ".  ";
+                    $ret .= ".  ";
 
-				}else{
-					$ret .= "On day ".$self->daysSince($badge_date). " with $badge_name";
+                }else{
+                    $ret .= "On day ".$self->daysSince($badge_date). " with $badge_name";
 
-					if ($badge_dollar){
-						my $saved = $badge_dollar * $self->daysSince($badge_date);
-						$saved = commify($saved);
-						$ret .= ' ($'.$saved. ' saved)';
-					}
+                    if ($badge_dollar){
+                        my $saved = $badge_dollar * $self->daysSince($badge_date);
+                        $saved = commify($saved);
+                        $ret .= ' ($'.$saved. ' saved)';
+                    }
 
-					$ret .= ".  ";
-				}
-			}
-		}
+                    $ret .= ".  ";
+                }
+            }
+        }
 
-		if ($ret){
-			return ($ret);
+        if ($ret){
+            return ($ret);
 
-		}else{
-			return ("You don't have a badge by that name. " . $self->help('badge'));
-		}
-	}
+        }else{
+            return ("You don't have a badge by that name. " . $self->help('badge'));
+        }
+    }
 }
 
 sub hasTime{
-	my $self = shift;
-	my $date = shift;
+    my $self = shift;
+    my $date = shift;
 
-	
-	if ($date=~/00:00:00/){
-		return 0;
-	}else{
-		return 1;
-	}
+    
+    if ($date=~/00:00:00/){
+        return 0;
+    }else{
+        return 1;
+    }
 
 }
 
 sub daysSince{
-	my $self = shift;
-	my $date_str = shift;
+    my $self = shift;
+    my $date_str = shift;
 
-	my $date = new Date::Manip::Date;
-	my $err = $date->parse($date_str);
+    my $date = new Date::Manip::Date;
+    my $err = $date->parse($date_str);
 
-	my $now = new Date::Manip::Date;
-	$now->parse("today");
-	
-	my $date_printable = $date->printf("%m/%d/%Y");
-		
-	my $delta = $date->calc($now);
+    my $now = new Date::Manip::Date;
+    $now->parse("today");
+    
+    my $date_printable = $date->printf("%m/%d/%Y");
+        
+    my $delta = $date->calc($now);
 
-	my @dv = $delta->value();
+    my @dv = $delta->value();
 
-	my $days = int($dv[4] / 24);
+    my $days = int($dv[4] / 24);
 
-	my $ret;
-	if ($days >=0){
-		$ret = $days + 1;
-	}else{
-		$ret = $days;
-	}
+    my $ret;
+    if ($days >=0){
+        $ret = $days + 1;
+    }else{
+        $ret = $days;
+    }
 
-	return $ret;
+    return $ret;
 }
 
 
 sub timeSince{
-	my $self = shift;
-	my $date_str = shift;
+    my $self = shift;
+    my $date_str = shift;
 
-	my $date = new Date::Manip::Date;
-	my $err = $date->parse($date_str);
+    my $date = new Date::Manip::Date;
+    my $err = $date->parse($date_str);
 
-	my $now = new Date::Manip::Date;
-	$now->parse("now");
-	
-	my $date_printable = $date->printf("%m/%d/%Y");
-		
-	my $delta = $date->calc($now);
+    my $now = new Date::Manip::Date;
+    $now->parse("now");
+    
+    my $date_printable = $date->printf("%m/%d/%Y");
+        
+    my $delta = $date->calc($now);
 
-	my @dv = $delta->value();
-	
-	my $hours = $dv[4];
-	my $minutes = $dv[5];
-	my $seconds = $dv[6];
+    my @dv = $delta->value();
+    
+    my $hours = $dv[4];
+    my $minutes = $dv[5];
+    my $seconds = $dv[6];
 
-	my $days = int($dv[4] / 24);
+    my $days = int($dv[4] / 24);
 
-	if ($days > 2){
-		return $days + 1 . " days";
+    if ($days > 2){
+        return $days + 1 . " days";
 
-	}elsif ($days >= 1){
-		return "$days days, ".($hours % 24) ." hours";
+    }elsif ($days >= 1){
+        return "$days days, ".($hours % 24) ." hours";
 
-	}elsif ($hours  >= 1){
-		return "$hours hours";
+    }elsif ($hours  >= 1){
+        return "$hours hours";
 
-	}elsif ($minutes >= 1){
-		return "$minutes minutes";
+    }elsif ($minutes >= 1){
+        return "$minutes minutes";
 
-	}elsif($seconds > 0){
-		return "$seconds seconds";
+    }elsif($seconds > 0){
+        return "$seconds seconds";
 
-	}elsif($hours > -48){
-		return "$hours hours ";
+    }elsif($hours > -48){
+        return "$hours hours ";
 
-	}else{
-		return $days . " days ";
-	}
+    }else{
+        return $days . " days ";
+    }
 
-	my $ret = "hours: $hours  min: $minutes  sec: $seconds";
+    my $ret = "hours: $hours  min: $minutes  sec: $seconds";
 
 
-	return $ret;
+    return $ret;
 }
 
 sub commify {

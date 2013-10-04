@@ -24,79 +24,79 @@ use modules::PluginBaseClass;
 use Data::Dumper;
 
 sub getOutput {
-	my $self = shift;
-	my $output = "";
-	my $options = $self->{'options'};
-	my $cmd = $self->{command};
-	my $channel = $self->{channel};
+    my $self = shift;
+    my $output = "";
+    my $options = $self->{'options'};
+    my $cmd = $self->{command};
+    my $channel = $self->{channel};
 
-	if ($cmd eq '_saveMore'){	
-		$self->saveLines($self->{options_unparsed});
-		return;
-	}
+    if ($cmd eq '_saveMore'){   
+        $self->saveLines($self->{options_unparsed});
+        return;
+    }
 
-	if ($self->hasFlag('channel')){
-		$channel = $self->hasFlagValue('channel');
-	}
+    if ($self->hasFlag('channel')){
+        $channel = $self->hasFlagValue('channel');
+    }
 
-	my $c;
-	my $msg_none;
+    my $c;
+    my $msg_none;
 
-	if ($self->hasFlag('list')){
-		$c = $self->getCollection(__PACKAGE__, '%');
-		my @records = $c->matchRecords({val1 => $channel});
-		return "No one has any lines waiting in $self->{channel}" if (!@records);
-		foreach my $rec (@records){
-			$self->addToList($rec->{collection_name});
-		}
-		return "These users have lines waiting in $channel: " . $self->getList();
-	}
+    if ($self->hasFlag('list')){
+        $c = $self->getCollection(__PACKAGE__, '%');
+        my @records = $c->matchRecords({val1 => $channel});
+        return "No one has any lines waiting in $self->{channel}" if (!@records);
+        foreach my $rec (@records){
+            $self->addToList($rec->{collection_name});
+        }
+        return "These users have lines waiting in $channel: " . $self->getList();
+    }
 
-	if ($self->hasFlag("nick")){
-		$c = $self->getCollection(__PACKAGE__, $self->hasFlagValue("nick"));
-		$msg_none = $self->hasFlagValue('nick') . " doesn't have any lines waiting.";
+    if ($self->hasFlag("nick")){
+        $c = $self->getCollection(__PACKAGE__, $self->hasFlagValue("nick"));
+        $msg_none = $self->hasFlagValue('nick') . " doesn't have any lines waiting.";
 
-	}elsif ($options){
-		$c = $self->getCollection(__PACKAGE__, $options);
-		$msg_none = "$options doesn't have any lines waiting.";
+    }elsif ($options){
+        $c = $self->getCollection(__PACKAGE__, $options);
+        $msg_none = "$options doesn't have any lines waiting.";
 
-	}else{
-		$c = $self->getCollection(__PACKAGE__, $self->{nick});
-		$msg_none = "You don't have any lines waiting.";
-	}
+    }else{
+        $c = $self->getCollection(__PACKAGE__, $self->{nick});
+        $msg_none = "You don't have any lines waiting.";
+    }
 
-	my @records = $c->matchRecords({val1 => $channel});
+    my @records = $c->matchRecords({val1 => $channel});
 
-	if (!@records){
-		return ("More of what? $msg_none");
-	}
-	
-	my $line = $records[0]->{val2};
-	$c->delete ($records[0]->{row_id});
-	return $line;
+    if (!@records){
+        return ("More of what? $msg_none");
+    }
+    
+    my $line = $records[0]->{val2};
+    $c->delete ($records[0]->{row_id});
+    return $line;
 }
 
 sub saveLines {
-	my $self = shift;
-	my $line = shift;
+    my $self = shift;
+    my $line = shift;
 
-	my $c = $self->getCollection(__PACKAGE__, $self->{nick});
+    my $c = $self->getCollection(__PACKAGE__, $self->{nick});
 
-	my @records = $c->matchRecords({val1 => $self->{channel}});
+    my @records = $c->matchRecords({val1 => $self->{channel}});
 
-	## delete old line
-	if (@records){
-		$c->delete ($records[0]->{row_id});
-	}
+    ## delete old line
+    if (@records){
+        $c->delete ($records[0]->{row_id});
+    }
 
-	## save new line
-	if ($line){
-		$c->add($self->{channel}, $line);
-	}
+    ## save new line
+    if ($line){
+        $c->add($self->{channel}, $line);
+    }
 
-	## cleanup old entries
-	my $sql = "delete from collections where module_name = 'More' and sys_creation_date < date('now', '-5 day')";
-	$c->runSQL($sql);
+    ## cleanup old entries
+    my $sql = "delete from collections where module_name = 'More' and sys_creation_date < date('now', '-5 day')";
+    $c->runSQL($sql);
 }
 
 sub listeners{
@@ -105,10 +105,10 @@ sub listeners{
    ##Command Listeners - put em here.  eg ['one', 'two']
    my @commands = [qw(more _saveMore)];
    my $default_permissions =[ 
-		{command=>"_saveMore", require_group => UA_INTERNAL},
-		{command=>"more", flag=>'list', require_group => UA_ADMIN},
-		{command=>"more", flag=>'channel', require_group => UA_ADMIN},
-	];
+        {command=>"_saveMore", require_group => UA_INTERNAL},
+        {command=>"more", flag=>'list', require_group => UA_ADMIN},
+        {command=>"more", flag=>'channel', require_group => UA_ADMIN},
+    ];
 
    return {commands=>@commands, permissions=>$default_permissions};
 }

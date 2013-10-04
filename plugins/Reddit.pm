@@ -17,7 +17,7 @@ package plugins::Reddit;
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #-----------------------------------------------------------------------------
 
-use strict;			
+use strict;         
 use warnings;
 use base qw (modules::PluginBaseClass);
 use modules::PluginBaseClass;
@@ -26,63 +26,63 @@ use Data::Dumper;
 
 
 sub getOutput {
-	my $self = shift;
-	my $cmd = $self->{command};			# the command
-	my $options = $self->{options};		# everything else on the line
-	my $nick = $self->{nick};				
-	my @output;
+    my $self = shift;
+    my $cmd = $self->{command};         # the command
+    my $options = $self->{options};     # everything else on the line
+    my $nick = $self->{nick};               
+    my @output;
 
 
-	if ($cmd eq 'subscribers'){
+    if ($cmd eq 'subscribers'){
 
-		return $self->help($cmd) if (!$options);
+        return $self->help($cmd) if (!$options);
 
-		my $subreddit = $options;
-   	## Get the json
-   	my $page = $self->getPage("http://www.reddit.com/r/$subreddit/about.json");
+        my $subreddit = $options;
+    ## Get the json
+    my $page = $self->getPage("http://www.reddit.com/r/$subreddit/about.json");
 
-   	my $json_o  = JSON->new->allow_nonref;
-   	$json_o = $json_o->pretty(1);
-   	my $j;
+    my $json_o  = JSON->new->allow_nonref;
+    $json_o = $json_o->pretty(1);
+    my $j;
 
-		eval{
-			$j = $json_o->decode($page);
-		};
+        eval{
+            $j = $json_o->decode($page);
+        };
 
-		if ($@){
-			return "Couldn't find that subreddit.";
-		}
+        if ($@){
+            return "Couldn't find that subreddit.";
+        }
 
-		return "r/$subreddit has $j->{data}->{subscribers} subscribers, of which $j->{data}->{accounts_active} recently visited.";
+        return "r/$subreddit has $j->{data}->{subscribers} subscribers, of which $j->{data}->{accounts_active} recently visited.";
 
    }
 }
 
 
 sub listeners{
-	my $self = shift;
-	
-	my @commands = [qw(subscribers)];
+    my $self = shift;
+    
+    my @commands = [qw(subscribers)];
 
-	my @irc_events = [qw () ];
+    my @irc_events = [qw () ];
 
-	my @preg_matches = [qw () ];
+    my @preg_matches = [qw () ];
 
-	my $default_permissions =[
-	];
+    my $default_permissions =[
+    ];
 
-	return {commands=>@commands, permissions=>$default_permissions, 
-		irc_events=>@irc_events, preg_matches=>@preg_matches};
+    return {commands=>@commands, permissions=>$default_permissions, 
+        irc_events=>@irc_events, preg_matches=>@preg_matches};
 
 }
 
 ##
 ## addHelp()
-##	The help system will pull from here using PluginBaseClass->help(key).
+##  The help system will pull from here using PluginBaseClass->help(key).
 ##
 sub addHelp{
-	my $self = shift;
-	$self->addHelpItem("[plugin_description]", "Reddit stuff");
+    my $self = shift;
+    $self->addHelpItem("[plugin_description]", "Reddit stuff");
    $self->addHelpItem("[subscribers]", "Usage: subscribers <subreddit>. Get the number of subscribers to a particular subreddit.");
 }
 1;

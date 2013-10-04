@@ -16,11 +16,11 @@ package plugins::Wolfram;
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #-----------------------------------------------------------------------------
-#	Obtain a WolframAlpha API key and add these lines to your config file:
-#	[Plugin:Wolfram]
-#	AppID = "your app id"
+#   Obtain a WolframAlpha API key and add these lines to your config file:
+#   [Plugin:Wolfram]
+#   AppID = "your app id"
 #
-use strict;			
+use strict;         
 use warnings;
 use base qw (modules::PluginBaseClass);
 use modules::PluginBaseClass;
@@ -32,126 +32,126 @@ my $AppID;
 
 
 sub plugin_init{
-	my $self = shift;
+    my $self = shift;
 
-	$self->{AppID} = $self->getInitOption("AppID");
+    $self->{AppID} = $self->getInitOption("AppID");
 
-	return $self;				
+    return $self;               
 }
 
 sub getOutput {
-	my $self = shift;
+    my $self = shift;
 
-	my $cmd = $self->{command};			# the command
-	my $options = $self->{options};		# everything else on the line
-	my $channel	= $self->{channel};					
-	my $nick = $self->{nick};				
-	my $output = "";
+    my $cmd = $self->{command};         # the command
+    my $options = $self->{options};     # everything else on the line
+    my $channel = $self->{channel};                 
+    my $nick = $self->{nick};               
+    my $output = "";
 
-	if (!$self->{AppID}){
-		return "The bot owner needs to set an API key before this plugin will work";
-	}
-	return ($self->help($cmd)) if ($options eq '');
+    if (!$self->{AppID}){
+        return "The bot owner needs to set an API key before this plugin will work";
+    }
+    return ($self->help($cmd)) if ($options eq '');
    
-	my $wa = WWW::WolframAlpha->new (
-		appid => $self->{AppID},
-	);
-	
-	my $query = $wa->query(
-		input => $options,
-	);
-		
-	my @result;
-	my $i = 0;
-	if ($query->success) {
-		foreach my $pod (@{$query->pods}) {
-			$i++;
+    my $wa = WWW::WolframAlpha->new (
+        appid => $self->{AppID},
+    );
+    
+    my $query = $wa->query(
+        input => $options,
+    );
+        
+    my @result;
+    my $i = 0;
+    if ($query->success) {
+        foreach my $pod (@{$query->pods}) {
+            $i++;
 
-			#print "-------------------------------\n";
-			#print $pod->title . "\n";
-			#print "-------------------------------\n";
-			#print Dumper($pod);
+            #print "-------------------------------\n";
+            #print $pod->title . "\n";
+            #print "-------------------------------\n";
+            #print Dumper($pod);
 
-			if ($self->hasFlag("pod")){
-				if (my $showpod = $self->hasFlagValue("pod")){
-					if ($i==$showpod){
-						foreach my $p (@{$pod->{subpods}}){
-	
-							my $r = $p->{plaintext};
-							$r=~s/\n/ /gis;
-							push @result, $r;
-						}
-					}
-				}else{
-					push @result, "[$i] " . $pod->title;
-				}
-			
-			}else{
-				if ($pod->title eq 'Result'){
-					foreach my $p (@{$pod->{subpods}}){
-						my $r = $p->{plaintext};
-						$r=~s/\n/ /gis;
-						push @result, $r;
-					}
-				}
+            if ($self->hasFlag("pod")){
+                if (my $showpod = $self->hasFlagValue("pod")){
+                    if ($i==$showpod){
+                        foreach my $p (@{$pod->{subpods}}){
+    
+                            my $r = $p->{plaintext};
+                            $r=~s/\n/ /gis;
+                            push @result, $r;
+                        }
+                    }
+                }else{
+                    push @result, "[$i] " . $pod->title;
+                }
+            
+            }else{
+                if ($pod->title eq 'Result'){
+                    foreach my $p (@{$pod->{subpods}}){
+                        my $r = $p->{plaintext};
+                        $r=~s/\n/ /gis;
+                        push @result, $r;
+                    }
+                }
 
-				if ($pod->title eq 'Average result'){
-					foreach my $p (@{$pod->{subpods}}){
-						my $r = $p->{plaintext};
-						$r=~s/\n/ /gis;
-						push @result, $r;
-					}
-				}
-			}
-		}
+                if ($pod->title eq 'Average result'){
+                    foreach my $p (@{$pod->{subpods}}){
+                        my $r = $p->{plaintext};
+                        $r=~s/\n/ /gis;
+                        push @result, $r;
+                    }
+                }
+            }
+        }
 
-		## no 'results' section found.  try globbing all the text.
-		if (!@result || $self->hasFlag("all")){
-			foreach my $pod (@{$query->pods}) {
-				foreach my $p (@{$pod->{subpods}}){
-					my $r = $p->{plaintext};
-					$r=~s/\n/ /gis;
-					my $char = "\x{2219}";
-					$r=~s/\|/$char/gis;
-					if ($r){
-						$r = BOLD . $pod->title . NORMAL .": $r";
-						push @result, $r;
-					}
-				}
-			}
-	
-		}
+        ## no 'results' section found.  try globbing all the text.
+        if (!@result || $self->hasFlag("all")){
+            foreach my $pod (@{$query->pods}) {
+                foreach my $p (@{$pod->{subpods}}){
+                    my $r = $p->{plaintext};
+                    $r=~s/\n/ /gis;
+                    my $char = "\x{2219}";
+                    $r=~s/\|/$char/gis;
+                    if ($r){
+                        $r = BOLD . $pod->title . NORMAL .": $r";
+                        push @result, $r;
+                    }
+                }
+            }
+    
+        }
 
-		$output = join " ".BULLET." ",  @result;
-	}
+        $output = join " ".BULLET." ",  @result;
+    }
 
-	if (!$output){
-		$output = "No results that I could understand.";
-	}
+    if (!$output){
+        $output = "No results that I could understand.";
+    }
 
-	return $output;
+    return $output;
 }
 
 
 sub listeners{
-	my $self = shift;
-	
-	my @commands = [qw(wa)];
+    my $self = shift;
+    
+    my @commands = [qw(wa)];
 
-	## Values: irc_join
-	my @irc_events = [qw () ];
+    ## Values: irc_join
+    my @irc_events = [qw () ];
 
-	my @preg_matches = [qw () ];
+    my @preg_matches = [qw () ];
 
-	my $default_permissions =[ ];
+    my $default_permissions =[ ];
 
-	return {commands=>@commands, permissions=>$default_permissions, irc_events=>@irc_events, preg_matches=>@preg_matches};
+    return {commands=>@commands, permissions=>$default_permissions, irc_events=>@irc_events, preg_matches=>@preg_matches};
 
 }
 
 sub addHelp{
-	my $self = shift;
-	$self->addHelpItem("[plugin_description]", "Interface with Wolfram Alpha.");
+    my $self = shift;
+    $self->addHelpItem("[plugin_description]", "Interface with Wolfram Alpha.");
    $self->addHelpItem("[wa]", "Query Wolfram Alpha.  Usage: wa <whatever> [-pod [=<number>]] [-all]");
 }
 1;

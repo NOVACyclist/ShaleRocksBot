@@ -24,235 +24,235 @@ use modules::PluginBaseClass;
 use Data::Dumper;
 
 sub plugin_init{
-	my $self = shift;
-	return $self; 
+    my $self = shift;
+    return $self; 
 }
 
 sub getOutput {
-	my $self = shift;
-	my $output = "";
-	my $options = $self->{'options'};
-	my $cmd = $self->{command};
-	my $nick = $self->{nick};
+    my $self = shift;
+    my $output = "";
+    my $options = $self->{'options'};
+    my $cmd = $self->{command};
+    my $nick = $self->{nick};
 
-	##
-	##	Whoami
-	##
+    ##
+    ##  Whoami
+    ##
 
-	if ($cmd eq 'whoami'){
+    if ($cmd eq 'whoami'){
 
-		#print Dumper($self->{'UserAuthObj'});
+        #print Dumper($self->{'UserAuthObj'});
 
-		my $believe = 0;
-		my $ret = "You say you are $nick. ";
-		
-		if ($self->hasAccount()){
+        my $believe = 0;
+        my $ret = "You say you are $nick. ";
+        
+        if ($self->hasAccount()){
 
-			if ($self->{UserAuthObj}->{mask_authed}){
-				$ret.="And while no one named $nick has an account with me, ";
-				$ret.="based on your hostmask I think you are ".$self->accountNick().'. ';
-			}else{
-				$ret.="You do have an account with me. ";
+            if ($self->{UserAuthObj}->{mask_authed}){
+                $ret.="And while no one named $nick has an account with me, ";
+                $ret.="based on your hostmask I think you are ".$self->accountNick().'. ';
+            }else{
+                $ret.="You do have an account with me. ";
 
-				if ($self->isAuthed()){	
-					$ret.="And I do believe you are who you say you are, ";
-					$ret.="because I recognize the hostmask you're using. ";
+                if ($self->isAuthed()){ 
+                    $ret.="And I do believe you are who you say you are, ";
+                    $ret.="because I recognize the hostmask you're using. ";
 
-				}else{
-					$ret.="But the hostmask you're using isn't one that I recognize. ";
-					$ret.="Login with me using the login command";
+                }else{
+                    $ret.="But the hostmask you're using isn't one that I recognize. ";
+                    $ret.="Login with me using the login command";
 
-					if ($self->{channel} eq $self->{nick}){
-						$ret.='.';
-					}else{
-						$ret.=" in a PM window. (type /msg $self->{BotName} login).";
-					}
-				}
-			}
+                    if ($self->{channel} eq $self->{nick}){
+                        $ret.='.';
+                    }else{
+                        $ret.=" in a PM window. (type /msg $self->{BotName} login).";
+                    }
+                }
+            }
 
-		}else{
-			$ret.="And you do not have an account with me. That's OK, you don't really need ";
-			$ret.="one to do most things. But if you want one, register. ";
+        }else{
+            $ret.="And you do not have an account with me. That's OK, you don't really need ";
+            $ret.="one to do most things. But if you want one, register. ";
 
-			if ($self->{channel} ne $self->{nick}){
-				$ret.="Type /msg $self->{BotName} register";
-			}
-		}
-	
-		return ($ret);
-	}
+            if ($self->{channel} ne $self->{nick}){
+                $ret.="Type /msg $self->{BotName} register";
+            }
+        }
+    
+        return ($ret);
+    }
 
-	##
-	##	Registration
-	##
+    ##
+    ##  Registration
+    ##
 
-	if ($cmd eq 'register'){
-		if (!$self->hasFlag("force") && $self->{channel} =~m/^#/){
-			return "You need to be in a private chat session to run this command. ";
-		}
+    if ($cmd eq 'register'){
+        if (!$self->hasFlag("force") && $self->{channel} =~m/^#/){
+            return "You need to be in a private chat session to run this command. ";
+        }
 
-		return $self->help($cmd) if (! (my $password = $self->hasFlagValue("password")));
-		return "You're not supposed to include the <> part." if ($password=~/^<.+?>$/);
-		return $self->{UserAuthObj}->register($password);
+        return $self->help($cmd) if (! (my $password = $self->hasFlagValue("password")));
+        return "You're not supposed to include the <> part." if ($password=~/^<.+?>$/);
+        return $self->{UserAuthObj}->register($password);
 
-	}
+    }
 
-	##
-	##	delete account
-	##
+    ##
+    ##  delete account
+    ##
 
-	if ($cmd eq 'delete_account'){
-		if (!$self->hasFlag("force") && $self->{channel} =~m/^#/){
-			return "You need to be in a private chat session to run this command. ";
-		}
-		return "You need to be logged in to use this command." if (!$self->isAuthed());
-		return $self->help($cmd) if (! (my $password = $self->hasFlagValue("password")));
-		return $self->{UserAuthObj}->deleteAccount($password);
-	}
+    if ($cmd eq 'delete_account'){
+        if (!$self->hasFlag("force") && $self->{channel} =~m/^#/){
+            return "You need to be in a private chat session to run this command. ";
+        }
+        return "You need to be logged in to use this command." if (!$self->isAuthed());
+        return $self->help($cmd) if (! (my $password = $self->hasFlagValue("password")));
+        return $self->{UserAuthObj}->deleteAccount($password);
+    }
 
-	##
-	##	mask_auth setting
-	##
-	if ($cmd eq 'mask_auth'){
-		return "You need to be logged in to use this command." if (!$self->isAuthed());
+    ##
+    ##  mask_auth setting
+    ##
+    if ($cmd eq 'mask_auth'){
+        return "You need to be logged in to use this command." if (!$self->isAuthed());
 
-		if ($self->hasFlag("enable")){
-			$self->{UserAuthObj}->maskAuthStatus("enable");
-			return "ok.";
-		}
+        if ($self->hasFlag("enable")){
+            $self->{UserAuthObj}->maskAuthStatus("enable");
+            return "ok.";
+        }
 
-		if ($self->hasFlag("disable")){
-			$self->{UserAuthObj}->maskAuthStatus("disable");
-			return "ok.";
-		}
+        if ($self->hasFlag("disable")){
+            $self->{UserAuthObj}->maskAuthStatus("disable");
+            return "ok.";
+        }
 
-		if ($self->{UserAuthObj}->maskAuthStatus()){
-			return "Mask auth is currently enabled for this account.  Disable it with the -disable flag.";
-		}else{
-			return "Mask auth is currently disabled for this account. Enable it with the -enable flag.";
-		}
-	}
-
-
-	##
-	## Change Password
-	##
-	if ($cmd eq 'change_password'){
-		if (!$self->hasFlag("force") && $self->{channel} =~m/^#/){
-			return "You need to be in a private chat session to run this command. ";
-		}
-		return "You need to be logged in to use this command." if (!$self->isAuthed());
-		return $self->help($cmd) if (! (my $opass = $self->hasFlagValue("old_password")));
-		return $self->help($cmd) if (! (my $npass = $self->hasFlagValue("new_password")));
-		return $self->{UserAuthObj}->changePassword($opass, $npass);
-	}
-
-	##
-	## Login & logout
-	##
-	if ($cmd eq 'login'){
-
-		if (!$self->hasFlag("force") && $self->{channel} =~m/^#/){
-			return "You need to be in a private chat session to run this command. ";
-		}
-
-		return $self->help($cmd) if (! (my $pass = $self->hasFlagValue("password")));
-
-		my $loginnick = $self->{nick};
-		if ($self->hasFlagValue("nick")){
-			$loginnick = $self->hasFlagValue("nick");
-		}
-
-		return $self->{UserAuthObj}->login($loginnick, $pass);
-	}
-
-	if ($cmd eq 'logout'){
-		return $self->{UserAuthObj}->logout();
-	}
-
-	##
-	## Hostmasks
-	##
-
-	if ($cmd eq 'hostmasks'){
-		return $self->help($cmd) if ( $self->hasFlag("h"));	
-		return $self->help($cmd) if ( $options );	
-		if (my $val = $self->hasFlagValue("delete")){
-			return $self->{UserAuthObj}->deleteMask($val);
-
-		}else{
-			return $self->{UserAuthObj}->listMasks();
-		}
-	}
-
-	##
-	## Groups
-	##
-
-	if ($cmd eq 'groups'){
-		return $self->help($cmd) if ( $self->hasFlag("h"));	
-		return $self->help($cmd) if ( $options );	
-
-		my @groups = $self->{UserAuthObj}->listGroups();
-		if (@groups==1){return("You are member of one group: ". join " ", @groups);}
-		if (@groups>1){ return ("You are member of these groups: ". join ", ", @groups);}
-		return "You are not a member of any groups.";
-	}
+        if ($self->{UserAuthObj}->maskAuthStatus()){
+            return "Mask auth is currently enabled for this account.  Disable it with the -disable flag.";
+        }else{
+            return "Mask auth is currently disabled for this account. Enable it with the -enable flag.";
+        }
+    }
 
 
+    ##
+    ## Change Password
+    ##
+    if ($cmd eq 'change_password'){
+        if (!$self->hasFlag("force") && $self->{channel} =~m/^#/){
+            return "You need to be in a private chat session to run this command. ";
+        }
+        return "You need to be logged in to use this command." if (!$self->isAuthed());
+        return $self->help($cmd) if (! (my $opass = $self->hasFlagValue("old_password")));
+        return $self->help($cmd) if (! (my $npass = $self->hasFlagValue("new_password")));
+        return $self->{UserAuthObj}->changePassword($opass, $npass);
+    }
 
-	##
-	##	Output filter
-	##
+    ##
+    ## Login & logout
+    ##
+    if ($cmd eq 'login'){
 
-	if ($cmd eq 'output_filter'){
-		return "You need to be logged in to use this command." if (!$self->isAuthed());
-		if ( $self->hasFlag("c")){
-			return $self->{UserAuthObj}->clearOutputFilter();
+        if (!$self->hasFlag("force") && $self->{channel} =~m/^#/){
+            return "You need to be in a private chat session to run this command. ";
+        }
 
-		}elsif(my $val = $self->hasFlagValue("s")){
-			return $self->{UserAuthObj}->setOutputFilter($val);
+        return $self->help($cmd) if (! (my $pass = $self->hasFlagValue("password")));
 
-		}else{
-			#return $self->{UserAuthObj}->listOutputFilter();
-			if (my $f = $self->{UserAuthObj}->outputFilter()){
-				return "Your current output filter is $f.  To clear it, use the -c flag";
-			}else{
-				return "You don't have an output filter set. To set one, use the -s flag";
-			}
-		}
-	}
+        my $loginnick = $self->{nick};
+        if ($self->hasFlagValue("nick")){
+            $loginnick = $self->hasFlagValue("nick");
+        }
 
-	if ($cmd eq 'finger'){
-		return $self->help($cmd) if ( !$options);	
-		my $c = $self->getCollection(__PACKAGE__, $options);
-		my @records = $c->matchRecords({val1=>'finger_info'});
-		if (@records){
-			return "$options finger information: " . $records[0]->{val2};
-		}else{
-			return ($self->{'options'} ." has no finger information, but can set some using the chfn command.");
-		}
-	}
+        return $self->{UserAuthObj}->login($loginnick, $pass);
+    }
 
-	if ($cmd eq 'chfn'){
-		return $self->help($cmd) if ( !$options);	
-		
-		if (! $self->hasPermission($self->accountNick()) ){
-			return "You don't have permission to do that.";
-		}
+    if ($cmd eq 'logout'){
+        return $self->{UserAuthObj}->logout();
+    }
 
-		$self->suppressNick(1);
-		my $c = $self->getCollection(__PACKAGE__, $self->accountNick());
-		my @records = $c->matchRecords({val1=>'finger_info'});
+    ##
+    ## Hostmasks
+    ##
 
-		if (@records){
-			$c->updateRecord($records[0]->{row_id}, {val2=>$options});
-		}else{
-			$c->add('finger_info', $options);
-		}
-		return "Your finger information was updated";
-	
-	}
+    if ($cmd eq 'hostmasks'){
+        return $self->help($cmd) if ( $self->hasFlag("h")); 
+        return $self->help($cmd) if ( $options );   
+        if (my $val = $self->hasFlagValue("delete")){
+            return $self->{UserAuthObj}->deleteMask($val);
+
+        }else{
+            return $self->{UserAuthObj}->listMasks();
+        }
+    }
+
+    ##
+    ## Groups
+    ##
+
+    if ($cmd eq 'groups'){
+        return $self->help($cmd) if ( $self->hasFlag("h")); 
+        return $self->help($cmd) if ( $options );   
+
+        my @groups = $self->{UserAuthObj}->listGroups();
+        if (@groups==1){return("You are member of one group: ". join " ", @groups);}
+        if (@groups>1){ return ("You are member of these groups: ". join ", ", @groups);}
+        return "You are not a member of any groups.";
+    }
+
+
+
+    ##
+    ##  Output filter
+    ##
+
+    if ($cmd eq 'output_filter'){
+        return "You need to be logged in to use this command." if (!$self->isAuthed());
+        if ( $self->hasFlag("c")){
+            return $self->{UserAuthObj}->clearOutputFilter();
+
+        }elsif(my $val = $self->hasFlagValue("s")){
+            return $self->{UserAuthObj}->setOutputFilter($val);
+
+        }else{
+            #return $self->{UserAuthObj}->listOutputFilter();
+            if (my $f = $self->{UserAuthObj}->outputFilter()){
+                return "Your current output filter is $f.  To clear it, use the -c flag";
+            }else{
+                return "You don't have an output filter set. To set one, use the -s flag";
+            }
+        }
+    }
+
+    if ($cmd eq 'finger'){
+        return $self->help($cmd) if ( !$options);   
+        my $c = $self->getCollection(__PACKAGE__, $options);
+        my @records = $c->matchRecords({val1=>'finger_info'});
+        if (@records){
+            return "$options finger information: " . $records[0]->{val2};
+        }else{
+            return ($self->{'options'} ." has no finger information, but can set some using the chfn command.");
+        }
+    }
+
+    if ($cmd eq 'chfn'){
+        return $self->help($cmd) if ( !$options);   
+        
+        if (! $self->hasPermission($self->accountNick()) ){
+            return "You don't have permission to do that.";
+        }
+
+        $self->suppressNick(1);
+        my $c = $self->getCollection(__PACKAGE__, $self->accountNick());
+        my @records = $c->matchRecords({val1=>'finger_info'});
+
+        if (@records){
+            $c->updateRecord($records[0]->{row_id}, {val2=>$options});
+        }else{
+            $c->add('finger_info', $options);
+        }
+        return "Your finger information was updated";
+    
+    }
 
 }
 
@@ -262,9 +262,9 @@ sub listeners{
 
    ##Command Listeners - put em here.  eg ['one', 'two']
    my @commands = [qw(whoami register delete_account change_password login 
-				logout hostmasks output_filter groups finger chfn mask_auth)];
+                logout hostmasks output_filter groups finger chfn mask_auth)];
 
-	my $default_permissions = [];
+    my $default_permissions = [];
 
    return({commands=> @commands, permissions=>$default_permissions});
 }
