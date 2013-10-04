@@ -20,7 +20,7 @@ sub plugin_init{
 	## Check if table exists.
 	my $sql = "SELECT count(*) FROM sqlite_master WHERE name ='wordlist' and type='table'";
   	my $sth = $self->{dbh}->prepare($sql);
-   $sth->execute();
+	$sth->execute();
  	$self->{dbh}->commit;
 	my $row = $sth->fetch;
 
@@ -59,9 +59,9 @@ sub getOutput {
 
 	if ($self->hasFlag("dropwordlist")){
 		my $sql = "drop table wordlist";
-   	my $sth = $self->{dbh}->prepare($sql);
-	   $sth->execute();
-  		$self->{dbh}->commit;
+		my $sth = $self->{dbh}->prepare($sql);
+		$sth->execute();
+		$self->{dbh}->commit;
 		return "Done.";	
 	}
 
@@ -359,9 +359,9 @@ sub IsValidWord{
 	my $self = shift;
 	my $word = shift;
 	my $sql = "select count(*) from wordlist where word = '$word'";
-   my $sth = $self->{dbh}->prepare($sql);
-   $sth->execute();
-   $self->{dbh}->commit;
+	my $sth = $self->{dbh}->prepare($sql);
+	$sth->execute();
+	$self->{dbh}->commit;
 	my $row = $sth->fetch;
 	return $row->[0];
 }
@@ -374,9 +374,9 @@ sub createWordlistTable{
 			num_letters INTEGER
         )";
 
-   my $sth = $self->{dbh}->prepare($sql);
-   $sth->execute();
-   $self->{dbh}->commit;
+	my $sth = $self->{dbh}->prepare($sql);
+	$sth->execute();
+	$self->{dbh}->commit;
 }
 
 
@@ -409,9 +409,9 @@ sub loadWordlist{
  	$self->{dbh}->commit;
 	
 	$sql = "select count(*) as c from wordlist";
-   $sth = $self->{dbh}->prepare($sql);
-   $sth->execute();
-   $self->{dbh}->commit;
+	$sth = $self->{dbh}->prepare($sql);
+	$sth->execute();
+	$self->{dbh}->commit;
 	my $row = $sth->fetch;
 	$count = $row->[0];
 
@@ -470,11 +470,11 @@ sub listeners{
 sub addHelp{
 	my $self = shift;
 	$self->addHelpItem("[plugin_description]", "WordScramble game.  Find as many words as you can using the letters provided.  5 letter minimum.");
-   $self->addHelpItem("[ws]", "Usage: ws <arguments>");
-   $self->addHelpItem("[ws][-loadwordlist]", "Deletes the current wordlist and loads a wordlist to use with the game, and possibly with other games.  Expects a URL as a parameter.  Each line of the file should be a single word.  You can try loading http://rocks.bot.nu/projects/RocksBot/wordlist.txt");
-   $self->addHelpItem("[ws][-dropwordlist]", "Drops the wordlist table.");
-   $self->addHelpItem("[ws][-wordlistinfo]", "Show info about the wordlist.");
-   $self->addHelpItem("[command][-flag]", "Whatever.");
+	$self->addHelpItem("[ws]", "Usage: ws <arguments>");
+	$self->addHelpItem("[ws][-loadwordlist]", "Deletes the current wordlist and loads a wordlist to use with the game, and possibly with other games.  Expects a URL as a parameter.  Each line of the file should be a single word.  You can try loading http://rocks.bot.nu/projects/RocksBot/wordlist.txt");
+	$self->addHelpItem("[ws][-dropwordlist]", "Drops the wordlist table.");
+	$self->addHelpItem("[ws][-wordlistinfo]", "Show info about the wordlist.");
+	$self->addHelpItem("[command][-flag]", "Whatever.");
 }
 1;
 __END__
