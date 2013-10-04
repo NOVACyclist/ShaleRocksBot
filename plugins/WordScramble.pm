@@ -80,8 +80,61 @@ sub getOutput {
 		return "Wordlist not loaded. A bot administrator can load a wordlist using -loadwordlist = <URL>. See help ws -loadwordlist for more info.";
 	}
 
+
+	##
+	##	Auto show status
+	##
+	if ($cmd eq '_showWSstatus'){
+		return if ($self->hasFlagValue('game_id') ne $self->globalCookie('game_id'));
+
+		my $board = $self->globalCookie('board') || 0;
+		if ($board){
+	
+			my @letters =  split (//, $board);
+			my $i = @letters;
+			while ( --$i ){
+				my $j = int rand( $i+1 );
+				@letters[$i,$j] = @letters[$j,$i];
+			}
+
+			return "The board: ".BOLD . join (" ", @letters) .NORMAL. " - Game ends in $options minutes";	
+		}
+		return;
+	}
+
+
+	##
+	##	manual show status
+	##
+	if ($self->hasFlag("show")){
+		my $board = $self->globalCookie('board') || 0;
+		if ($board){
+			return "The board: ".BOLD . join (" ", split (//, $board)) .NORMAL;	
+		}else{
+			return "No game in progress.";
+		}
+	}
+
+
+	##
+	##	show scores
+	##
+	if ($self->hasFlag("scores")){
+		my $board = $self->globalCookie('board') || 0;
+		return "soon";
+	}
+
+
+	##
+	##	End Game
+	##
 	if ($cmd eq '_endWSgame'){
 		my @ret;
+		my $board = $self->globalCookie('board') || 0;
+		return if (!$board);
+
+		return if ($self->hasFlagValue('game_id') ne $self->globalCookie('game_id'));
+
 		$self->deleteGlobalCookie('board');
 
 		my %scores;
@@ -106,14 +159,39 @@ sub getOutput {
 			}
 		}
 
-
-		my $first = 1;
+		## get the winners
+		my $top_score = 0;
+		my $line = '';
+		my $i=0;
 		foreach my $name (sort {$scores{$b} <=> $scores{$a}} keys %scores){
-			if ($first){
-				push @ret, BOLD."GAME OVER. ". RED." $name".NORMAL." wins the game with $scores{$name} points!";
-				$first = 0;
+			$i++;
+			if ($i==1){
+				$line = BOLD."GAME OVER. ". RED." $name".NORMAL." wins the game with $scores{$name} points!";
+				$top_score = $scores{$name};
+				next;
+
+			}elsif($i==1){
+				if ($scores{$name} == $top_score){
+					$line = BOLD."GAME OVER. ". RED." It's a tie!".NORMAL;
+					last;
+				}
 			}
+		}
+
+		if ($line ne ''){
+			push @ret, $line;	
+		}
+
+		foreach my $name (sort {$scores{$b} <=> $scores{$a}} keys %scores){
 			push @ret, "$name: $scores{$name} points. $words{$name}  Invalid words(-1 each): $badwords{$name}";
+		}
+
+		foreach my $name (sort keys %scores){
+			my $score = $self->globalCookie(':score:'.$name) || 0;
+			$self->globalCookie(':score:'.$name, $score + $scores{$name});
+
+			my $num_games = $self->globalCookie(':num_games:'.$name) || 0;
+			$self->globalCookie(':num_games:'.$name, $num_games+1);
 		}
 
 		if (@ret){
@@ -123,6 +201,10 @@ sub getOutput {
 		}
 	}
 
+
+	##
+	##		Start a new game
+	##
 	if ($self->hasFlag('new')){
 		if (($self->globalCookie('board') || 0)){
 			if (! $self->hasFlag("force")){
@@ -155,17 +237,34 @@ sub getOutput {
 			}
 		}
 
-		#{owner=>$rec->{val1}, name=> $rec->{val2}, value=>$rec->{val3}, channel=>$rec->{val4}}
+		my $game_id = int(rand(999999));
+		$self->globalCookie('game_id', $game_id);
 		
 		my $timer_args = {
 			timestamp => (int(time()) + 60 * 3),
 			command => '_endWSgame',
-			options => '',
+			options => "-game_id=$game_id",
 			desc => 'End word scramble game'
 		};
 		$self->scheduleEvent($timer_args);
 
-		return "New Board: ".BOLD . join (" ", split (//, $board)) .NORMAL. " Game ends in 3 minutes";
+		$timer_args = {
+			timestamp => (int(time()) + 60 * 1),
+			command => '_showWSstatus',
+			options => "-game_id=$game_id 2",
+			desc => 'game status 2 min left'
+		};
+		$self->scheduleEvent($timer_args);
+
+		$timer_args = {
+			timestamp => (int(time()) + 60 * 2),
+			command => '_showWSstatus',
+			options => "-game_id=$game_id 1",
+			desc => 'game status 1 min left'
+		};
+		$self->scheduleEvent($timer_args);
+
+		return "New Board: ".BOLD . join (" ", split (//, $board)) .NORMAL. " - 5 letter minimum. You lose points for non-words an invaild words.  Game ends in 3 minutes";
 	}
 	
 
@@ -227,7 +326,7 @@ sub scoreWord{
 
 	my $wordscore = length($guess) - 4;
 	if (length ($guess) > 5){
-		$wordscore +=  (length($guess) - 5) * 3;
+		$wordscore +=  (length($guess) - 5) * 2;
 	}
 	
 	return $wordscore;
@@ -317,7 +416,7 @@ sub listeners{
 	
 	##	Which commands should this plugin respond to?
 	## Command Listeners - put em here.  eg [qw (cmd1 cmd2 cmd3)]
-	my @commands = [qw(ws _endWSgame)];
+	my @commands = [qw(ws _endWSgame _showWSstatus)];
 
 	## Values: irc_join irc_ping irc_part irc_quit
 	## Note that irc_quit does not send channel information, and that the quit message will be 
