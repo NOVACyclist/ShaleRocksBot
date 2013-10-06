@@ -52,6 +52,7 @@ sub getOutput {
         return "These users have lines waiting in $channel: " . $self->getList();
     }
 
+
     if ($self->hasFlag("nick")){
         $c = $self->getCollection(__PACKAGE__, $self->hasFlagValue("nick"));
         $msg_none = $self->hasFlagValue('nick') . " doesn't have any lines waiting.";
@@ -61,8 +62,16 @@ sub getOutput {
         $msg_none = "$options doesn't have any lines waiting.";
 
     }else{
-        $c = $self->getCollection(__PACKAGE__, $self->{nick});
-        $msg_none = "You don't have any lines waiting.";
+        #$c = $self->getCollection(__PACKAGE__, $self->{nick});
+        #$msg_none = "You don't have any lines waiting.";
+
+        $c = $self->getCollection(__PACKAGE__, '%');
+        $c->sort({field=>"sys_creation_timestamp", type=>'numeric', order=>'desc'});
+        my @records = $c->matchRecords({val1=>$channel});
+        return "No one has any lines waiting in $self->{channel}" if (!@records);
+
+        $c = $self->getCollection(__PACKAGE__, $records[0]->{collection_name});
+        $msg_none = "I dunno what you're talking about.";
     }
 
     my @records = $c->matchRecords({val1 => $channel});
@@ -116,7 +125,7 @@ sub listeners{
 sub addHelp{
    my $self = shift;
    $self->addHelpItem("[plugin_description]", "Paginates output text. Use 'more' to get more lines.  Buffered lines are purged after 5 days.");
-   $self->addHelpItem("[more]", "Use 'more' get more lines of output.  To see someone else's more, do more <nick> or more -nick=nick.  Admin flags: -list -channel=<channel>");
+   $self->addHelpItem("[more]", "Use 'more' get more lines of output.  By default shows the last 'more' line advertised in the channel.  To see someone else's more, do more <nick> or more -nick=nick. Admin flags: -list -channel=<channel>");
    $self->addHelpItem("[more][-list]", "List the users who have more lines waiting.");
    $self->addHelpItem("[more][-channel]", "Specify the channel to use. ");
 }
