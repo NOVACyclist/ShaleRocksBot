@@ -36,6 +36,10 @@ sub getOutput {
 
     ## Join Event
     if ($irc_event eq 'irc_join'){
+        $self->useChannelCookies();
+
+        ## dont welcome people when the change hosts
+        return if ($self->cookie('last_welcome') > time() - 10);
     
         my @wchannels = split (/ /, $self->s('herald_channels'));
         
@@ -49,6 +53,7 @@ sub getOutput {
                 $self->returnType("runBotCommand");
             }
 
+            $self->cookie('last_welcome', time());
             return $greeting;
         }
 
@@ -256,11 +261,11 @@ sub listeners{
     my @commands = [qw(herald)];
     my @irc_events = [qw (irc_join) ];
     my @preg_matches = ["/^$self->{BotName}/i", 
-                                '/hug (\w+)\W*'.$self->{BotName}.'/i',
-                                '/everybody dance now/i',
-                                '/^stop\W*$/i',
-                                "/^i love $self->{BotName}/i",
-                                '/^(\w+) (\w+)\W*'.$self->{BotName}.'$/i',
+                        '/hug (\w+)\W*'.$self->{BotName}.'/i',
+                        '/everybody dance now/i',
+                        '/^stop\W*$/i',
+                        "/^i love $self->{BotName}/i",
+                        '/^(\w+) (\w+)\W*'.$self->{BotName}.'$/i',
                                 
     ];
 
