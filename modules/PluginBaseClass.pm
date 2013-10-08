@@ -672,6 +672,8 @@ sub getPage {
     my $self = shift;
     my $url = shift;
 
+    return "" if (!$url);
+
     $self->keepStats({a=>'start'});
 
     my $ua = LWP::UserAgent->new;
