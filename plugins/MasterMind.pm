@@ -149,7 +149,12 @@ sub getOutput {
     if ($self->hasFlag('recap')){
         my $recap = $self->globalCookie("recap");   
         if ($recap){
-            return "Guesses so far: $recap";
+            if ($self->hasFlag("long")){
+                my @ret = split / +/, $recap;
+                return \@ret;
+            }else{
+               return "Guesses so far: $recap"; 
+            }
         }else{  
             return "No guesses made.";
         }
@@ -270,13 +275,13 @@ sub listeners{
 ##
 sub addHelp{
     my $self = shift;
-    $self->addHelpItem("[plugin_description]", "The game of MasterMind.  Guess the secret string using clues given by the bot. After each guess, you will be told how many letters are correct and how many letters are in the correct position. Note that not all letters need be used, and that letters can be used more than once.");
+    $self->addHelpItem("[plugin_description]", "The game of MasterMind.  Guess the secret string using clues given by the bot. After each guess, you will be told how many letters are correct and how many letters are in the correct position. Note that not all letters need be used, and that letters can be used more than once. More info: http://is.gd/YbsBCS");
     $self->addHelpItem("[mm]", "Mastermind game. Use $self->{BotCommandPrefix}mm <guess> to make a guess. -new to get a new board.  -recap to see the guesses so far.  -scores to see scores. -reveal will reveal (and kill) the current board.");
     $self->addHelpItem("[mm][-new]", "Get a new MasterMind game.  Use -length=# to specify the length of the board, else default.  Use -pieces=ABCD... to specify the pieces to use, else default.");
     $self->addHelpItem("[mm][-scores]", "Show the scores for the MasterMind game.");
     $self->addHelpItem("[mm][-clearscores]", "Clear the scores for the MasterMind game.");
     $self->addHelpItem("[mm][-reveal]", "Will reveal (and kill) the current board.");
-    $self->addHelpItem("[mm][-recap]", "Show the guesses so far in short notation.");
+    $self->addHelpItem("[mm][-recap]", "Show the guesses so far in short notation.  Use -long to get a multi-line listing.");
 }
 1;
 __END__
