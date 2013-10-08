@@ -213,8 +213,12 @@ sub getOutput {
         }
     
         my $board = "";
-        my $letters = 'EEEEEEEEEEEEEEEEEEETTTTTTTTTTTTTAAAAAAAAAAAARRRRRRRRRRRRIIIIIIIIIINNNNNNNNNNOOOOOOOOOOSSSSSSSSDDDDDDCCCCCHHHHHLLLLLFFFFMMMMPPPPUUUUGGGYYYWWBJKQVXZ';
 
+        ## Boggle
+        #my $letters = 'EEEEEEEEEEEEEEEEEEETTTTTTTTTTTTTAAAAAAAAAAAARRRRRRRRRRRRIIIIIIIIIINNNNNNNNNNOOOOOOOOOOSSSSSSSSDDDDDDCCCCCHHHHHLLLLLFFFFMMMMPPPPUUUUGGGYYYWWBJKQVXZ';
+
+        ## Scrabble
+        my $letters = 'EEEEEEEEEEEEAAAAAAAAAIIIIIIIIIOOOOOOOONNNNNNRRRRRRTTTTTTLLLLSSSSUUUUDDDDGGGBBCCMMPPFFHHVVWWYYKJXQZ';
         my $vowels = 0;
 
         do {
@@ -290,6 +294,9 @@ sub getOutput {
     }
     
 
+    ##
+    ## Make a guess
+    ##
 
     my $board = $self->globalCookie('board') || 0;
     return "A game is not in progress. Start one with ws -new." if (!$board);
@@ -297,7 +304,9 @@ sub getOutput {
     if ($options){
         my $guess = uc($options);
     
-        return if (length($guess) < 5);
+        if (length($guess) < 5){
+            return "$nick:  5 letter minimum.";
+        }
 
         foreach my $letter (split //, $guess){
             if ($board!~s/$letter//i){
@@ -474,7 +483,6 @@ sub addHelp{
     $self->addHelpItem("[ws][-loadwordlist]", "Deletes the current wordlist and loads a wordlist to use with the game, and possibly with other games.  Expects a URL as a parameter.  Each line of the file should be a single word.  You can try loading http://rocks.bot.nu/projects/RocksBot/wordlist.txt");
     $self->addHelpItem("[ws][-dropwordlist]", "Drops the wordlist table.");
     $self->addHelpItem("[ws][-wordlistinfo]", "Show info about the wordlist.");
-    $self->addHelpItem("[command][-flag]", "Whatever.");
 }
 1;
 __END__
