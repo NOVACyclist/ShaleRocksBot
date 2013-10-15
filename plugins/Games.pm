@@ -101,6 +101,46 @@ sub getOutput {
     }
 
 
+    # roulette
+    if ($cmd eq "roulette"){
+        my $chamber = $self->globalCookie("roulette_chamber") || 0;
+        my $bullet = $self->globalCookie("roulette_bullet") || 0;
+
+        if (!$chamber || !$bullet){
+            $chamber = 1;
+            $bullet = int(rand(6)) + 1;
+            $self->globalCookie("roulette_bullet", $bullet);
+            $self->globalCookie("roulette_chamber", $chamber);
+        }
+        
+        if ($self->hasFlag("spin") || $options eq 'spin'){
+            $chamber = int(rand(6)) + 1;
+            $self->globalCookie("roulette_chamber", $chamber);
+            $self->returnType("action");
+            return "spins the chamber.  Are you feelin' lucky, punk?";
+        }
+    
+        if ($chamber == $bullet){
+            $self->returnType("irc_yield");
+            $self->yieldCommand('kick');
+            $self->yieldArgs([$self->{channel}, $self->{nick}, "BANG!"]);
+            $self->globalCookie("roulette_bullet", int(rand(6)) + 1);
+            $self->globalCookie("roulette_chamber", 1);
+
+            return "BANG!  $self->{BotName} reloads and spins the chamber.";
+
+        }else{
+            if ($chamber == 6){
+                $chamber = 1;
+            }else{
+                $chamber++;
+            }
+
+            $self->globalCookie("roulette_chamber", $chamber);
+            return "*click*";
+        }
+    }
+
     #ask
     if ($cmd eq "ask"){
         return $self->help($cmd) if ($options eq '');
@@ -168,7 +208,7 @@ sub listeners{
    my $self = shift;
 
    ##Command Listeners - put em here.  eg ['one', 'two']
-   my @commands = ['8ball','fortune','powerball', 'rand', 'ask', 'rock','paper','scissors' ];
+   my @commands = ['8ball','fortune','powerball', 'rand', 'ask', 'rock','paper','scissors','roulette' ];
    my $default_permissions =[ ];
 
    return {commands=>@commands, permissions=>$default_permissions};
@@ -182,6 +222,7 @@ sub addHelp{
    $self->addHelpItem("[powerball]", "Have the bot pick some powerball numbers for you. Don't forget to share the winnings.");
    $self->addHelpItem("[rand]", "Get a random number. Usage: rand [-min=<x>][-max=<y>].  Default is 1-10");
    $self->addHelpItem("[ask]", "Ask an either/or question.  Example: ask meddle or animals or dark side?");
+   $self->addHelpItem("[roulette]", "Feelin' lucky, punk?  Use -spin to spin the chambers.");
 }
 
 1;
