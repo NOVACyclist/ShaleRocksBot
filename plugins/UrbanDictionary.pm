@@ -214,9 +214,11 @@ sub getOutput {
 
         if ($def=~s#<div class="example">(.+?)</div>##gis){
             $example = $1;      
+            $example=~s/<br\/?>/ /gis;
             $example=~s/<.+?>//gis;
         }
     
+        $def=~s/<br\/?>/ /gis;
         $def=~s/<.+?>//gis;
         push @defs, {def=>$def, example=>$example};
     }
@@ -261,6 +263,10 @@ sub getOutput {
         $self->globalCookie("current_q", $output);
         my $url = $self->getShortURL($self->{getPage_last_url});
         $self->globalCookie("last_page_url", $url);
+        
+        #my @ret = $output =~ /(.{400})/g;
+        #return \@ret;
+        return $output;
 
     }else{
         ## Word lookup
