@@ -68,7 +68,19 @@ sub getOutput {
         my $URL = "http://api.wunderground.com/api/".$self->{API_KEY}."/forecast10day/q/" . $options . '.json';
         my $page = $self->getPage($URL);
         my $json  = JSON->new->allow_nonref;
-        my $j = $json->decode($page);
+        my $j;
+
+        eval {
+            $j=$json->decode($page);
+        };
+
+        if ($@){
+            return "Wund didn't like that.  Either it's not a real place or there was a temporary problem.";
+        }
+
+        if (defined($j->{response}->{error}->{type})){
+            return ("Hmmm, couldn't find that place.  Be more specific, or try a zip code.)");
+        }
 
         my $len = @{$j->{forecast}->{simpleforecast}->{forecastday}};
 
