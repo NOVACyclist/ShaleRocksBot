@@ -41,6 +41,7 @@ sub plugin_init{
     return $self;
 }
 
+
 sub getOutput {
     my $self = shift;
 
@@ -56,6 +57,24 @@ sub getOutput {
     my $nick = $self->{nick};   # the nick of the person calling the command
     my $accountNick = $self->accountNick(); 
 
+
+    if ($cmd eq 'findwords'){
+        return $self->help($cmd) if (!$options);
+        $options=~s/ //gis;
+        if (length ($options) > 26){
+            return "That is too long.";
+        }
+
+        my @words = $self->findWords($options);
+
+        my $list = join ", ", @words;
+
+        if ($list){
+           return "Some words found in [$options]: $list"
+        }else{
+           return "Sorry, no words found in [$options].  (It wasn't an exhaustive search)."
+        }
+    }
 
     if ($self->hasFlag("dropwordlist")){
         my $sql = "drop table wordlist";
@@ -142,6 +161,12 @@ sub getOutput {
         my %badwords;
     
         my @cookies = $self->allCookies();
+        my @pw = $self->findWords($board);
+        my %possible_words;
+        foreach my $w (@pw){
+            $possible_words{$w} = 1;
+        }
+
         foreach my $c (@cookies){
             if ($c->{name}=~/^\:gamescore\:(.+?)$/){
                 my $name = $1;
@@ -150,7 +175,10 @@ sub getOutput {
 
             if ($c->{name}=~/^\:word\:(.+?)$/){
                 my $word = $1;
-                $words{$c->{value}} .= "$word(".$self->scoreWord($word).") "; 
+                $words{$c->{value}} .= "$word(".$self->scoreWord($word).") ";
+                if (exists($possible_words{$word})){
+                    delete($possible_words{$word});
+                }
             }
 
             if ($c->{name}=~/^\:badwords\:(.+?)$/){
@@ -183,7 +211,7 @@ sub getOutput {
         }
 
         foreach my $name (sort {$scores{$b} <=> $scores{$a}} keys %scores){
-            push @ret, "$name: $scores{$name} points. $words{$name}  Invalid words(-1 each): $badwords{$name}";
+            push @ret, "$name: $scores{$name} points. $words{$name}  Invalid words(-3 each): $badwords{$name}";
         }
 
         foreach my $name (sort keys %scores){
@@ -194,11 +222,16 @@ sub getOutput {
             $self->globalCookie(':num_games:'.$name, $num_games+1);
         }
 
-        if (@ret){
-            return \@ret;
-        }else{
-            return "GAME OVER. Nobody wins. :(";
+        if (!@ret){
+            push @ret, "Game Over. Nobody wins. :(";
         }
+        
+        ## add words
+        my $pwl =  join ", ", sort {length($b) <=> length($a) or $a cmp $b} keys (%possible_words);
+        if ($pwl){
+            push @ret, "Some words you didn't find: $pwl";
+        }
+        return \@ret;
     }
 
 
@@ -312,7 +345,7 @@ sub getOutput {
             if ($board!~s/$letter//i){
                 #return "Invalid word: $guess";
                 my $score = $self->globalCookie(":gamescore:$nick") || 0;
-                $self->globalCookie(":gamescore:$nick", $score - 1 );
+                $self->globalCookie(":gamescore:$nick", $score - 3 );
                 my $badwords = $self->globalCookie(':badwords:' . $nick);
                 $self->globalCookie(':badwords:' . $nick, $badwords.= "$guess ");
             
@@ -323,7 +356,7 @@ sub getOutput {
         ## check if dictionary word
         if (!$self->IsValidWord($guess)){
             my $score = $self->globalCookie(":gamescore:$nick") || 0;
-            $self->globalCookie(":gamescore:$nick", $score - 1 );
+            $self->globalCookie(":gamescore:$nick", $score - 3 );
             my $badwords = $self->globalCookie(':badwords:' . $nick);
             $self->globalCookie(':badwords:' . $nick, $badwords.= "$guess ");
             
@@ -346,7 +379,6 @@ sub getOutput {
         my $score = $self->globalCookie(":gamescore:$nick") || 0;
         $self->globalCookie(":gamescore:$nick", $score + $wordscore);
 
-
         return "Valid word: $guess. Points: $wordscore";
     }
 }
@@ -355,9 +387,39 @@ sub scoreWord{
     my $self = shift;
     my $guess = shift;
 
-    my $wordscore = length($guess) - 4;
-    if (length ($guess) > 5){
-        $wordscore +=  (length($guess) - 5) * 2;
+    # wordfeud letter scoring
+    my $letter_scores = {
+        'A' => 1,
+        'B' => 4,
+        'C' => 4,
+        'D' => 2,
+        'E' => 1,
+        'F' => 4,
+        'G' => 3,
+        'H' => 4,
+        'I' => 1,
+        'J' => 10,
+        'K' => 5,
+        'L' => 1,
+        'M' => 3,
+        'N' => 1,
+        'O' => 1,
+        'P' => 4,
+        'Q' => 10,
+        'R' => 1,
+        'S' => 1,
+        'T' => 1,
+        'U' => 2,
+        'V' => 4,
+        'W' => 4,
+        'X' => 8,
+        'Y' => 4,
+        'Z' => 10
+    };
+
+    my $wordscore = (length($guess) - 5) * 2;
+    foreach my $letter (split //, $guess){
+        $wordscore += $letter_scores->{$letter};
     }
     
     return $wordscore;
@@ -384,6 +446,11 @@ sub createWordlistTable{
         )";
 
     my $sth = $self->{dbh}->prepare($sql);
+    $sth->execute();
+    $self->{dbh}->commit;
+    
+    $sql = "create index IF NOT EXISTS wordlist_letters_idx on wordlist (letters)";
+    $sth = $self->{dbh}->prepare($sql);
     $sth->execute();
     $self->{dbh}->commit;
 }
@@ -429,6 +496,103 @@ sub loadWordlist{
 }
 
 
+sub findWords{
+    my $self = shift;
+    my $options = shift;
+    my @ret;
+
+    my @all_letters = split //, uc($options);
+        
+    for (my $i=@all_letters; $i>=5; $i--){
+        my @tries = $self->chooseTry($i, @all_letters);
+        foreach my $try (@tries){
+            $self->addToList("letters = '$try'", " OR ");
+        }
+
+        my $sql = "select * from wordlist where " . $self->getList();
+        my $sth = $self->{dbh}->prepare($sql);
+        $sth->execute();
+        $self->{dbh}->commit;
+
+        while (my $row = $sth->fetch){
+            push @ret, $row->[0];
+        }
+    }
+
+    return @ret;
+}
+
+## Choose a list of subsets to try based on vowels & consonants.  
+## This isn't meant to be exhaustive, that would be too expensive.
+sub chooseTry{
+    my $self=shift;
+    my $num = shift;
+    my @letters = @_;
+
+    my @vowels_m;
+    my @consonants_m;
+
+    my %list;
+
+    while (my $letter = pop @letters){
+        if ($letter=~/A|E|I|O|U|Y/){
+            push @vowels_m, $letter;
+        }else{
+            push @consonants_m, $letter;
+        }
+    }
+
+    # there's a bug in here where the word is sometimes 1 char too long
+    for (my $loop=0; $loop<300; $loop++){
+        my @vowels = @vowels_m;
+        my @consonants = @consonants_m;
+
+        my $i = @vowels;
+        if ($i>2){
+           while ( --$i ){
+                my $j = int rand( $i+1 );
+                @vowels[$i,$j] = @vowels[$j,$i];
+            }
+        }
+
+        $i = @consonants;
+        if ($i>2){
+            while ( --$i ){
+                my $j = int rand( $i+1 );
+                @consonants[$i,$j] = @consonants[$j,$i];
+            }
+        }
+
+        my $word = pop @vowels;
+
+        for (my $vc = @vowels; $vc > 0; $vc--){
+            if (int(rand(2)) && defined($vowels[0])){
+                $word.=pop @vowels;
+            }
+        }
+
+        if (!$word){
+            $word = "";
+        }
+
+        while (length($word) < $num){
+            if (defined($consonants[0])){
+                $word .= pop @consonants;
+            }else{
+                $word .= pop @vowels;
+            }
+        }
+        $word = join '', sort { $a cmp $b } split(//, $word);
+        $list{$word} = 1;
+    }
+
+    
+    return keys %list;
+}
+
+
+
+
 sub settings{
     my $self = shift;
 
@@ -447,7 +611,7 @@ sub listeners{
     
     ##  Which commands should this plugin respond to?
     ## Command Listeners - put em here.  eg [qw (cmd1 cmd2 cmd3)]
-    my @commands = [qw(ws _endWSgame _showWSstatus)];
+    my @commands = [qw(ws _endWSgame _showWSstatus findwords)];
 
     ## Values: irc_join irc_ping irc_part irc_quit
     ## Note that irc_quit does not send channel information, and that the quit message will be 
@@ -479,10 +643,11 @@ sub listeners{
 sub addHelp{
     my $self = shift;
     $self->addHelpItem("[plugin_description]", "WordScramble game.  Find as many words as you can using the letters provided.  5 letter minimum.");
-    $self->addHelpItem("[ws]", "Usage: ws <arguments>");
+    $self->addHelpItem("[ws]", "WordScramble game. Unscramble words.  ws -new to start a new game.  ws <word> to make guess. ws -show to show the current board.  Scoring: (length(word) - 5 ) * 2, plus points for each letter based on standard WordFeud scoring.  -3 for each invalid word.");
     $self->addHelpItem("[ws][-loadwordlist]", "Deletes the current wordlist and loads a wordlist to use with the game, and possibly with other games.  Expects a URL as a parameter.  Each line of the file should be a single word.  You can try loading http://rocks.bot.nu/projects/RocksBot/wordlist.txt");
     $self->addHelpItem("[ws][-dropwordlist]", "Drops the wordlist table.");
     $self->addHelpItem("[ws][-wordlistinfo]", "Show info about the wordlist.");
+    $self->addHelpItem("[findwords]", "Find valid words in a string of characters. Words are checked against the current wordlist. (By default, this is TWL06, but the bot administrator may have changed it.)  This list of found words is not intended to be exhaustive.  Usage: findwords <string>");
 }
 1;
 __END__
