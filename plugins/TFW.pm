@@ -62,6 +62,13 @@ sub getOutput {
             $URL = $self->getShortURL($URL);
             return "The Fucking Weather for $place: $temp".$self->DEGREE."F  $comment. $flavor ".GREEN.UNDERLINE.$URL.NORMAL;
         }else{  
+            if ($self->botCan("forecast")){
+                $self->returnType("runBotCommand");
+                my @ret;
+                push @ret, "_internal_echo Either TFW is broken or that isn't a real place.  Trying $self->{BotCommandPrefix}forecast instead.";
+                push @ret, "forecast $options";
+                return \@ret;
+            }
             return "Couldn't find that fucking place!";
         }
 
