@@ -246,12 +246,15 @@ sub getOutput {
         }
     
         my $board = "";
+        my $letters;
+        if ($self->s('letter_distribution') eq 'boggle'){
+            ## Boggle
+            $letters = 'EEEEEEEEEEEEEEEEEEETTTTTTTTTTTTTAAAAAAAAAAAARRRRRRRRRRRRIIIIIIIIIINNNNNNNNNNOOOOOOOOOOSSSSSSSSDDDDDDCCCCCHHHHHLLLLLFFFFMMMMPPPPUUUUGGGYYYWWBJKQVXZ';
+        }else{
+            ## Scrabble
+            $letters = 'EEEEEEEEEEEEAAAAAAAAAIIIIIIIIIOOOOOOOONNNNNNRRRRRRTTTTTTLLLLSSSSUUUUDDDDGGGBBCCMMPPFFHHVVWWYYKJXQZ';
+        }
 
-        ## Boggle
-        #my $letters = 'EEEEEEEEEEEEEEEEEEETTTTTTTTTTTTTAAAAAAAAAAAARRRRRRRRRRRRIIIIIIIIIINNNNNNNNNNOOOOOOOOOOSSSSSSSSDDDDDDCCCCCHHHHHLLLLLFFFFMMMMPPPPUUUUGGGYYYWWBJKQVXZ';
-
-        ## Scrabble
-        my $letters = 'EEEEEEEEEEEEAAAAAAAAAIIIIIIIIIOOOOOOOONNNNNNRRRRRRTTTTTTLLLLSSSSUUUUDDDDGGGBBCCMMPPFFHHVVWWYYKJXQZ';
         my $vowels = 0;
 
         do {
@@ -598,10 +601,10 @@ sub settings{
 
     # Call defineSetting for as many settings as you'd like to define.
     $self->defineSetting({
-        name=>'setting name',    
-        default=>'default value',
-        allowed_values=>[],     # enumerated list. leave blank or delete to allow any value
-        desc=>'Describe what this setting does'
+        name=>'letter_distribution',    
+        default=>'scrabble',
+        allowed_values=>['scrabble', 'boggle'],     # enumerated list. leave blank or delete to allow any value
+        desc=>'Which letter distribution should the game use?'
     });
 }
 
