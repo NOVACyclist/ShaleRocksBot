@@ -165,7 +165,7 @@ sub listeners{
 sub addHelp{
     my $self = shift;
     $self->addHelpItem("[plugin_description]", "Define countdown timers to different events.");
-   $self->addHelpItem("[countdown]", "Usage: countdown <id>, countdown -list, countdown -delete=<id>, countdown -create -sec=<#> -min=<#> -hour=<#> -month=<#> -day=<#> -year=<#> id=<identifier> title=\"<title>\"");
+   $self->addHelpItem("[countdown]", "Usage: countdown <id>, countdown -list, countdown -delete=<id>, countdown -create -sec=<#> -min=<#> -hour=<#> -month=<#> -day=<#> -year=<#> -id=<identifier> title=\"<title>\"");
 }
 1;
 __END__
