@@ -67,6 +67,7 @@ sub getOutput {
         decode_entities($title);    
         decode_entities($content);  
         $content=~s/<.+?>//gis;
+        $content=~s/\n//gis;
     
         if ($cmd eq 'google'){
             if ($self->hasFlag("full")){
@@ -81,7 +82,9 @@ sub getOutput {
         }
     }
     
-    return $self->getList();    
+    $output = $self->getList();    
+    #print "---\n$output\n----\n";
+    return $output;
 }
 
 
