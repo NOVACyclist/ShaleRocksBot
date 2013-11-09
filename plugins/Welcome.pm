@@ -38,8 +38,8 @@ sub getOutput {
     if ($irc_event eq 'irc_join'){
         $self->useChannelCookies();
 
-        ## dont welcome people when the change hosts
-        return if ($self->cookie('last_welcome') > time() - 10);
+        ## dont welcome people when they change hosts
+        return if ($self->cookie('last_welcome') > time() - $self->s('last_welcome_timeout'));
     
         my @wchannels = split (/ /, $self->s('herald_channels'));
         
@@ -248,6 +248,13 @@ sub settings{
         default=>'',
         desc=>'A space separated list of channels that the herald should operate in.  If a channel is not listed here, the herald will not welcome users in that channel.'
     });
+
+    $self->defineSetting({
+        name=>'last_welcome_timeout',
+        default=>'60',
+        desc=>'Sometimes people change hosts when their cloak is applied, resulting in a double welcome. This will not welcome someone if they have been welcomed to the room in the previous X seconds.  You may want to set this to longer to avoid repeatedly welcoming people experiencing connectivity issues.'
+    });
+    
 }
 
 
@@ -269,7 +276,9 @@ sub listeners{
                                 
     ];
 
-    my $default_permissions =[ ];
+    my $default_permissions =[
+            {command=>"herald",  flag=>'command', require_group => UA_ADMIN },
+ ];
 
     return {commands=>@commands, permissions=>$default_permissions, 
         irc_events=>@irc_events, preg_matches=>@preg_matches };
