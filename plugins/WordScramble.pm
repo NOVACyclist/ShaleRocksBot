@@ -128,7 +128,11 @@ sub getOutput {
     if ($self->hasFlag("show")){
         my $board = $self->globalCookie('board') || 0;
         if ($board){
-            return "The board: ".BOLD . join (" ", split (//, $board)) .NORMAL; 
+            my $boardstr = join (" ", split (//, $board));
+            #$self->returnType("irc_yield");
+            #$self->yieldCommand('topic');
+            #$self->yieldArgs([$self->{channel}, "$boardstr"]);
+            return "The board: ".BOLD . $boardstr .NORMAL; 
         }else{
             return "No game in progress.";
         }
@@ -198,7 +202,7 @@ sub getOutput {
                 $top_score = $scores{$name};
                 next;
 
-            }elsif($i==1){
+            }elsif($i > 1){
                 if ($scores{$name} == $top_score){
                     $line = BOLD."GAME OVER. ". RED." It's a tie!".NORMAL;
                     last;
@@ -326,7 +330,7 @@ sub getOutput {
         };
         $self->scheduleEvent($timer_args);
 
-        return "New Board: ".BOLD . join (" ", split (//, $board)) .NORMAL. " - 5 letter minimum. You lose points for non-words an invaild words.  Game ends in 3 minutes";
+        return "New Board: ".BOLD . join (" ", split (//, $board)) .NORMAL. " - 5 letter minimum. You lose points for non-words and invaild words.  Game ends in 3 minutes";
     }
     
 
