@@ -188,7 +188,7 @@ sub getOutput {
             return "$who already has 4 messages waiting. Don't you think that's enough?";
         }
 
-        if ($self->hasPermission($nick)){
+        if ($self->hasPermission($self->accountNick())){
             $c->add($who, $what, $nick);
             return "Ok, $nick, I will pass that on when $who is around.";
         }else{
