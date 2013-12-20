@@ -21,7 +21,7 @@ package plugins::Counter;
 use base qw (modules::PluginBaseClass);
 use modules::PluginBaseClass;
 use Data::Dumper;
-
+use POSIX qw(strftime);
 
 sub getOutput {
     my $self = shift;
@@ -48,10 +48,9 @@ sub getOutput {
         return("Looks like you already have a counter by that name.") if (@records);
         return "You can only use letters and numbers in a counter name." if ($counter_name=~/\W/);
 
-        $c->add($counter_name, $counter_val);
+        $c->add($counter_name, $counter_val, $self->theTime());
 
         return "added counter '$counter_name' with a value of $counter_val for ". $self->accountNick().".";
-
 
 
     ##
@@ -132,6 +131,20 @@ sub getOutput {
 
 
 
+    }elsif($self->hasFlag("lastupdate")){
+        my $counter_name = $self->{options};
+        return $self->help($cmd, '-lastupdate') if (!$counter_name);
+
+        my @records = $c->matchRecords({val1=>$counter_name});
+
+        if (@records == 1){
+            return "Counter \"$counter_name\" was last updated on $records[0]->{val3}";
+        }
+
+        return "Could not find a counter for you named $counter_name. Sorry bro.";
+        
+    
+    
     ##
     ##  ADD or SUBTRACT
     ##
@@ -169,7 +182,7 @@ sub getOutput {
                 $counter_val-=$amt;
             }
 
-            if ($c->updateRecord(@records[0]->{'row_id'}, {val2 => $counter_val} )){
+            if ($c->updateRecord(@records[0]->{'row_id'}, {val2 => $counter_val, val3=>$self->theTime() } )){
                 return ("Counter '$counter_name' set to $counter_val.");
 
             }else{
@@ -208,7 +221,7 @@ sub getOutput {
 
         if (@records == 1){
 
-            if ($c->updateRecord(@records[0]->{'row_id'}, {val2 => $counter_val} )){
+            if ($c->updateRecord(@records[0]->{'row_id'}, {val2 => $counter_val, val3=>$self->theTime()} )){
                 return ("Counter $counter_name set to $counter_val.");
 
             }else{
@@ -264,7 +277,6 @@ sub getOutput {
         }
     }
 
-
     ##
     ##  No Arguments - print counters
     ##
@@ -283,6 +295,14 @@ sub getOutput {
         return ("You don't have any counters. Use ".$self->{BotCommandPrefix}."counter -create=<name> -value=<value> to add one.");
     }
 }
+
+sub theTime{
+    my $self = shift;
+    #my @t = localtime(time);
+    #return sprintf("%02d-%02d %02d:%02d:%02d ", $t[4]+1, $t[3], $t[2], $t[1], $t[0]);
+    return strftime "%a %b %e %H:%M:%S %Y %Z", localtime;
+}
+
 
 sub listeners{
    my $self = shift;
@@ -305,11 +325,12 @@ sub listeners{
 sub addHelp{
    my $self = shift;
    $self->addHelpItem("[plugin_description]", "Make counters for things. Increment them. Decrement them. Great fun.");
-   $self->addHelpItem("[counter]", "Maintain counters. counter + <counter_name> to add.  counter - <counter_name> to subtract. Other flags:  -create -set -delete -nick -all.  help counter <-flag> for flag help"); 
+   $self->addHelpItem("[counter]", "Maintain counters. counter + <counter_name> to add.  counter - <counter_name> to subtract. Other flags:  -create -set -delete -nick -all -lastupdate.  help counter <-flag> for flag help"); 
     $self->addHelpItem("[counter][-create]", "Usage: counter -create=<counter_name> -value=<initial_value>.  Create a new counter.");
     $self->addHelpItem("[counter][-set]", "Usage: counter -set <counter_name> <new_value>.  Set a counter to a particular value.");
     $self->addHelpItem("[counter][-delete]", "counter -delete=<counter_name>. Delete a counter.");
     $self->addHelpItem("[counter][-nick]", "counter -nick=<nick>.  See another person's counters.");
+    $self->addHelpItem("[counter][-lastupdate]", "counter <counter_name> -lastupdate. See a counter's last update date.");
     $self->addHelpItem("[counter][-all]", "counter -all [=<counter_name>].  See everyone's counters. Use -all or -all=<counter_name>");
 }
 
