@@ -646,7 +646,7 @@ sub getUnique{
 ##
 
 sub matchRecords{
-   my $self = shift;
+    my $self = shift;
     my $fields = shift;
     
     if (ref($fields) ne 'HASH'){

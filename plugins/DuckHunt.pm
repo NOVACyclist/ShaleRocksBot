@@ -25,7 +25,7 @@ use base qw (modules::PluginBaseClass);
 use modules::PluginBaseClass;
 use Data::Dumper;
 
-use constant DUCK => '\_o<';
+use constant DUCK => '(o)<  ・゜゜・。。・゜゜HONK';
 
 my $testing;    #launch ducks every 8 seconds
 
@@ -60,13 +60,39 @@ sub getOutput {
 
         if (!$self->globalCookie("duck_launched")){
             $self->returnType("irc_yield");
-            $self->yieldCommand('kick');
-            $self->yieldArgs([$self->{channel}, $nick, "There was no duck! You shot yourself right out of the channel!"]);
+            #$self->yieldCommand('kick');
+            $self->yieldArgs([$self->{channel}, $nick, "There was no goose!"]);
             return "There was no duck, you fool!";
         }
         $self->globalCookie("duck_launched", 0);
 
         # shoot this duck
+        my $ducks = $self->cookie("num_ducks");
+        $ducks--;
+        $self->cookie("num_ducks", $ducks);
+
+        # schedule next duck
+        $self->scheduleDuck();
+
+        return "Way to go killer. You have shot " . abs($ducks) . " geese in $self->{channel}";
+    }
+    
+    if ( ($cmd eq 'bef') || ($cmd eq 'befriend') ) { 
+        return "You can't do that via PM. Sorry, bud." if ($channel!~/^#/);
+
+        if (!$self->globalCookie("hunt_on")){
+            return "A hunt is not currently in progress.";
+        }
+
+        if (!$self->globalCookie("duck_launched")){
+            $self->returnType("irc_yield");
+            #$self->yieldCommand('kick');
+            $self->yieldArgs([$self->{channel}, $nick, "There was no goose!"]);
+            return "There was no duck, you fool!";
+        }
+        $self->globalCookie("duck_launched", 0);
+
+        # friend this duck
         my $ducks = $self->cookie("num_ducks");
         $ducks++;
         $self->cookie("num_ducks", $ducks);
@@ -74,7 +100,7 @@ sub getOutput {
         # schedule next duck
         $self->scheduleDuck();
 
-        return "Nice shot! You have shot $ducks ducks in $self->{channel}";
+        return "Nice work, you saved a goose. You have saved $ducks geese in $self->{channel}";
     }
     
 
@@ -190,7 +216,7 @@ sub scheduleDuck{
 sub listeners{
     my $self = shift;
     
-    my @commands = [qw(bang clear_scores _launchduck start stop scores)];
+    my @commands = [qw(bang bef befriend clear_scores _launchduck start stop scores)];
 
     my $default_permissions =[
         {command=>"_launchduck", require_group => UA_INTERNAL },
@@ -220,8 +246,9 @@ sub settings{
 
 sub addHelp{
     my $self = shift;
-    $self->addHelpItem("[plugin_description]", "Duck Hunt!");
-   $self->addHelpItem("[bang]", "Command: bang.  Shoot a duck");
+    $self->addHelpItem("[plugin_description]", "Goose Game");
+   $self->addHelpItem("[bang]", "Command: bang.  Shoot a goose");
+   $self->addHelpItem("[bef|befriend]", "Command: bang.  Save a goose");
    $self->addHelpItem("[clear_scores]", "clear the duck hunting scores");
 }
 1;
