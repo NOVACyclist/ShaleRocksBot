@@ -32,20 +32,18 @@ sub getOutput {
     my $nick = $self->{nick};               
     my @output;
 
-    if ($cmd eq 'newRedditPosts'){
+    my $channel = $self->hasFlagValue("channel");
+    my $subreddit = $self->hasFlagValue("subreddit");
 
-        my $channel = $self->hasFlagValue("channel");
-        my $subreddit = $self->hasFlagValue("subreddit");
-
-        return "-channel=<#channel> is required." if (!$channel);
-        return "-subreddit=<subreddit> is required." if (!$subreddit);
+    return "-channel=<#channel> is required." if (!$channel);
+    return "-subreddit=<subreddit> is required." if (!$subreddit);
  
-        $self->suppressNick("true");    
+    $self->suppressNick("true");    
 
-        ## For redirecting the output  
-        $self->{channel} = $channel;
+    ## For redirecting the output  
+    $self->{channel} = $channel;
 
-       ## Get the two collections
+    ## Get the two collections
     # plugin | channel 1: subreddit | 2:id | 3:author |  4: title 
     # plugin | stats | 1:channel | 2:subreddit 3: num_runs |4: num_announces
     my $c_links = $self->getCollection(__PACKAGE__, lc($channel));
@@ -60,13 +58,19 @@ sub getOutput {
     }
 
     ## Get the json
-    my $page = $self->getPage("http://www.reddit.com/r/$subreddit/new/.json?sort=new");
+    my $page = "";
 
-        if (!$page){
-            ## timeout error, probably.  silently ignore
-            print "suspected timeout error with lwp in RedditAnnounce. (#r4a). Skipping processing.";
-            return;
-        }
+    if ($cmd eq 'topRedditPosts'){
+        $page = $self->getPage("http://www.reddit.com/r/$subreddit/.json");
+    }else{
+        $page = $self->getPage("http://www.reddit.com/r/$subreddit/new/.json?sort=new");
+    }
+
+    if (!$page){
+        ## timeout error, probably.  silently ignore
+        print "suspected timeout error with lwp in RedditAnnounce. (#r4a). Skipping processing.";
+        return;
+    }
 
     my $json_o  = JSON->new->allow_nonref;
     $json_o = $json_o->pretty(1);
@@ -122,14 +126,13 @@ sub getOutput {
         }
     }
     return \@output;
-   }
 }
 
 
 sub listeners{
     my $self = shift;
     
-    my @commands = [qw(newRedditPosts)];
+    my @commands = [qw(newRedditPosts topRedditPosts)];
 
     my @irc_events = [qw () ];
 
@@ -152,6 +155,7 @@ sub addHelp{
     my $self = shift;
     $self->addHelpItem("[plugin_description]", "Check reddit for new things & announce them in a channel.  Plugin keeps a small database of seen items so they're not re-announced. You probably want to run these things via the bot's cron command.");
    $self->addHelpItem("[newRedditPosts]", "Checks a subreddit & announces new posts (since the last time it checked).  Intended to be run via bot's cron command. Usage: newRedditPosts -channel=<#output channel> -subreddit=<subreddit name, don't include the /r/>.   See help newRedditPosts --info for more info");
+   $self->addHelpItem("[topRedditPosts]", "Checks a subreddit & announces new top posts (since the last time it checked).  Intended to be run via bot's cron command. Usage: topRedditPosts -channel=<#output channel> -subreddit=<subreddit name, don't include the /r/>.   See help topRedditPosts --info for more info");
 }
 1;
 __END__

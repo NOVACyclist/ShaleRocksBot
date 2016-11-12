@@ -49,6 +49,12 @@ sub onBotStart{
             $c->add('gg', 'google $*', ':system');
         }
 
+        if (!$self->botCan("calc")){
+            print "added calc\n";
+            $c->add('calc', 'wa $*', ':system');
+        }
+
+
         print "Set first_run cookie so this will never run again.\n";
         $self->globalCookie("first_run", 1);
 
