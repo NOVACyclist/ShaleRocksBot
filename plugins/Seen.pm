@@ -175,6 +175,7 @@ sub getOutput {
         $options =~s/$self->{BotName}, tell //gis;
 
         $options=~s/^(.+?) //gis;
+        $self->{options_unparsed}=~s/^(.+?)\s+//;
         my $who = $1;
         my $what = $self->{options_unparsed};
 

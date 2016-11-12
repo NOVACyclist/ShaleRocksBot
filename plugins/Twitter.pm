@@ -61,7 +61,7 @@ sub getOutput {
     my $output = "";
 
     $self->suppressNick("true");
-    
+ 
     if (!$self->{consumer_key} || !$self->{consumer_secret}){
         my $msg = "The bot owner (".$self->{BotOwnerNick}.") has not set the Twitter API key. ";
         $msg .= "Obtain an API key from twitter & add it to the bot config file.";
@@ -109,7 +109,15 @@ sub getOutput {
     ##      Default - do search
     ##
 
-    my $r = $nt->search( $options, { lang => 'en'});
+    my $r;
+    eval{
+        $r = $nt->search( $options, { lang => 'en'});
+    };
+    
+    if ($@){
+        print "Twitter error: $@";
+        return "Error with Twitter";
+    }
 
     if (@{$r->{statuses}}){
 
@@ -189,7 +197,8 @@ sub ConnectToTwitter{
       consumer_key    => $self->{consumer_key}, 
       consumer_secret => $self->{consumer_secret},
         access_token => $self->{AccessToken},
-        access_token_secret => $self->{AccessTokenSecret}
+        access_token_secret => $self->{AccessTokenSecret},
+       ssl => 1
   );                                                                                            
     
 

@@ -75,6 +75,7 @@ sub getOutput {
         $big_number = $r2_num;
         $small_number = $r1_num;
     }else{
+        $winner = "";
         $big_number = $r1_num;
         $small_number = $r2_num;
     }
@@ -133,9 +134,10 @@ sub getResults{
         return 0;
     }
 
-    if ($page=~m#<div id="resultStats">About (.+?) results</div>#){
+    #<div id="resultStats">About 32,200 results
+    if ($page=~m# id="resultStats">About (.+?) results#){
         return $1;
-    }elsif ($page=~m#<div id="resultStats">(.+?) results</div>#){
+    }elsif ($page=~m# id="resultStats">(.+?) results#){
         return $1;
     }else{
         return 0;

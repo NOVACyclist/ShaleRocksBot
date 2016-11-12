@@ -62,7 +62,7 @@ sub getOutput {
             my @jobs = $self->{EventTimerObj}->getCronJobs();
 
             foreach my $j (@jobs){
-                $output.='['.$j->{job_id}.'] '. "secs=$j->{job_sec} mins=$j->{job_min} hours=$j->{job_hour} ";
+                $output.='['.$j->{job_id}.'] '. "seconds=$j->{job_sec} minutes=$j->{job_min} hours=$j->{job_hour} ";
                 $output.="command=\"$j->{command} $j->{options}\" ";
                 $output.="channel=$j->{channel}  ";
             }

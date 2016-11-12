@@ -155,11 +155,9 @@ sub getOutput {
         my $i = int(rand(@choices));
         return $choices[$i];
     }
-
-    
-    # Rock Paper Scissors
-    if ($cmd eq 'rock' || $cmd eq 'paper' || $cmd eq 'scissors'){
-        my $choice = ('rock', 'paper', 'scissors')[int(rand(3))];
+    # Rock Paper Scissors Lizard Spock
+    if ($cmd eq 'rock' || $cmd eq 'paper' || $cmd eq 'scissors' || $cmd eq 'lizard' || $cmd eq 'spock'){
+        my $choice = ('rock', 'paper', 'scissors', 'lizard', 'spock')[int(rand(5))];
 
         my $status = "";
         if ($choice eq $cmd){
@@ -167,48 +165,84 @@ sub getOutput {
 
         }elsif($choice eq 'rock'){
             if ($cmd eq 'paper'){
-                $status = "You win!";
-            }else{
-                $status = "I win!";
+                $status = "Paper covers rock. You win!";
+            }elsif($cmd eq 'lizard'){
+        $status = "Rock crushes lizard. I win!";
+        }elsif($cmd eq 'spock'){
+        $status = "Spock vaporizes rock. You win!";
+        }else{
+                $status = "Rock crushes scissors. I win!";
             }
+    
         }elsif($choice eq 'paper'){
             if ($cmd eq 'scissors'){
-                $status = "You win!";
-            }else{
-                $status = "I win!";
-            }
+                $status = "Scissors cut paper. You win!";
+            }elsif($cmd eq 'spock'){
+        $status = "Paper disproves Spock. I win!";
+        }elsif($cmd eq 'lizard'){
+        $status = "Lizard eats paper. You win!";
+        }else{
+                $status = "Paper covers rock. I win!";
+           }
+
         }elsif($choice eq 'scissors'){
             if ($cmd eq 'rock'){
-                $status = "You win!";
+                $status = "Rock crushes scissors. You win!";
+        }elsif($cmd eq 'lizard'){
+        $status = "Scissors decapitate lizard. I win!";
+        }elsif($cmd eq 'spock'){
+        $status = "Spock smashes scissors. You win!";
             }else{
-                $status = "I win!";
+                $status = "Scissors cut paper. I win!";
+            }
+
+        }elsif($choice eq 'lizard'){
+            if ($cmd eq 'rock'){
+                $status = "Rock crushes lizard. You win!";
+        }elsif($cmd eq 'scissors'){
+        $status = "Scissors decapitate lizard. You win!";
+        }elsif($cmd eq 'spock'){
+        $status = "Lizard poisons Spock. I win!";
+            }else{
+                $status = "Lizard eats paper. I win!";
+            }
+
+        }elsif($choice eq 'spock'){
+            if ($cmd eq 'rock'){
+                $status = "Spock vaporizes rock. I win!";
+        }elsif($cmd eq 'lizard'){
+        $status = "Lizard poisons Spock. You win!";
+        }elsif($cmd eq 'scissors'){
+        $status = "Spock smashes scissors. I win!";
+            }else{
+                $status = "Paper disproves Spock. You win!";
             }
         }
 
-        my $my_score = $self->globalCookie("rps_me") || 0;
-        my $world_score = $self->globalCookie("rps_world") || 0;
+#        my $my_score = $self->globalCookie("rps_me") || 0;
+#        my $world_score = $self->globalCookie("rps_world") || 0;
     
-        if ($status eq 'You win!'){
-            $self->globalCookie("rps_world", ++$world_score);
-        }elsif($status eq 'I win!'){
-            $self->globalCookie("rps_me", ++$my_score);
-        }
+#        if ($status eq 'You win!'){
+#            $self->globalCookie("rps_world", ++$world_score);
+#        }elsif($status eq 'I win!'){
+#            $self->globalCookie("rps_me", ++$my_score);
+#        }
 
         
         my $ret = NORMAL."You chose $cmd. I chose $choice.".BOLD." $status".NORMAL;
-        $ret.=" ... ".RED."$self->{BotName}:".NORMAL." $my_score ".RED." World: ".NORMAL."$world_score";
+#        $ret.=" ... ".RED."$self->{BotName}:".NORMAL." $my_score ".RED." World: ".NORMAL."$world_score";
         return $ret;
     }
 
     return $output;
 
 }
-
+    
 sub listeners{
    my $self = shift;
 
    ##Command Listeners - put em here.  eg ['one', 'two']
-   my @commands = ['8ball','fortune','powerball', 'rand', 'ask', 'rock','paper','scissors','roulette' ];
+   my @commands = ['8ball','fortune','powerball', 'rand', 'ask', 'lizard', 'spock', 'rock','paper','scissors','roulette' ];
    my $default_permissions =[ ];
 
    return {commands=>@commands, permissions=>$default_permissions};
@@ -217,6 +251,11 @@ sub listeners{
 sub addHelp{
    my $self = shift;
    $self->addHelpItem("[plugin_description]", "Just some games. They may or may not be fun.");
+   $self->addHelpItem("[paper]", "Play Rock-Paper-Scissors-Lizard_Spock");
+   $self->addHelpItem("[rock]", "Play Rock-Paper-Scissors-Lizard_Spock");
+   $self->addHelpItem("[spock]", "Play Rock-Paper-Scissors-Lizard_Spock");
+   $self->addHelpItem("[lizard]", "Play Rock-Paper-Scissors-Lizard_Spock");
+   $self->addHelpItem("[scissors]", "Play Rock-Paper-Scissors-Lizard_Spock");
    $self->addHelpItem("[8ball]", "Usage: 8ball <ask a question>");
    $self->addHelpItem("[fortune]", "Get a unix fortune, if fortune is installed on this machine.");
    $self->addHelpItem("[powerball]", "Have the bot pick some powerball numbers for you. Don't forget to share the winnings.");

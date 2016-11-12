@@ -62,7 +62,7 @@ sub getOutput {
             $self->returnType("irc_yield");
             #$self->yieldCommand('kick');
             $self->yieldArgs([$self->{channel}, $nick, "There was no goose!"]);
-            return "There was no duck, you fool!";
+            return "There was no goose, you fool!";
         }
         $self->globalCookie("duck_launched", 0);
 
@@ -199,7 +199,7 @@ sub scheduleDuck{
         $next_time = time() + int(rand($self->s('duck_window'))) + $self->s('duck_delay');
     }
 
-    print "now is " . time() . " next duck at " . $next_time . " which is in " . ($next_time - time ()) . " seconds\n";
+    print "now is " . time() . " next goose at " . $next_time . " which is in " . ($next_time - time ()) . " seconds\n";
 
     my $args = {
       timestamp => $next_time,  
@@ -248,7 +248,8 @@ sub addHelp{
     my $self = shift;
     $self->addHelpItem("[plugin_description]", "Goose Game");
    $self->addHelpItem("[bang]", "Command: bang.  Shoot a goose");
-   $self->addHelpItem("[bef|befriend]", "Command: bang.  Save a goose");
+   $self->addHelpItem("[bef", "Command: BEFriend.  Save a goose");
+   $self->addHelpItem("[befriend]", "Command: BEFriend.  Save a goose");
    $self->addHelpItem("[clear_scores]", "clear the duck hunting scores");
 }
 1;

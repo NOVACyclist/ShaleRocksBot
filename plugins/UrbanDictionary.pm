@@ -208,18 +208,20 @@ sub getOutput {
 
     my @defs;
 
-    while ($page=~m#<div class="definition">(.+?)\n#gis){
+    while ($page=~m#<div class='definition'>(.+?)\n#gis){
         my $def = $1;
         my $example;
 
-        if ($def=~s#<div class="example">(.+?)</div>##gis){
+        if ($page=~m#<div class='example'>(.+?)\n#gis){
             $example = $1;      
             $example=~s/<br\/?>/ /gis;
             $example=~s/<.+?>//gis;
+            $example=~s/\n//g;        
         }
     
         $def=~s/<br\/?>/ /gis;
         $def=~s/<.+?>//gis;
+        $def=~s/\n//g;
         push @defs, {def=>$def, example=>$example};
     }
 

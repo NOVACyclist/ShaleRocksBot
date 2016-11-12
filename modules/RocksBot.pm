@@ -80,12 +80,14 @@ our $recent_responses;
 
 # channel state data
 our $state;
+our $bot_start_time;
 
 sub new {
     my ($class, @args) = @_;
     my $self = bless {}, $class;
 
     $config_file = shift @args;
+    $bot_start_time = time();
     $self->loadConfig();
     $self->init();
     return $self;
@@ -449,7 +451,13 @@ sub deferredCommand{
     my ($kernel, $sender, $heap, $ref, $result) = @_[KERNEL, SENDER, HEAP, ARG0, ARG1];
     print "Deferred Command\n";
     print Dumper($ref);
-    runBotCommand($ref);
+    
+    #ignore commands for x secs after bot start
+    if ( (time() - $bot_start_time) < 10){
+        print theTime() . " ignoring deferred command because bot just started.\n";
+    }else{
+       runBotCommand($ref);
+    }
 }
 
 sub ch_stats{
