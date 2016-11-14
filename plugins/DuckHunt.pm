@@ -26,8 +26,10 @@ use modules::PluginBaseClass;
 use Data::Dumper;
 
 use constant DUCK => '(o)<  ・゜゜・。。・゜゜HONK';
+use constant PIG  => '~~(_ _)^: OINK';
+use constant SEAL => '(ᵔᴥᵔ) BARK';
 
-my $testing;    #launch ducks every 8 seconds
+my $testing;    #launch animals every 8 seconds
 
 sub plugin_init{
     my $self = shift;
@@ -55,7 +57,7 @@ sub getOutput {
         return "You can't do that via PM. Sorry, bud." if ($channel!~/^#/);
 
         if (!$self->globalCookie("hunt_on")){
-            return "A hunt is not currently in progress.";
+            return "A game is not currently in progress.";
         }
 
         if (!$self->globalCookie("duck_launched")){
@@ -74,7 +76,7 @@ sub getOutput {
         # schedule next duck
         $self->scheduleDuck();
 
-        return "Way to go killer. You have shot " . abs($ducks) . " geese in $self->{channel}";
+        return "Way to go killer. You have shot " . abs($ducks) . " animals in $self->{channel}";
     }
     
     if ( ($cmd eq 'bef') || ($cmd eq 'befriend') ) { 
@@ -88,7 +90,7 @@ sub getOutput {
             $self->returnType("irc_yield");
             #$self->yieldCommand('kick');
             $self->yieldArgs([$self->{channel}, $nick, "There was no goose!"]);
-            return "There was no duck, you fool!";
+            return "There was no goose!";
         }
         $self->globalCookie("duck_launched", 0);
 
@@ -99,8 +101,10 @@ sub getOutput {
 
         # schedule next duck
         $self->scheduleDuck();
-
-        return "Nice work, you saved a goose. You have saved $ducks geese in $self->{channel}";
+        
+        return "Nice work, you saved a " . $self->globalCookie("animal_launched") . ". You have saved $ducks animals in $self->{channel}";
+            
+            
     }
     
 
@@ -151,7 +155,30 @@ sub getOutput {
 
         $self->suppressNick("true");    
         $self->globalCookie("duck_launched", 1);
-        return $self->DUCK;
+        my $rand = rand(20);
+        print "Random animal number $rand\n";
+        
+        if ( $rand > 18 ) {
+            
+            $self->globalCookie("animal_launched", "seal");
+            
+            return BROWN . $self->SEAL . NORMAL;
+                
+        } elsif ( $rand > 15 ) {
+                
+            $self->globalCookie("animal_launched", "pig");
+                
+            return BROWN . $self->PIG . NORMAL;
+                
+        } else {
+            
+            $self->globalCookie("animal_launched", "goose");
+            
+            return BROWN . $self->DUCK . NORMAL;
+            
+        }
+        
+        
     }
 
 
@@ -248,7 +275,7 @@ sub addHelp{
     my $self = shift;
     $self->addHelpItem("[plugin_description]", "Goose Game");
    $self->addHelpItem("[bang]", "Command: bang.  Shoot a goose");
-   $self->addHelpItem("[bef", "Command: BEFriend.  Save a goose");
+   $self->addHelpItem("[bef]", "Command: BEFriend.  Save a goose");
    $self->addHelpItem("[befriend]", "Command: BEFriend.  Save a goose");
    $self->addHelpItem("[clear_scores]", "clear the duck hunting scores");
 }
