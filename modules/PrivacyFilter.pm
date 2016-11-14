@@ -19,6 +19,7 @@ package modules::PrivacyFilter;
 
 use strict;         
 use warnings;
+use lib '/home/lunchbox/ShaleRocksBot';
 use base qw (modules::PluginBaseClass);
 use modules::PluginBaseClass;
 use Data::Dumper;
