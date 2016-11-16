@@ -54,6 +54,7 @@ sub getOutput {
     #
 
     if ($cmd eq 'bang'){
+        
         return "You can't do that via PM. Sorry, bud." if ($channel!~/^#/);
 
         if (!$self->globalCookie("hunt_on")){
@@ -64,7 +65,7 @@ sub getOutput {
             $self->returnType("irc_yield");
             #$self->yieldCommand('kick');
             $self->yieldArgs([$self->{channel}, $nick, "There was no goose!"]);
-            return "There was no goose, you fool!";
+            return "There was no " . $self->globalCookie("animal_launched") . ", you fool!";
         }
         $self->globalCookie("duck_launched", 0);
 
@@ -79,7 +80,8 @@ sub getOutput {
         return "Way to go killer. You have shot " . abs($ducks) . " animals in $self->{channel}";
     }
     
-    if ( ($cmd eq 'bef') || ($cmd eq 'befriend') ) { 
+    if ( ($cmd eq 'bef') || ($cmd eq 'befriend') ) {
+        
         return "You can't do that via PM. Sorry, bud." if ($channel!~/^#/);
 
         if (!$self->globalCookie("hunt_on")){
@@ -90,7 +92,7 @@ sub getOutput {
             $self->returnType("irc_yield");
             #$self->yieldCommand('kick');
             $self->yieldArgs([$self->{channel}, $nick, "There was no goose!"]);
-            return "There was no goose!";
+            return "There was no " . $self->globalCookie("animal_launched") . "!";
         }
         $self->globalCookie("duck_launched", 0);
 
@@ -162,7 +164,7 @@ sub getOutput {
             
             $self->globalCookie("animal_launched", "seal");
             
-            return BROWN . $self->SEAL . NORMAL;
+            return BOLD . $self->SEAL . NORMAL;
                 
         } elsif ( $rand > 15 ) {
                 
@@ -198,7 +200,7 @@ sub getOutput {
 
         my $list = $self->getList();
         if ($list){
-            $output = BOLD."DuckHunt Scores for $self->{channel}: ".NORMAL . $list;
+            $output = BOLD."Hunt Scores for $self->{channel}: ".NORMAL . $list;
         }else{
             $output = 'No one has shot any ducks in '.$self->{channel}.' yet.';
         }
@@ -248,6 +250,8 @@ sub listeners{
     my $default_permissions =[
         {command=>"_launchduck", require_group => UA_INTERNAL },
         {command=>"clear_scores", require_group => UA_TRUSTED},
+        {command=>"start", require_group => UA_TRUSTED},
+        {command=>"stop", require_group => UA_TRUSTED},
     ];
 
     return { commands=>@commands,
