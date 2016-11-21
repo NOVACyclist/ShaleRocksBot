@@ -245,7 +245,7 @@ sub settings{
 
     $self->defineSetting({
         name=>'herald_channels',
-        default=>'',
+        default=>'#soberfriends #stopdrinking #stopdrinkingsocial',
         desc=>'A space separated list of channels that the herald should operate in.  If a channel is not listed here, the herald will not welcome users in that channel.'
     });
 
