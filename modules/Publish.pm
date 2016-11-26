@@ -16,6 +16,27 @@ package modules::Publish;
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #-----------------------------------------------------------------------------
+#API Info
+
+#How it works: Do a post request to the create.php page. A URL of the published page will be returned.
+
+#Page name: http://rocks.us.to/p/create.php
+#GET options:
+#type : type of file. Values: html, text, jpg, gif, png, css, js, zip*. Default: html
+#*zip files - are unzipped & each file is associated w/ the html file. Uploaded zip files should contain exactly one (1) html file. Example: upload a zip file containing (index.html, page.css, and header.jpg). Links in the HTML page to /page.css and "page.css" will then both 'work' without you having to edit your html.
+#hours : expiration time, in hours. Default: 24 * 30
+#encoding : encoding type of the content field. Values: base64. You should encode binary content before posting to the server. Not always necessary, depending on server setup, but it's good practice.
+#short_url: Return a short url from is.gd. Values: 0 or 1. Default: 0
+#POST option: content : The content of the page
+#You can POST the GET variables instead, if you want.
+#Example URL to POST "content" to: http://rocks.us.to/p/create.php (uses default options)
+
+#Example URL to POST "content" to: http://rocks.us.to/p/create.php?type=text&hours=1 (text document, will expire in 1 hour)
+
+#Example cURL statement: curl --data-urlencode "content=<h1>hello world</h1>" 'http://rocks.us.to/p/create.php?type=html&hours=1'
+
+
+
 
 BEGIN {
   $modules::Publish::VERSION = '1.0';
