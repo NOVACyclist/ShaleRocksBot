@@ -232,6 +232,12 @@ sub getOutput {
         }
 
     }
+    
+    if ($cmd eq 'loadfromrae') {
+        #$self->sendPM($self->{nick}, $map);
+        $self->sendPM('RaeRockBot', ';points');
+    }
+    
 
 
     return $output;
@@ -263,7 +269,8 @@ sub addHelp{
    $self->addHelpItem("[points][-deleteeverything]", "Delete everything from your leaderboard. Usage: points -deleteeverything");
    $self->addHelpItem("[points][-total]", "Rank the rankers by total points given out. Usage: points -total");
    $self->addHelpItem("[points][-posneg]", "Rank the rankers by positivity. Usage: points -posneg");
-  # $self->addHelpItem("[points][-most]", "Rank the rankers by number of things ranked. Usage: points -most");
+   #$self->addHelpItem("[points][-loadfromrae]", "Load your points from the RaeRockBot Database. Usage: points -loadfromrae");   
+   #$self->addHelpItem("[points][-most]", "Rank the rankers by number of things ranked. Usage: points -most");
 }
 
 1;
