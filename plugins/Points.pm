@@ -182,21 +182,30 @@ sub getOutput {
     # Make sure people who have an account have their stuff protected
     return ("You don't have permission to do that.") if (!$self->hasPermission($self->accountNick()));
     
+    my $is_are;
+        
+    if ($options =~ /^.*s$/i) {     # If it is likely plural, get it right most of the time.
+        $is_are = "are";
+    } else {
+        $is_are = "is";
+    }
+        
+    
     if ($cmd eq 'addpoint' || ($cmd eq 'rmpoint') && (lc($options) eq lc($self->{BotName}))){
 
         return "Usage: $cmd <whatever>" if ($options eq "");
 
         my @records = $c->matchRecords({val1=>$options});
-
+        
         if (@records == 0){
             $c->add($options, 1);
-            return ("$options is now worth 1 in $self->{'nick'}'s eyes.");
+            return ("$options $is_are now worth 1 in $self->{'nick'}'s eyes.");
 
         }else{
             my $counter_val = $records[0]->{'val2'};
             $counter_val++;
             if ($c->updateRecord($records[0]->{row_id}, {val2 => $counter_val} )){
-                return ("$options is now worth $counter_val in $self->{'nick'}'s eyes.");
+                return ("$options $is_are now worth $counter_val in $self->{'nick'}'s eyes.");
             }else{
                 return ("Something went wrong.  Let's just pretend this didn't happen.");
             }
@@ -210,13 +219,13 @@ sub getOutput {
 
         if (@records == 0){ 
             $c->add($options, -1);
-            return ("$options is now worth -1 in $self->{'nick'}'s eyes.");
+            return ("$options $is_are now worth -1 in $self->{'nick'}'s eyes.");
 
         }else{
             my $counter_val = $records[0]->{'val2'};
             $counter_val--;
             if ($c->updateRecord($records[0]->{row_id}, {val2 => $counter_val} )){
-                return ("$options is now worth $counter_val in $self->{'nick'}'s eyes.");
+                return ("$options $is_are now worth $counter_val in $self->{'nick'}'s eyes.");
             }else{
                 return ("Something went wrong.  Let's just pretend this didn't happen.");
             }
