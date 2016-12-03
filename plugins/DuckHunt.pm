@@ -164,20 +164,26 @@ sub getOutput {
 
         $self->suppressNick("true");    
         $self->globalCookie("duck_launched", 1);
-        my $rand = rand(20);
+        my $rand = int(rand(20)); 
         print "Random animal number $rand\n";
         
-        if ( $rand > 18 ) {
+        if ( $rand >= 18 ) {
             
             $self->globalCookie("animal_launched", "seal");
             
             return BOLD . $self->SEAL . NORMAL;
                 
-        } elsif ( $rand > 15 ) {
+        } elsif ( $rand >= 15 ) {
                 
             $self->globalCookie("animal_launched", "pig");
                 
             return BROWN . $self->PIG . NORMAL;
+                
+        } elsif ( $rand >= 12 ) {
+                
+            $self->globalCookie("animal_launched", "mouse");
+                
+            return BROWN . $self->MOUSE . NORMAL;
                 
         } else {
             
