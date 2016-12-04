@@ -28,9 +28,9 @@ use Data::Dumper;
 use constant DUCK  => '(o)<  ・゜゜・。。・゜゜HONK';
 use constant PIG   => '~~(_ _)^: OINK';
 use constant SEAL  => '(ᵔᴥᵔ) BARK';
-use constant MOUSE => '<:3)~ SQEEK';
+use constant MOUSE => '<:3)~ SQUEAK';
 #use constant BEAR  => "('')-.-('') GRUNT";
-#use constant FOX   => "< \'!\' > Hatee-hatee-hatee-ho!";
+#use constant FOX   => "< '!' > Hatee-hatee-hatee-ho!";
 #use constant SHARK => '____/\_______\o/___ AHHHH SHARK'; #reverse score
 
 
@@ -164,20 +164,26 @@ sub getOutput {
 
         $self->suppressNick("true");    
         $self->globalCookie("duck_launched", 1);
-        my $rand = rand(20);
+        my $rand = int(rand(20)); 
         print "Random animal number $rand\n";
         
-        if ( $rand > 18 ) {
+        if ( $rand >= 18 ) {
             
             $self->globalCookie("animal_launched", "seal");
             
             return BOLD . $self->SEAL . NORMAL;
                 
-        } elsif ( $rand > 15 ) {
+        } elsif ( $rand >= 15 ) {
                 
             $self->globalCookie("animal_launched", "pig");
                 
             return BROWN . $self->PIG . NORMAL;
+                
+        } elsif ( $rand >= 12 ) {
+                
+            $self->globalCookie("animal_launched", "mouse");
+                
+            return BROWN . $self->MOUSE . NORMAL;
                 
         } else {
             
