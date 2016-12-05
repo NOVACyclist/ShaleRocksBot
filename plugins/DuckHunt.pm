@@ -28,7 +28,7 @@ use Data::Dumper;
 use constant DUCK  => '(o)<  ・゜゜・。。・゜゜HONK';
 use constant PIG   => '~~(_ _)^: OINK';
 use constant SEAL  => '(ᵔᴥᵔ) BARK';
-use constant MOUSE => '<:3)~ SQUEAK';
+use constant MOUSE => '<:3)~ SQEEK';
 #use constant BEAR  => "('')-.-('') GRUNT";
 #use constant FOX   => "< '!' > Hatee-hatee-hatee-ho!";
 #use constant SHARK => '____/\_______\o/___ AHHHH SHARK'; #reverse score
