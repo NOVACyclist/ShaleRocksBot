@@ -118,15 +118,52 @@ sub getOutput {
 
     if ($cmd eq 'seen'){
         return $self->help($cmd) if ($options eq '');
-        my $c = $self->getCollection(__PACKAGE__, $options);
+        my $c = $self->getCollection(__PACKAGE__, $nick);
         my @records = $c->matchRecords({val1=>$channel});
 
-        if (@records){
+        if ( ( @records ) && ( $records[0]->{val3} ne 'No' ) ) { #using val3 for privacy filter.
             my $date = $records[0]->{sys_update_date} || $records[0]->{sys_creation_date};
             return "I last saw $options in $channel on $date saying \"$records[0]->{val2}\".";
 
         }else{
             return "I haven't seen $options around.";
+        }
+    }
+
+    if ($cmd eq 'hidefromseen'){
+        my $c = $self->getCollection(__PACKAGE__, $nick);
+        my @records = $c->matchRecords({val1=>$channel});
+
+        if ( @records ) {
+
+            if ( $records[0]->{val3} eq 'No' ) { #using val3 for privacy filter.
+                #my $date = $records[0]->{sys_update_date} || $records[0]->{sys_creation_date};
+                return "$nick is already hidden from ;seen.";
+            }else{
+                $c->updateRecord($records[0]->{row_id}, {val3=>"No"});
+                return "$nick will no longer be recognized by ;seen.";
+            } # end else
+        } else {
+            return "oops....";
+        }
+
+    }
+
+    if ($cmd eq 'unhidefromseen'){
+        my $c = $self->getCollection(__PACKAGE__, $nick);
+        my @records = $c->matchRecords({val1=>$channel});
+
+        if ( @records ) {
+
+            if ( $records[0]->{val3} eq 'No' ) { #using val3 for privacy filter.
+                #my $date = $records[0]->{sys_update_date} || $records[0]->{sys_creation_date};
+                $c->updateRecord($records[0]->{row_id}, {val3=>"Yes"});
+                return "$nick will be hidden from ;seen.";
+            }else{
+                return "$nick is already recognized by ;seen.";
+            }
+        } else {
+            return "oops....";
         }
     }
 
@@ -291,7 +328,7 @@ sub settings{
 sub listeners{
     my $self = shift;
     
-    my @commands = [qw(seen seendb tell joins)];
+    my @commands = [qw(seen seendb tell joins hidefromseen unhidefromseen)];
 
     my @irc_events = [qw (irc_join) ];
 
@@ -309,9 +346,10 @@ sub listeners{
 sub addHelp{
     my $self = shift;
     $self->addHelpItem("[plugin_description]", "Keeps track of when a nick was last seen in this channel. ");
-    $self->addHelpItem("[seen]", "Usage: seen <nick> [-channel=<#channel>].  Find out when a nick was last seen in this channel.");
-    $self->addHelpItem("[seendb]", "Some stats about who's been seen.  Usage: seendb.  Available flags: -listusers,  -cleardatabase -publish");
-    $self->addHelpItem("[seendb][-publish]", "publish the list to a temporary html page. Only applicable when used with -listusers.");
+    $self->addHelpItem("[seen]", "Usage: seen <nick> [-channel=<#channel>].  Find out when a nick was last seen in this channel. Use ;unhidefromseen or ;hidefromseen to opt in or out respectively.");
+    #hiding who database
+    #$self->addHelpItem("[seendb]", "Some stats about who's been seen.  Usage: seendb.  Available flags: -listusers,  -cleardatabase -publish");
+    #$self->addHelpItem("[seendb][-publish]", "publish the list to a temporary html page. Only applicable when used with -listusers.");
     $self->addHelpItem("[tell]", "Tell someone something. Use -list to see what I'm waiting to say to whom. Use -delete=<number> to delete. (soon: Use -pm to tell that person via PM, otherwise they'll be told in-channel.");
     $self->addHelpItem("[joins]", "Search the list of irc_join events.  Usage: joins <string>.  Flags: -all (show all)  -dates (include date of first join event) -html (use <br> instead of bullets as delimiters)");
 }
