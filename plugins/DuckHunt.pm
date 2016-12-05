@@ -84,7 +84,7 @@ sub getOutput {
         # schedule next duck
         $self->scheduleDuck();
 
-        return "Way to go killer. You have shot " . abs($ducks) . " animals in $self->{channel}";
+        return "You have shot " . abs($ducks) . " animals in $self->{channel}";
     }
     
     if ( ($cmd eq 'bef') || ($cmd eq 'befriend') ) {
