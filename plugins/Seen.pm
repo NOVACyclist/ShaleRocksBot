@@ -118,7 +118,7 @@ sub getOutput {
 
     if ($cmd eq 'seen'){
         return $self->help($cmd) if ($options eq '');
-        my $c = $self->getCollection(__PACKAGE__, $nick);
+        my $c = $self->getCollection(__PACKAGE__, $options);
         my @records = $c->matchRecords({val1=>$channel});
 
         if ( ( @records ) && ( $records[0]->{val3} ne 'No' ) ) { #using val3 for privacy filter.
