@@ -84,7 +84,18 @@ sub getOutput {
         # schedule next duck
         $self->scheduleDuck();
 
-        return "You have shot " . abs($ducks) . " animals in $self->{channel}";
+       
+        my $return_message = "You have shot " . abs($ducks);
+        
+        if (abs($ducks) == 1 ) {
+            $return_message .= " animal in $self->{channel}";
+        } else {
+            $return_message .= " animals in $self->{channel}";
+        }
+        
+        return $return_message;
+        
+        
     }
     
     if ( ($cmd eq 'bef') || ($cmd eq 'befriend') ) {
@@ -111,7 +122,15 @@ sub getOutput {
         # schedule next duck
         $self->scheduleDuck();
         
-        return "Nice work, you saved a " . $self->globalCookie("animal_launched") . ". You have saved $ducks animals in $self->{channel}";
+        my $return_message = "Nice work, you saved a " . $self->globalCookie("animal_launched") . ".";
+        
+        if ($ducks == 1 ) {
+            $return_message .= " You have saved $ducks animal in $self->{channel}";
+        } else {
+            $return_message .= " You have saved $ducks animals in $self->{channel}";
+        }
+        
+        return $return_message;
             
             
     }
