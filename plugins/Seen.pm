@@ -117,17 +117,70 @@ sub getOutput {
 
 
     if ($cmd eq 'seen'){
-        return $self->help($cmd) if ($options eq '');
+        return $self->help($cmd) if (
+                                       ($options eq '')              #No nick passed to lookup
+                                       &&                            #And NOT trying to hide/unhide
+                                       !(
+                                          ($self->hasFlag('hide'))
+                                          ||
+                                          ($self->hasFlag('unhide'))
+                                        )
+                                    );
+        
+
+        if ($self->hasFlag('hide')){
+
+            my $c = $self->getCollection(__PACKAGE__, $nick);
+            my $hchannel = $self->hasFlagValue("channel") || $self->{channel};
+            my @records = $c->matchRecords({val1=>$hchannel});
+
+            if ( @records ) {
+                if ( $records[0]->{val3} eq 'Hidden' ) { #using val3 for privacy filter.
+                    #my $date = $records[0]->{sys_update_date} || $records[0]->{sys_creation_date};
+                    return "$nick is already hidden from $self->{BotCommandPrefix}seen in $hchannel.";
+                }else{
+                    $c->updateRecord($records[0]->{row_id}, {val3=>'Hidden'});
+                    return "$nick will no longer be recognized by $self->{BotCommandPrefix}seen in $hchannel.";
+                } # end else
+            } else {
+                return "Either you've not been seen in $hchannel or you need to provide a valid [-channel=<#channel>] to hide from.";
+            }
+
+        }
+
+        if ($self->hasFlag('unhide')){
+            my $c = $self->getCollection(__PACKAGE__, $nick);
+            my $hchannel = $self->hasFlagValue("channel") || $self->{channel};
+            my @records = $c->matchRecords({val1=>$hchannel});
+
+            if ( @records ) {
+                if ( $records[0]->{val3} eq 'Hidden' ) { #using val3 for privacy filter.
+                    #my $date = $records[0]->{sys_update_date} || $records[0]->{sys_creation_date};
+                    $c->updateRecord($records[0]->{row_id}, {val3=>'NotHidden'});
+                    return "$nick will no longer be hidden from $self->{BotCommandPrefix}seen in $hchannel.";
+                }else{
+                    return "$nick is already recognized by $self->{BotCommandPrefix}seen in $hchannel";
+                }
+            } else {
+                return "Either you've not been seen in $hchannel or you need to provide a valid [-channel=<#channel>] to unhide from.";
+            }
+        }
+        
+        ###
+        ###Primary function
+        ###
+
         my $c = $self->getCollection(__PACKAGE__, $options);
         my @records = $c->matchRecords({val1=>$channel});
 
-        if (@records){
+        if ( ( @records ) && ( $records[0]->{val3} ne 'Hidden' ) ) { #using val3 for privacy filter.
             my $date = $records[0]->{sys_update_date} || $records[0]->{sys_creation_date};
             return "I last saw $options in $channel on $date saying \"$records[0]->{val2}\".";
 
         }else{
             return "I haven't seen $options around.";
         }
+
     }
 
     ##
@@ -309,9 +362,10 @@ sub listeners{
 sub addHelp{
     my $self = shift;
     $self->addHelpItem("[plugin_description]", "Keeps track of when a nick was last seen in this channel. ");
-    $self->addHelpItem("[seen]", "Usage: seen <nick> [-channel=<#channel>].  Find out when a nick was last seen in this channel.");
-    $self->addHelpItem("[seendb]", "Some stats about who's been seen.  Usage: seendb.  Available flags: -listusers,  -cleardatabase -publish");
-    $self->addHelpItem("[seendb][-publish]", "publish the list to a temporary html page. Only applicable when used with -listusers.");
+    $self->addHelpItem("[seen]", "Usage: seen <nick> [-channel=<#channel>].  Find out when a nick was last seen in this channel. Use $self->{BotCommandPrefix}seen -hide [-channel=<#channel>] or $self->{BotCommandPrefix}seen -unhide [-channel=<#channel>] to opt in or out respectively.");
+    #hiding who database
+    #$self->addHelpItem("[seendb]", "Some stats about who's been seen.  Usage: seendb.  Available flags: -listusers,  -cleardatabase -publish");
+    #$self->addHelpItem("[seendb][-publish]", "publish the list to a temporary html page. Only applicable when used with -listusers.");
     $self->addHelpItem("[tell]", "Tell someone something. Use -list to see what I'm waiting to say to whom. Use -delete=<number> to delete. (soon: Use -pm to tell that person via PM, otherwise they'll be told in-channel.");
     $self->addHelpItem("[joins]", "Search the list of irc_join events.  Usage: joins <string>.  Flags: -all (show all)  -dates (include date of first join event) -html (use <br> instead of bullets as delimiters)");
 }
