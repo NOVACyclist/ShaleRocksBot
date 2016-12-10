@@ -247,7 +247,7 @@ sub getOutput {
             return "You must specify a daily cost.  Example:  -cost = 15.99.  To clear the cost, use -cost = none";
         }
 
-        $badge_cost =~ s/(\$|£|￡|€|¥|₫|฿|₩|R|S|CHF|kr)//; #remove the unit if there is one and save it.
+        $badge_cost =~ s/(\$|£|￡|€|¥|₫|฿|₩|R|S|؋|CHF|kr|AFN|C\$)//; #remove the unit if there is one and save it.
 
         my $unit = $1;
 
