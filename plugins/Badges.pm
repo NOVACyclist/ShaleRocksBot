@@ -42,9 +42,10 @@ sub getOutput {
         $output = "Your badges: ";
 
         foreach my $badge (@records){
-            my $badge_name = $badge->{'val1'};
-            my $badge_date = $badge->{'val2'};
+            my $badge_name   = $badge->{'val1'};
+            my $badge_date   = $badge->{'val2'};
             my $badge_dollar = $badge->{'val3'};
+            my $badge_unit   = $badge->{'val4'};
 
             if ($self->hasTime($badge_date)){
                 $output .= $self->timeSince($badge_date). " with $badge_name";
@@ -52,7 +53,7 @@ sub getOutput {
                 if ($badge_dollar){
                     my $saved = $badge_dollar * $self->daysSince($badge_date);
                     $saved = commify($saved);
-                    $output .= ' ($'.$saved. ' saved)';
+                    $output .= ' ('.$badge_unit.$saved. ' saved)';
                 }
                 $output .=".  ";
 
@@ -62,7 +63,7 @@ sub getOutput {
                 if ($badge_dollar){
                     my $saved = $badge_dollar * $self->daysSince($badge_date);
                     $saved = commify($saved);
-                    $output.= ' ($'.$saved. ' saved)';
+                    $output.= ' ('.$badge_unit.$saved. ' saved)';
                 }
 
                 $output .=".  ";
@@ -194,9 +195,10 @@ sub getOutput {
         my $ret = $nick."'s badges: ";
 
         foreach my $badge (@records){
-            my $badge_name = $badge->{'val1'};
-            my $badge_date = $badge->{'val2'};
+            my $badge_name   = $badge->{'val1'};
+            my $badge_date   = $badge->{'val2'};
             my $badge_dollar = $badge->{'val3'};
+            my $badge_unit   = $badge->{'val4'};
 
             if ($self->hasTime($badge_date)){
                 $ret .= $self->timeSince($badge_date). " with $badge_name";
@@ -204,7 +206,7 @@ sub getOutput {
                 if ($badge_dollar){
                     my $saved = $badge_dollar * $self->daysSince($badge_date);
                     $saved = commify($saved);
-                    $ret .= ' ($'.$saved. ' saved)';
+                    $ret .= ' ('.$badge_unit.$saved. ' saved)';
                 }
                 $ret .= ". ";
 
@@ -214,7 +216,7 @@ sub getOutput {
                 if ($badge_dollar){
                     my $saved = $badge_dollar * $self->daysSince($badge_date);
                     $saved = commify($saved);
-                    $ret .= ' ($'.$saved. ' saved)';
+                    $ret .= ' ('.$badge_unit.$saved. ' saved)';
                 }
                 $ret .= ". ";
             }
@@ -245,7 +247,10 @@ sub getOutput {
             return "You must specify a daily cost.  Example:  -cost = 15.99.  To clear the cost, use -cost = none";
         }
 
-        $badge_cost =~ s/\$//;
+        $badge_cost =~ s/(\$|£|￡|€|¥|₫|฿|₩|R|S|CHF|kr)//; #remove the unit if there is one and save it.
+
+        my $unit = $1;
+
         if ($badge_cost eq "none"){
             $badge_cost = 0;
         }
@@ -253,9 +258,9 @@ sub getOutput {
         my @records = $c->matchRecords({val1=>$badge_name});
 
         if (@records == 1){
-            if ($c->updateRecord($records[0]->{'row_id'}, {val3 => $badge_cost} )){
-                return "Badge $badge_name updated.";
-
+            if ($c->updateRecord($records[0]->{'row_id'}, {val3 => $badge_cost, val4 => $unit } )){
+                return "Badge $badge_name updated. $unit$badge_cost / day";
+                
             }else{
                 return "Whoops.  Something went wrong. (#3pr)";
             }
@@ -384,8 +389,9 @@ sub getOutput {
 
             if ($badge->{'val1'} eq $badge_name){
 
-                my $badge_date = $badge->{'val2'};
+                my $badge_date   = $badge->{'val2'};
                 my $badge_dollar = $badge->{'val3'};
+                my $badge_unit   = $badge->{'val4'};
 
                 if ($self->hasTime($badge_date)){
                     $ret .= $self->timeSince($badge_date). " with $badge_name";
@@ -393,7 +399,7 @@ sub getOutput {
                     if ($badge_dollar){
                         my $saved = $badge_dollar * $self->daysSince($badge_date);
                         $saved = commify($saved);
-                        $ret .= ' ($'.$saved. ' saved)';
+                        $ret .= ' ('.$badge_unit.$saved. ' saved)';
                     }
 
                     $ret .= ".  ";
@@ -404,7 +410,7 @@ sub getOutput {
                     if ($badge_dollar){
                         my $saved = $badge_dollar * $self->daysSince($badge_date);
                         $saved = commify($saved);
-                        $ret .= ' ($'.$saved. ' saved)';
+                        $ret .= ' ('.$badge_unit.$saved. ' saved)';
                     }
 
                     $ret .= ".  ";
@@ -552,7 +558,7 @@ sub addHelp{
    $self->addHelpItem("[badge][-add]", "Create a badge.  Usage: $self->{BotCommandPrefix}badge -add -name=\"Badge Name\" -date=\"some date\"");
    $self->addHelpItem("[badge][-update]", "Change the date on a badge.  Usage: $self->{BotCommandPrefix}badge -update -name=\"Badge Name\" -date=\"some date\"");
    $self->addHelpItem("[badge][-delete]", "Usage: $self->{BotCommandPrefix}badge -delete -name=\"Badge Name\"");
-   $self->addHelpItem("[badge][-cost]", "Set a daily cost for a badge. Example: $self->{BotCommandPrefix}badge -cost = 5.25 -name=\"Badge Name\". To clear a cost, use -cost = none");
+   $self->addHelpItem("[badge][-cost]", "Set a daily cost for a badge. Example: $self->{BotCommandPrefix}badge -cost =(\$,\£, etc.)5.25 -name=\"Badge Name\". To clear a cost, use -cost = none");
    $self->addHelpItem("[badge][-all]", "See system wide badges.  Usage: $self->{BotCommandPrefix}badge -all.  To see all badges of a particular type, use $self->{BotCommandPrefix}badge -all -name=\"Badge Name\"");
    $self->addHelpItem("[badge][-nick]", "See another users badges.  Usage: $self->{BotCommandPrefix}badge -nick = someguy");
    $self->addHelpItem("[badge][-name]", "See a particular badge.  Usage: $self->{BotCommandPrefix}badge -name = \"Badge Name\"");
