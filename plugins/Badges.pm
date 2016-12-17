@@ -676,6 +676,7 @@ sub addHelp {
    );
    $self->addHelpItem( "[badge][-nick]", "See another users badges.  Usage: $self->{BotCommandPrefix}badge -nick = someguy" );
    $self->addHelpItem( "[badge][-name]", "See a particular badge.  Usage: $self->{BotCommandPrefix}badge -name = \"Badge Name\"" );
+
 }
 1;
 __END__
