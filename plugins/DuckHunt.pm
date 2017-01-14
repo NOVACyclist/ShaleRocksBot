@@ -39,7 +39,7 @@ my $testing;    #launch animals every 8 seconds
 
 sub plugin_init {
    my $self = shift;
-   $self->{testing} = 1;
+   $self->{testing} = 0;
    $self->useChannelCookies();
    return $self;
 }
