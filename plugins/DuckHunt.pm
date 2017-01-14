@@ -39,7 +39,7 @@ my $testing;    #launch animals every 8 seconds
 
 sub plugin_init {
    my $self = shift;
-   $self->{testing} = 0;
+   $self->{testing} = 1;
    $self->useChannelCookies();
    return $self;
 }
@@ -86,10 +86,10 @@ sub getOutput {
       my $return_message = "You shot a " . $self->globalCookie("animal_launched") . ".";
 
       $return_message .=
-          $ducks == 1 ? " Still, you have saved $ducks more animal than you have shot in $self->{channel}"
-        : $ducks > 0  ? " Still, you have saved $ducks more animals than you have shot in $self->{channel}"
-        : $ducks < 0  ? " You have shot " . abs($ducks) . " animals in $self->{channel}"
-        :               " You have shot as many animals as you have saved in $self->{channel}";
+           $ducks == 1 ? " Still, you have saved $ducks more animal than you have shot in $self->{channel}"
+         : $ducks > 0  ? " Still, you have saved $ducks more animals than you have shot in $self->{channel}"
+         : $ducks < 0  ? " You have shot " . abs($ducks) . " animals in $self->{channel}"
+         :               " You have shot as many animals as you have saved in $self->{channel}";
 
       return $return_message;
 
@@ -123,10 +123,10 @@ sub getOutput {
       my $return_message = "Nice work, you saved a " . $self->globalCookie("animal_launched") . ".";
 
       $return_message .=
-          $ducks == 1 ? " You have saved $ducks animal in $self->{channel}"
-        : $ducks > 0  ? " You have saved $ducks animals in $self->{channel}"
-        : $ducks < 0  ? " Still, you have shot " . abs($ducks) . " more animals than you have saved in $self->{channel}"
-        :               " You have shot as many animals as you have saved in $self->{channel}";
+           $ducks == 1 ? " You have saved $ducks animal in $self->{channel}"
+         : $ducks > 0  ? " You have saved $ducks animals in $self->{channel}"
+         : $ducks < 0  ? " Still, you have shot " . abs($ducks) . " more animals than you have saved in $self->{channel}"
+         :               " You have shot as many animals as you have saved in $self->{channel}";
 
       return $return_message;
 
@@ -215,9 +215,30 @@ sub getOutput {
    # scores
    #
 
-   if ( $cmd eq 'scores' ) {
+   if ( $cmd eq 'friends' ) {
       my @cookies = $self->allCookies();
       @cookies = sort { $b->{value} <=> $a->{value} } @cookies;
+
+      #print Dumper (@cookies);
+
+      foreach my $cookie (@cookies) {
+         next if ( $cookie->{owner} eq ':package' );
+         $self->addToList( "$cookie->{owner}: $cookie->{value}", $self->BULLET );
+      }
+
+      my $list = $self->getList();
+      if ($list) {
+         $output = BOLD . "Hunt Scores for $self->{channel}: " . NORMAL . $list;
+      }
+      else {
+         $output = 'No one has shot any ducks in ' . $self->{channel} . ' yet.';
+      }
+      return $output;
+   }
+
+   if ( $cmd eq 'monsters' ) {
+      my @cookies = $self->allCookies();
+      @cookies = sort { $a->{value} <=> $b->{value} } @cookies;
 
       #print Dumper (@cookies);
 
@@ -274,7 +295,7 @@ sub scheduleDuck {
 sub listeners {
    my $self = shift;
 
-   my @commands = [qw(bang befriend clear_scores _launchduck start stop scores)];
+   my @commands = [qw(bang befriend clear_scores _launchduck start stop friends monsters)];
 
    my $default_permissions = [
       { command => "_launchduck",  require_group => UA_INTERNAL },
@@ -305,7 +326,7 @@ sub settings {
          name    => 'duck_window',
          default => 60 * 15,
          desc =>
-           'The window of time (in seconds) in which the next duck might appear.  We\'ll pick a random time in this window, following the duck_delay period.'
+            'The window of time (in seconds) in which the next duck might appear.  We\'ll pick a random time in this window, following the duck_delay period.'
       }
    );
 }
