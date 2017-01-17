@@ -69,7 +69,7 @@ sub getOutput {
       if ( !$self->globalCookie("duck_launched") ) {
          $self->returnType("irc_yield");
 
-         #$self->yieldCommand('kick');
+         #$self->yieldCommand('kick');  #No kicking here.
          $self->yieldArgs( [ $self->{channel}, $nick, "There was no goose!" ] );
          return "There was no " . $self->globalCookie("animal_launched") . ", you fool!";
       }
@@ -223,6 +223,7 @@ sub getOutput {
 
       foreach my $cookie (@cookies) {
          next if ( $cookie->{owner} eq ':package' );
+         next if ( $cookie->{value} < 0 );
          $self->addToList( "$cookie->{owner}: $cookie->{value}", $self->BULLET );
       }
 
@@ -244,6 +245,7 @@ sub getOutput {
 
       foreach my $cookie (@cookies) {
          next if ( $cookie->{owner} eq ':package' );
+         next if ( $cookie->{value} > 0 );
          $self->addToList( "$cookie->{owner}: $cookie->{value}", $self->BULLET );
       }
 
@@ -252,10 +254,45 @@ sub getOutput {
          $output = BOLD . "Hunt Scores for $self->{channel}: " . NORMAL . $list;
       }
       else {
-         $output = 'No one has shot any ducks in ' . $self->{channel} . ' yet.';
+         $output = 'No one has saved or shot any animals in ' . $self->{channel} . ' yet.';
       }
       return $output;
    }
+
+   if ( $cmd eq 'scoretotal' ) {
+      my @cookies = $self->allCookies();
+      my $saves   = 0;
+      my $kills   = 0;
+
+      foreach my $cookie (@cookies) {
+         next if ( $cookie->{owner} eq ':package' );
+         if ( $cookie->{value} > 0 ) {
+            $saves += $cookie->{value};
+         }
+         else {
+            $kills += abs( $cookie->{value} );
+         }
+      }
+
+      if ( $saves + $kills > 0 ) {
+         $output =
+              BOLD
+            . "Zoo scores: A total of "
+            . ( $saves + $kills )
+            . " animals have appeared in "
+            . $self->{channel}
+            . ". So far members of the room have saved "
+            . $saves
+            . " animals and have shot "
+            . $kills . "."
+            . NORMAL;
+      }
+      else {
+         $output = 'No one has saved or shot any animals in ' . $self->{channel} . '... yet.';
+      }
+      return $output;
+
+   }    # End Score Total
 
    #
    #   clear_scores
@@ -295,7 +332,7 @@ sub scheduleDuck {
 sub listeners {
    my $self = shift;
 
-   my @commands = [qw(bang befriend clear_scores _launchduck start stop friends monsters)];
+   my @commands = [qw(bang befriend clear_scores _launchduck start stop friends monsters scoretotal)];
 
    my $default_permissions = [
       { command => "_launchduck",  require_group => UA_INTERNAL },
