@@ -36,11 +36,13 @@ sub getOutput {
    ##  No Arguments - print Badges
    ##
 
-   if ( ( $self->numFlags() == 0 && $options eq '' )
-      || $self->hasFlag("list") )
+   if (
+      ( $self->numFlags() == 0 && $options eq '' )    # If no other flags exist and there are no -options passed
+      || $self->hasFlag("list")                       # Or if the user specifies "list"
+      )
    {
 
-      my @records = $c->getAllRecords();
+      my @records = $c->getAllRecords();              # Get all Badges for $nick
 
       $output = "Your badges: ";
 
@@ -90,7 +92,7 @@ sub getOutput {
             $output .= ".  ";
          }
 
-      }
+      }    # End: foreach my $badge (@records)
 
       if (@records) {
          return ($output);
