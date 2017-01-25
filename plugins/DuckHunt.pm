@@ -71,8 +71,15 @@ sub getOutput {
          #$self->returnType("irc_yield");
          #$self->yieldCommand('kick');  #No kicking here.
          #$self->yieldArgs( [ $self->{channel}, $nick, "There was no goose!" ] );
-         return "There was no " . $self->globalCookie("animal_launched") . ", you fool!";
+         my $random = int( rand(20) );
+
+         return
+              $random == 10 ? "http://i.imgur.com/CtMAsgM.gif"
+            : $random == 11 ? "There was no " . $self->globalCookie("animal_launched") . "?  Inconceivable!"
+            :                 "There was no " . $self->globalCookie("animal_launched") . ", you fool!";
+
       }
+
       $self->globalCookie( "duck_launched", 0 );
 
       my $return_message;
