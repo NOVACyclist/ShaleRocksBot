@@ -124,7 +124,15 @@ sub getOutput {
          #$self->returnType("irc_yield");
          #$self->yieldCommand('kick');
          #$self->yieldArgs( [ $self->{channel}, $nick, "There was no goose!" ] );
-         return "There was no " . $self->globalCookie("animal_launched") . "!";
+
+         my $random = int( rand(20) );
+
+         return $random == 11
+            ? "There was no " . $self->globalCookie("animal_launched") . ", but wuv, tru wuv, will fowow you foweva!"
+            : "There was no " . $self->globalCookie("animal_launched") . "!";
+
+         return;
+
       }
       $self->globalCookie( "duck_launched", 0 );
 
@@ -299,6 +307,7 @@ sub getOutput {
       my @cookies = $self->allCookies();
       my $saves   = 0;
       my $kills   = 0;
+      my $total   = 0;
 
       foreach my $cookie (@cookies) {
          next if ( $cookie->{owner} eq ':package' );
@@ -310,17 +319,21 @@ sub getOutput {
          }
       }
 
-      if ( $saves + $kills > 0 ) {
+      $total = $saves + $kills;
+
+      if ( $total > 0 ) {
          $output =
               BOLD
             . "Zoo scores: A total of "
-            . ( $saves + $kills )
+            . $total
             . " animals have appeared in "
             . $self->{channel}
             . ". So far members of the room have saved "
-            . $saves
+            . $saves . "("
+            . sprintf( "%.2f%", ( $saves / $total ) * 100 ) . ")"
             . " animals and have shot "
-            . $kills . "."
+            . $kills . "("
+            . sprintf( "%.2f%", ( $kills / $total ) * 100 ) . ")."
             . NORMAL;
       }
       else {
