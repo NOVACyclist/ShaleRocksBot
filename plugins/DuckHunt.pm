@@ -30,10 +30,10 @@ use constant DUCK  => BROWN . '(o)<  ・゜゜・。。・゜゜HONK' . NORMAL;
 use constant PIG   => BROWN . '~~(_ _)^' . PINK . ':' . BROWN . ' OINK' . NORMAL;
 use constant SEAL  => BOLD . '(ᵔᴥᵔ) BARK' . NORMAL;
 use constant MOUSE => BROWN . '<:3)~ SQEEK' . NORMAL;
+use constant SHARK => BOLD . '____/\_______\o/___ AHHHH! SHARK' . NORMAL;           #reverse score
 
 #use constant BEAR  => "('')-.-('') GRUNT";
 #use constant FOX   => "< '!' > Hatee-hatee-hatee-ho!";
-#use constant SHARK => '____/\_______\o/___ AHHHH SHARK'; #reverse score
 
 my $testing;    #launch animals every 8 seconds
 
@@ -67,29 +67,45 @@ sub getOutput {
       }
 
       if ( !$self->globalCookie("duck_launched") ) {
-         $self->returnType("irc_yield");
 
-         #$self->yieldCommand('kick');
-         $self->yieldArgs( [ $self->{channel}, $nick, "There was no goose!" ] );
-         return "There was no " . $self->globalCookie("animal_launched") . ", you fool!";
+         #$self->returnType("irc_yield");
+         #$self->yieldCommand('kick');  #No kicking here.
+         #$self->yieldArgs( [ $self->{channel}, $nick, "There was no goose!" ] );
+         my $random = int( rand(20) );
+
+         return
+              $random == 10 ? "http://i.imgur.com/CtMAsgM.gif"
+            : $random == 11 ? "There was no " . $self->globalCookie("animal_launched") . "?  Inconceivable!"
+            :                 "There was no " . $self->globalCookie("animal_launched") . ", you fool!";
+
       }
+
       $self->globalCookie( "duck_launched", 0 );
+
+      my $return_message;
 
       # shoot this duck
       my $ducks = $self->cookie("num_ducks");
-      $ducks--;
+
+      if ( $self->globalCookie("animal_launched") eq "shark" ) {
+         $ducks++;
+         $return_message .= "You shot a shark and saved the swimmer. Nice save, you get a point.";
+      }
+      else {
+         $ducks--;
+         $return_message .= "You shot a " . $self->globalCookie("animal_launched") . ".";
+      }
+
       $self->cookie( "num_ducks", $ducks );
-
-      # schedule next duck
-      $self->scheduleDuck();
-
-      my $return_message = "You shot a " . $self->globalCookie("animal_launched") . ".";
 
       $return_message .=
            $ducks == 1 ? " Still, you have saved $ducks more animal than you have shot in $self->{channel}"
          : $ducks > 0  ? " Still, you have saved $ducks more animals than you have shot in $self->{channel}"
          : $ducks < 0  ? " You have shot " . abs($ducks) . " animals in $self->{channel}"
          :               " You have shot as many animals as you have saved in $self->{channel}";
+
+      # schedule next duck
+      $self->scheduleDuck();
 
       return $return_message;
 
@@ -104,29 +120,50 @@ sub getOutput {
       }
 
       if ( !$self->globalCookie("duck_launched") ) {
-         $self->returnType("irc_yield");
 
+         #$self->returnType("irc_yield");
          #$self->yieldCommand('kick');
-         $self->yieldArgs( [ $self->{channel}, $nick, "There was no goose!" ] );
-         return "There was no " . $self->globalCookie("animal_launched") . "!";
+         #$self->yieldArgs( [ $self->{channel}, $nick, "There was no goose!" ] );
+
+         my $random = int( rand(20) );
+
+         return $random == 11
+            ? "There was no " . $self->globalCookie("animal_launched") . ", but wuv, tru wuv, will fowow you foweva!"
+            : "There was no " . $self->globalCookie("animal_launched") . "!";
+
+         return;
+
       }
       $self->globalCookie( "duck_launched", 0 );
 
+      my $return_message;
+
       # friend this duck
       my $ducks = $self->cookie("num_ducks");
-      $ducks++;
+
+      if ( $self->globalCookie("animal_launched") eq "shark" ) {
+         $ducks--;
+         $return_message .= "You saved a shark, but the swimmer didn't make it. Lose a point.";
+      }
+      else {
+         $ducks++;
+         $return_message .= "Nice work, you saved a " . $self->globalCookie("animal_launched") . ".";
+      }
+
       $self->cookie( "num_ducks", $ducks );
-
-      # schedule next duck
-      $self->scheduleDuck();
-
-      my $return_message = "Nice work, you saved a " . $self->globalCookie("animal_launched") . ".";
 
       $return_message .=
            $ducks == 1 ? " You have saved $ducks animal in $self->{channel}"
          : $ducks > 0  ? " You have saved $ducks animals in $self->{channel}"
          : $ducks < 0  ? " Still, you have shot " . abs($ducks) . " more animals than you have saved in $self->{channel}"
          :               " You have shot as many animals as you have saved in $self->{channel}";
+
+      if ( $nick eq "Talie" ) {    #Special Request
+         $return_message =~ s/animals/mice/gi;
+      }
+
+      # schedule next duck
+      $self->scheduleDuck();
 
       return $return_message;
 
@@ -178,23 +215,30 @@ sub getOutput {
       $self->suppressNick("true");
       $self->globalCookie( "duck_launched", 1 );
       my $rand = int( rand(20) );
-      print "Random animal number $rand\n";
+      print "Random anxmal number $rand\n";
 
-      if ( $rand >= 18 ) {
+      if ( $rand >= 19 ) {
+
+         $self->globalCookie( "animal_launched", "shark" );
+
+         return $self->SHARK;
+
+      }
+      elsif ( $rand >= 17 ) {
 
          $self->globalCookie( "animal_launched", "seal" );
 
          return $self->SEAL;
 
       }
-      elsif ( $rand >= 15 ) {
+      elsif ( $rand >= 13 ) {
 
          $self->globalCookie( "animal_launched", "pig" );
 
          return $self->PIG;
 
       }
-      elsif ( $rand >= 12 ) {
+      elsif ( $rand >= 10 ) {
 
          $self->globalCookie( "animal_launched", "mouse" );
 
@@ -223,6 +267,8 @@ sub getOutput {
 
       foreach my $cookie (@cookies) {
          next if ( $cookie->{owner} eq ':package' );
+         next if ( $cookie->{value} < 0 );
+         next if ( $cookie->{owner} eq 'wolfy0000' );
          $self->addToList( "$cookie->{owner}: $cookie->{value}", $self->BULLET );
       }
 
@@ -244,6 +290,7 @@ sub getOutput {
 
       foreach my $cookie (@cookies) {
          next if ( $cookie->{owner} eq ':package' );
+         next if ( $cookie->{value} > 0 );
          $self->addToList( "$cookie->{owner}: $cookie->{value}", $self->BULLET );
       }
 
@@ -252,10 +299,50 @@ sub getOutput {
          $output = BOLD . "Hunt Scores for $self->{channel}: " . NORMAL . $list;
       }
       else {
-         $output = 'No one has shot any ducks in ' . $self->{channel} . ' yet.';
+         $output = 'No one has saved or shot any animals in ' . $self->{channel} . ' yet.';
       }
       return $output;
    }
+
+   if ( $cmd eq 'scoretotal' ) {
+      my @cookies = $self->allCookies();
+      my $saves   = 0;
+      my $kills   = 0;
+      my $total   = 0;
+
+      foreach my $cookie (@cookies) {
+         next if ( $cookie->{owner} eq ':package' );
+         if ( $cookie->{value} > 0 ) {
+            $saves += $cookie->{value};
+         }
+         else {
+            $kills += abs( $cookie->{value} );
+         }
+      }
+
+      $total = $saves + $kills;
+
+      if ( $total > 0 ) {
+         $output =
+              BOLD
+            . "Zoo scores: A total of "
+            . $total
+            . " animals have appeared in "
+            . $self->{channel}
+            . ". So far members of the room have saved "
+            . $saves . "("
+            . sprintf( "%.2f%", ( $saves / $total ) * 100 ) . ")"
+            . " animals and have shot "
+            . $kills . "("
+            . sprintf( "%.2f%", ( $kills / $total ) * 100 ) . ")."
+            . NORMAL;
+      }
+      else {
+         $output = 'No one has saved or shot any animals in ' . $self->{channel} . '... yet.';
+      }
+      return $output;
+
+   }    # End Score Total
 
    #
    #   clear_scores
@@ -295,7 +382,7 @@ sub scheduleDuck {
 sub listeners {
    my $self = shift;
 
-   my @commands = [qw(bang befriend clear_scores _launchduck start stop friends monsters)];
+   my @commands = [qw(bang befriend clear_scores _launchduck start stop friends monsters scoretotal)];
 
    my $default_permissions = [
       { command => "_launchduck",  require_group => UA_INTERNAL },
