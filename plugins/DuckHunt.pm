@@ -78,6 +78,8 @@ sub getOutput {
             : $random == 11 ? "There was no " . $self->globalCookie("animal_launched") . "?  Inconceivable!"
             :                 "There was no " . $self->globalCookie("animal_launched") . ", you fool!";
 
+         #https://media.giphy.com/media/Rs2iAnfEImXIs/giphy.gif - double kill
+
       }
 
       $self->globalCookie( "duck_launched", 0 );
@@ -216,6 +218,14 @@ sub getOutput {
       $self->globalCookie( "duck_launched", 1 );
       my $rand = int( rand(20) );
       print "Random anxmal number $rand\n";
+
+      if ( $channel =~ /soberhideout/ ) {
+
+         $self->globalCookie( "animal_launched", "mouse" );
+
+         return $self->MOUSE;
+
+      }
 
       if ( $rand >= 19 ) {
 
@@ -387,7 +397,7 @@ sub listeners {
 
    my $default_permissions = [
       { command => "_launchduck",  require_group => UA_INTERNAL },
-      { command => "clear_scores", require_group => UA_TRUSTED },
+      { command => "clear_scores", require_group => UA_ADMIN },
       { command => "start",        require_group => UA_TRUSTED },
       { command => "stop",         require_group => UA_TRUSTED },
    ];
