@@ -302,7 +302,7 @@ sub getOutput {
          next if ( $cookie->{owner} eq ':package' );
          next if ( $cookie->{value} > 0 );
          next if ( $cookie->{owner} eq 'wolfy0000' );
-         $self->addToList( "$cookie->{owner}: $cookie->{value}", $self->BULLET );
+         $self->addToList( "$cookie->{owner}: " . abs($cookie->{value}), $self->BULLET );
       }
 
       my $list = $self->getList();
