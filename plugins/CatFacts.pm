@@ -31,7 +31,8 @@ sub getOutput {
     my $page = $self->getPage("https://catfacts-api.appspot.com/api/facts");
     my $json  = JSON->new->allow_nonref;
     my $j = $json->decode($page);
-    return "Cat Fact #".$j->{id}.": ".$j->{factoid};
+    return "Cat Fact: ".$j->{facts}[0];
+
 }
 
 
