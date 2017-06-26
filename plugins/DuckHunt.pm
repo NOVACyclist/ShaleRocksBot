@@ -78,6 +78,8 @@ sub getOutput {
             : $random == 11 ? "There was no " . $self->globalCookie("animal_launched") . "?  Inconceivable!"
             :                 "There was no " . $self->globalCookie("animal_launched") . ", you fool!";
 
+         #https://media.giphy.com/media/Rs2iAnfEImXIs/giphy.gif - double kill
+
       }
 
       $self->globalCookie( "duck_launched", 0 );
@@ -217,6 +219,14 @@ sub getOutput {
       my $rand = int( rand(20) );
       print "Random anxmal number $rand\n";
 
+      if ( $channel =~ /soberhideout/ ) {
+
+         $self->globalCookie( "animal_launched", "mouse" );
+
+         return $self->MOUSE;
+
+      }
+
       if ( $rand >= 19 ) {
 
          $self->globalCookie( "animal_launched", "shark" );
@@ -291,7 +301,8 @@ sub getOutput {
       foreach my $cookie (@cookies) {
          next if ( $cookie->{owner} eq ':package' );
          next if ( $cookie->{value} > 0 );
-         $self->addToList( "$cookie->{owner}: $cookie->{value}", $self->BULLET );
+         next if ( $cookie->{owner} eq 'wolfy0000' );
+         $self->addToList( "$cookie->{owner}: " . abs( $cookie->{value} ), $self->BULLET );
       }
 
       my $list = $self->getList();
@@ -334,8 +345,20 @@ sub getOutput {
             . sprintf( "%.2f%", ( $saves / $total ) * 100 ) . ")"
             . " animals and have shot "
             . $kills . "("
-            . sprintf( "%.2f%", ( $kills / $total ) * 100 ) . ")."
-            . NORMAL;
+            . sprintf( "%.2f%", ( $kills / $total ) * 100 ) . "). ";
+
+         if ( $saves > $kills ) {
+            $output .= "\#teem is ahead by " . ( $saves - $kills ) . "!!!";
+         }
+         elsif ( $kills > $saves ) {
+            $output .= "\#teem is behind by " . ( $kills - $saves ) . ".";
+         }
+         else {
+            $output .= "We are all tied up!";
+         }
+
+         $output .= NORMAL;
+
       }
       else {
          $output = 'No one has saved or shot any animals in ' . $self->{channel} . '... yet.';
@@ -386,7 +409,7 @@ sub listeners {
 
    my $default_permissions = [
       { command => "_launchduck",  require_group => UA_INTERNAL },
-      { command => "clear_scores", require_group => UA_TRUSTED },
+      { command => "clear_scores", require_group => UA_ADMIN },
       { command => "start",        require_group => UA_TRUSTED },
       { command => "stop",         require_group => UA_TRUSTED },
    ];
