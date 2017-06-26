@@ -28,7 +28,7 @@ sub getOutput {
     my $output = "";
     
     $self->suppressNick(1);
-    my $page = $self->getPage("https://catfacts-api.appspot.com/api/facts");
+    my $page = $self->getPage("http://catfacts-api.appspot.com/api/facts");
     my $json  = JSON->new->allow_nonref;
     my $j = $json->decode($page);
     return "Cat Fact: ".$j->{facts}[0];
