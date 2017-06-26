@@ -302,7 +302,7 @@ sub getOutput {
          next if ( $cookie->{owner} eq ':package' );
          next if ( $cookie->{value} > 0 );
          next if ( $cookie->{owner} eq 'wolfy0000' );
-         $self->addToList( "$cookie->{owner}: " . abs($cookie->{value}), $self->BULLET );
+         $self->addToList( "$cookie->{owner}: " . abs( $cookie->{value} ), $self->BULLET );
       }
 
       my $list = $self->getList();
@@ -345,8 +345,20 @@ sub getOutput {
             . sprintf( "%.2f%", ( $saves / $total ) * 100 ) . ")"
             . " animals and have shot "
             . $kills . "("
-            . sprintf( "%.2f%", ( $kills / $total ) * 100 ) . ")."
-            . NORMAL;
+            . sprintf( "%.2f%", ( $kills / $total ) * 100 ) . "). ";
+
+         if ( $saves > $kills ) {
+            $output .= "\#teem is ahead by " . ( $saves - $kills ) . "!!!";
+         }
+         elsif ( $kills > $saves ) {
+            $output .= "\#teem is behind by " . ( $kills - $saves ) . ".";
+         }
+         else {
+            $output .= "We are all tied up!";
+         }
+
+         $output .= NORMAL;
+
       }
       else {
          $output = 'No one has saved or shot any animals in ' . $self->{channel} . '... yet.';
