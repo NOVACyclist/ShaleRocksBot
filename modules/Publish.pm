@@ -50,6 +50,7 @@ use warnings;
 use Data::Dumper;
 use HTTP::Request::Common qw(POST);
 use LWP::UserAgent;
+use Digest::MD5 qw(md5 md5_hex md5_base64);
 
 sub new{
     my ($class, @args) = @_;
@@ -61,17 +62,25 @@ sub publish{
     my $self = shift;
     my $html = shift;
     
-    #my $url = "http://htmlpaste.com/index.php";
-    my $url = "http://pastehtml.com/upload/create?input_type=html&result=address";
-    my $ua      = LWP::UserAgent->new();
-    #my $request = POST( $url, [ 'code' => $html , newcont => "true" ] );
-    my $request = POST( $url, [ 'text' => $html ] );
-    my $content = $ua->request($request)->as_string();
-    print $content;
-    $content=~m#target="_blank">(http:.+?)</a>#;
-    my $link = $1;
-   return $link;
+    my $html_path_secure = '/usr/share/nginx/html/Shale/';
+    
+    my $html_path = '/usr/share/nginx/html/';
+    
+    my $filename = md5_base64(time) . ".html";
+    
+    $filename =~ s/\/|\+|//g;
+
+    $html =~ s/\x{2022}/<br>/g;
+
+    open(FILEHANDLE, ">" , $html_path . $filename) or warn $!;
+    
+    print FILEHANDLE $html;
+    
+    close(FILEHANDLE);
+     
+    return "http://ShaleRocksBot.us.to/" . $filename;
     
 }
 1;
 __END__
+
