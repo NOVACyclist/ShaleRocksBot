@@ -219,7 +219,7 @@ sub getOutput {
       my $rand = int( rand(20) );
       print "Random anxmal number $rand\n";
 
-      if ( $channel =~ /soberhideout/ ) {
+      if ( $channel =~ /out/ ) {
 
          $self->globalCookie( "animal_launched", "mouse" );
 
