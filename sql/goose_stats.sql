@@ -1,0 +1,3 @@
+insert into goose_stats (type, score, players) select 'total', count(*), sum(abs(val3)) from collections where module_name='DuckHunt' and collection_name='::cookies::' and val2='num_ducks' and val4='#stopdrinking';
+insert into goose_stats (type, score, players) select 'killers', count(*), sum(abs(val3)) from collections where module_name='DuckHunt' and collection_name='::cookies::' and val2='num_ducks' and val4='#stopdrinking' and val3<0;
+insert into goose_stats (type, score, players) select 'friends', count(*), sum(abs(val3)) from collections where module_name='DuckHunt' and collection_name='::cookies::' and val2='num_ducks' and val4='#stopdrinking' and val3>0;
