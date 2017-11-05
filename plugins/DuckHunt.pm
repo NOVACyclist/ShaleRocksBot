@@ -426,7 +426,7 @@ sub settings {
    $self->defineSetting(
       {
          name    => 'duck_delay',
-         default => 60 * 5,
+         default => 60 * 10,
          desc    => 'The minimum time (in seconds) until the next duck appears.'
       }
    );
@@ -434,7 +434,7 @@ sub settings {
    $self->defineSetting(
       {
          name    => 'duck_window',
-         default => 60 * 15,
+         default => 60 * 45,
          desc =>
             'The window of time (in seconds) in which the next duck might appear.  We\'ll pick a random time in this window, following the duck_delay period.'
       }
