@@ -336,7 +336,7 @@ sub settings{
 
    $self->defineSetting({
       name=>'log_joins',
-      default=>'no',
+      default=>'yes',
         allowed_values=>[qw(yes no)],
       desc=>'Log irc_join events'
    });
@@ -355,7 +355,7 @@ sub listeners{
 
     my $default_permissions =[ 
         {command=>"seendb", flag=>'cleardatabase', require_group=>UA_ADMIN},
-        {command=>"joins", require_group=>UA_ADMIN}
+        {command=>"joins", require_group=>UA_TRUSTED}
     ];
 
     return {commands=>@commands, permissions=>$default_permissions, irc_events=>@irc_events, preg_matches=>@preg_matches};
