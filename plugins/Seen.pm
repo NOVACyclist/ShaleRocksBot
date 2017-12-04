@@ -31,6 +31,7 @@ sub getOutput {
     my $irc_event = $self->{irc_event} ||'';
     my $mask = $self->{mask};  
     my $channel;
+    my $ignore_channel_re = "stopdrinking";
 
     if (! ($channel = $self->hasFlagValue("channel"))){
         $channel = $self->{channel};
@@ -100,11 +101,13 @@ sub getOutput {
         }
 
         my $list = $self->getList();
-
-        if ($list){
-            return "$desc: $list";
-        }else{
-            return "No $desc.";
+        
+        if ( $channel !~ /$ignore_channel_re/ ) {
+            if ($list){
+                return "$desc: $list";
+            }else{
+                return "No $desc.";
+            }
         }
 
         return;
