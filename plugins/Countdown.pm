@@ -23,6 +23,18 @@ sub getOutput {
 
     my $c = $self->getCollection(__PACKAGE__, 'timers');
 
+
+    if ($cmd eq 'resetmovie'){
+
+        my @records = $c->matchRecords({val1=>'movie'});
+
+        $c->delete($records[0]->{row_id});
+
+        return "The movie has been reset.";
+
+    }
+
+
     if ($self->hasFlag("create")){
         #my ($sec, $min, $hour, $day, $month, $year, $id, $title);
         my $sec = $self->hasFlagValue("sec");
@@ -54,7 +66,7 @@ sub getOutput {
 
         return "Countdown $title ($id) has been created.  Access it using ".$self->{BotCommandPrefix}."countdown $id, or create a handy alias";
     }
-                
+
 
     if ($self->hasFlag("delete")){
         my $id= $self->hasFlagValue("delete") || return "You must specify an ID.";
@@ -131,7 +143,7 @@ sub listeners{
     
     ##  Which commands should this plugin respond to?
     ## Command Listeners - put em here.  eg [qw (cmd1 cmd2 cmd3)]
-    my @commands = [qw(countdown)];
+    my @commands = [qw(countdown resetmovie)];
 
     ## Values: irc_join irc_ping irc_part irc_quit
     ## Note that irc_quit does not send channel information, and that the quit message will be 
@@ -147,6 +159,7 @@ sub listeners{
     my @preg_excludes = [ qw() ];
 
     my $default_permissions =[
+         { command => "resetmovie",        require_group => UA_TRUSTED },
     ];
 
     return { commands=>@commands,
