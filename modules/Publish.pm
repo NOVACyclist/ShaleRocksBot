@@ -72,6 +72,17 @@ sub publish{
 
     $html =~ s/\x{2022}/<br>/g;
 
+    $html =~ s/\:/\:<br>/;
+
+    #if ( $html =~ /Matches\ for/ ) { 
+    #   
+    #    $html =~ s/\s/\<\/td\>\<td\>/g;
+    #    $html =~ s/^(.)/$1\<tr\>\<td\>/g;
+    #    $html =~ s/(.)$/$1\<\/td\>\<\/tr\>/g;
+    #    $html =~ "<table>" . $html . "</table>";
+    #
+    #}
+
     open(FILEHANDLE, ">" , $html_path . $filename) or warn $!;
     
     print FILEHANDLE $html;

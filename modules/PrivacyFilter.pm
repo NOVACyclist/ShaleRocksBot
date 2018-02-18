@@ -19,7 +19,7 @@ package modules::PrivacyFilter;
 
 use strict;         
 use warnings;
-use lib '/home/lunchbox/ShaleRocksBot/trunk';
+use lib '/home/ec2-user/ShaleRocksBot/trunk';
 use base qw (modules::PluginBaseClass);
 use modules::PluginBaseClass;
 use Data::Dumper;
