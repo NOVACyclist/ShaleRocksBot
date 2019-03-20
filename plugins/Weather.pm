@@ -63,8 +63,12 @@ sub getOutput {
         if ($command eq 'weather'){
             $detail = 1;
         }
+        
+        my $url = "https://api.openweathermap.org/data/2.5/weather?q=";
+        
+        $url = "https://api.openweathermap.org/data/2.5/weather?zip=" if ( $options =~ /\d{5}/ );
            
-        my $page = $self->getPage("https://api.openweathermap.org/data/2.5/weather?q=".$options."&appid=".$self->{API_KEY});
+        my $page = $self->getPage($url.$options."&appid=".$self->{API_KEY});
         eval {
             $json_current = $json->decode($page);
         };
