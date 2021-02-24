@@ -1,7 +1,7 @@
 package plugins::Time;
 #---------------------------------------------------------------------------
 #    Copyright (C) 2013  egretsareherons@gmail.com
-#    https://github.com/egretsareherons/RocksBot
+#    https://github.com/NOVACyclist/ShaleRocksBot
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -17,7 +17,7 @@ package plugins::Time;
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #-----------------------------------------------------------------------------
 
-use strict;         
+use strict;
 use warnings;
 use base qw (modules::PluginBaseClass);
 use modules::PluginBaseClass;
@@ -92,7 +92,7 @@ sub getOutput {
             };
 
             $self->scheduleCronJob($args);
-    
+
             return "Job scheduled";
         }
 
@@ -107,7 +107,7 @@ sub getOutput {
                 return "Error deleting cron job #$num. Are you sure it exists?";
             }
         }
-        
+
         return $self->help($cmd);
     }
 
@@ -118,7 +118,7 @@ sub getOutput {
     ##
 
     if ($cmd eq 'in'){
-        
+
         if ($options!~s/^([\.0-9]+) +//){
             return $self->help($cmd);
         }
@@ -130,7 +130,7 @@ sub getOutput {
 
         $unit= $1;
         my $s = $2;
-        
+
         $seconds = $num * $mult->{$unit};
         my $now = int(time());
 
@@ -154,7 +154,7 @@ sub getOutput {
             $sched_options = $options;
             $output = "OK, $nick. Will remind you in $num $unit$s. ($when)";
         }
-    
+
         my $timer_args = {
             timestamp => ($now + $seconds),
             command => $sched_command,
@@ -174,17 +174,17 @@ sub getOutput {
     ##
 
     if ($cmd eq 'at'){
-        
+
         if ($options!~s/^([0-9]+):([0-9]+)//){
             return $self->help($cmd);
         }
         my $sched_hour = $1;
         my $sched_min = $2;
-        
+
         my $now = time();
 
         my ($secs, $mins, $hours, $day, $month, $year, $dow, $dst)= localtime(time);
-        
+
         ## assume today, but if that time has already passed, assume tomorrow
         my $at  = POSIX::mktime (0, $sched_min, $sched_hour, $day, $month, $year);
 
@@ -202,7 +202,7 @@ sub getOutput {
         }else{
             $verify_text = "($diff minutes from now)";
         }
-    
+
         if (my $cmdstr = $self->hasFlagValue("command")){
             ($sched_command, $sched_options) = split / /, $cmdstr, 2;
             $output = "OK, $nick. Will run $sched_command at $sched_hour:$sched_min. $verify_text";
@@ -212,7 +212,7 @@ sub getOutput {
             $sched_options = $options;
             $output = "OK, $nick. Will remind you at $sched_hour:$sched_min. $verify_text";
         }
-    
+
         my $timer_args = {
             timestamp => $at,
             command => $sched_command,
@@ -230,7 +230,7 @@ sub getOutput {
     ##
     ##  tock
     ##
-    
+
     if ($cmd eq 'tock'){
         my $url = "http://tycho.usno.navy.mil/cgi-bin/timer.pl";
         my $short_url = "http://is.gd/usnotime";
@@ -239,9 +239,9 @@ sub getOutput {
         my $ss;
 
         if ($options){
-            $ss = $options; 
+            $ss = $options;
         }else{
-            $ss = "Central";    
+            $ss = "Central";
         }
 
         foreach my $line (@lines){
@@ -262,7 +262,7 @@ sub getOutput {
     ##
     ##  time
     ##
-    
+
     if ($cmd eq 'time'){
         my $date = new Date::Manip::Date;
         $date->parse("now");
@@ -339,7 +339,7 @@ sub getOutput {
     ##
     ##  benchmark - do speed tests
     ##
-    
+
     if ($cmd eq "benchmark"){
         $self->setReentryCommand("_benchmark");
         return "Performing speed benchmarks...";
@@ -364,8 +364,8 @@ sub getOutput {
         my $each = sprintf("%.4f", $time / $num_inserts);
         $output .= BOLD."$num_inserts db inserts:".NORMAL." $time sec ($each sec/ea). ";
 
-        
-        # do collection loads 
+
+        # do collection loads
         $start = time();
         for (my $i = 0; $i < $num_inserts; $i++){
             my $c = $self->getCollection(__PACKAGE__, '::temp::');
@@ -373,9 +373,9 @@ sub getOutput {
         $time =  sprintf("%.4f", time() - $start);
         $each = sprintf("%.4f", $time / $num_inserts);
         $output .= BOLD."$num_inserts collection loads:".NORMAL." $time sec ($each sec/ea). ";
-        
 
-        # do updates  
+
+        # do updates
         $start = time();
         my @records = $c->getAllRecords();
         foreach my $rec (@records){
@@ -396,17 +396,17 @@ sub getOutput {
         $each = sprintf("%.4f", $time / $num_inserts);
         $output .= BOLD."$num_inserts db deletes:".NORMAL." $time sec ($each sec/ea). ";
 
-    
+
         # get pages
         $start = time();
-        my @pages = ('www.google.com', 'www.yahoo.com', 'www.wikipedia.org', 'www.amazon.com');
+        my @pages = ('www.google.com', 'www.yahoo.com', 'www.wikipedia.org', 'www.amazon.com', 'github.com');
         foreach my $url (@pages){
-            my $page = $self->getPage('http://' . $url);
+            my $page = $self->getPage('https://' . $url);
         }
         $time =  sprintf("%.4f", time() - $start);
         $each = sprintf("%.4f", $time / @pages);
-        $output .= BOLD.@pages." http:// page grabs:".NORMAL." $time sec ($each sec/ea). ";
-        
+        $output .= BOLD.@pages." https:// page grabs:".NORMAL." $time sec ($each sec/ea). ";
+
 
         # calculate pi
         $start = time();
@@ -421,12 +421,12 @@ sub getOutput {
                 ++$yespi;
             }
             ++$i;
-        }   
-    
+        }
+
         $time =  sprintf("%.4f", time() - $start);
         $pi = ($yespi / $cycles) * 4;
         $output .= BOLD."Calculate \x{03C0} (Monte Carlo method), $cycles iterations".NORMAL." $time sec (ans: $pi).";
-        
+
         return $output;
 
     }
@@ -435,7 +435,7 @@ sub getOutput {
 
 sub listeners{
     my $self = shift;
-    
+
     ##  Which commands should this plugin respond to?
     ## Command Listeners - put em here.  eg [qw (cmd1 cmd2 cmd3)]
     my $commands = [qw(at in tock time yi cron benchmark)];
