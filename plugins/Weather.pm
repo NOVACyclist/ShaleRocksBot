@@ -63,18 +63,20 @@ sub getOutput {
         if ($command eq 'weather'){
             $detail = 1;
         }
-        
+
+        $options =~ s/(AL|AK|AZ|AR|CA|CO|CT|DE|FL|GA|HI|ID|IL|IN|IA|KS|KY|LA|ME|MD|MA|MI|MN|MS|MO|MT|NE|NV|NH|NJ|NM|NY|NC|ND|OH|OK|OR|PA|RI|SC|SD|TN|TX|UT|VT|VA|WA|WV|WI|WY)$/$1,US/i;
+
         my $url = "https://api.openweathermap.org/data/2.5/weather?q=";
-        
-        $url = "https://api.openweathermap.org/data/2.5/weather?zip=" if ( $options =~ /\d{5}/ );
-           
+
+        $url = "https://api.openweathermap.org/data/2.5/weather?zip=" if ( $options =~ /\d/ );
+
         my $page = $self->getPage($url.$options."&appid=".$self->{API_KEY});
         eval {
             $json_current = $json->decode($page);
         };
 
         if ($@){
-            return ("Hmmm, couldn't find that place. Please try seaching for the location and country code, for example - Perth, AU");
+            return ("Couldn't find that place. Please try seaching for the location and ISO 3166 country code, for example - Perth, AU");
         }
 
         if ($json_current->{cod} != "200") {
@@ -110,8 +112,14 @@ sub getOutput {
         if ($command eq 'weather'){
             $detail = 1;
         }
-           
-        my $page = $self->getPage("https://api.openweathermap.org/data/2.5/forecast?q=".$options."&appid=".$self->{API_KEY});
+
+        $options =~ s/(AL|AK|AZ|AR|CA|CO|CT|DE|FL|GA|HI|ID|IL|IN|IA|KS|KY|LA|ME|MD|MA|MI|MN|MS|MO|MT|NE|NV|NH|NJ|NM|NY|NC|ND|OH|OK|OR|PA|RI|SC|SD|TN|TX|UT|VT|VA|WA|WV|WI|WY)$/$1,US/i;
+
+        my $url = "https://api.openweathermap.org/data/2.5/forecast?q=";
+
+        $url = "https://api.openweathermap.org/data/2.5/forecast?zip=" if ( $options =~ /\d/ );
+
+        my $page = $self->getPage($url.$options."&appid=".$self->{API_KEY});
         eval {
             $json_forcast = $json->decode($page);
         };
@@ -123,7 +131,7 @@ sub getOutput {
         if ($json_forcast->{cod} != "200") {
             return $json_forcast->{message};
         }
-        
+
         my $location = $json_forcast->{city}->{name} . ', ' . $json_forcast->{city}->{country};
         my $output = BOLD . TEAL . "$location" . NORMAL;
 
@@ -136,7 +144,7 @@ sub getOutput {
         return $output;
 
     }
-        
+
     return $self->help($command);
 
 }
@@ -158,7 +166,7 @@ sub listeners{
    my $default_permissions =[];
 
     return {
-        commands=>@commands, 
+        commands=>@commands,
         permissions=>$default_permissions
     };
 
