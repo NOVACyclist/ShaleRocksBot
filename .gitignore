@@ -13,3 +13,6 @@ MYMETA.*
 *.log
 *.txt
 *.old
+nohup.out
+ShaleRocksBot.sqlite
+ShaleRocksBot.sqlite.gpg
