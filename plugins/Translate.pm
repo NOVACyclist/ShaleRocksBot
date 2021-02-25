@@ -122,7 +122,7 @@ sub getOutput {
     }
 
     if ($google->{$cmd}){
-        my $url = "http://translate.google.com/?hl=".$google->{$cmd}."&ie=UTF8&text=" . uri_escape($options);
+        my $url = "https://translate.google.com/?hl=".$google->{$cmd}."&ie=UTF8&text=" . uri_escape($options);
         my $page = $self->getPage($url);
 
         $page =~/.+?<span id=result_box class=".+?_text">(.+?)<\/div>.+?/;
