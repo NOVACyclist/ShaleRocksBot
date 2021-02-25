@@ -571,7 +571,7 @@ sub irc_ctcp_version{
     my ($sender, $who, $where, $what) = @_[SENDER, ARG0 .. ARG2];
     my $nick = ( split /!/, $who )[0];
 
-    $irc->yield(notice=> $nick=> "RocksBot v".$VERSION." Perl IRC Bot. http://is.gd/rocksbot");
+    $irc->yield(notice=> $nick=> "RocksBot v".$VERSION." Perl IRC Bot. https://github.com/NOVACyclist/ShaleRocksBot");
 }
 
 
