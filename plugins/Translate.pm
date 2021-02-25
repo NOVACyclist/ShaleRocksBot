@@ -129,100 +129,6 @@ sub getOutput {
 
    }
 
-<<<<<<< HEAD
-    my $degrave = { af => 'canadian',
-                        'boston' => 'boston',
-                        'smurf' => 'smurf',
-                        'ayb' => 'ayb',
-                        'yoda' => 'yoda',
-                        'valley' => 'valley',
-                        'piglatin' => 'piglatin',
-                        'l33t' => 'ultraleet',
-                        'hax0r' => 'haxor',
-    };
-
-    my $rinkworks= { redneck => 'redneck', 
-                            cockney => 'cockney',
-                            fudd => 'fudd',
-                            bork => 'bork',
-                            jive => 'jive',
-                            moron => 'moron'
-    };
-
-    my $google = {
-                        english => 'en',
-                        german => 'de',
-                        french => 'fr',
-                        spanish => 'es',
-                        irish => 'ga',
-                        italian => 'it',
-                        arabic => 'ar',
-                        armenian => 'hy',
-                        chinese => 'zh-CN',
-                        hebrew => 'iw',
-                        japanese => 'ja',
-                        polish  => 'pl',
-                        russian => 'ru',
-                        swedish => 'sv',
-                        welsh       => 'cy',
-                        norwegian=> 'no',
-                        
-    };
-
-    if ($degrave->{$cmd}){
-        my $url = "http://www.degraeve.com/cgi-bin/babel.cgi?d=".$degrave->{$cmd}."&w=" . uri_escape($options);
-        my $page = $self->getPage($url);
-        $page=~m#blockquote>(.+?)</blockquote#gis;
-        my $stuff = $1; $stuff=~s/<.+?>//gis; $stuff=~s/\n//gis;
-        $stuff = decode_entities($stuff);
-
-        $translation_intro = "translates to $cmd for ".$self->{nick}.": "; 
-        $translation = $stuff;
-    }
-
-
-    if ($rinkworks->{$cmd}){
-        my $url = "http://www.rinkworks.com/dialect/dialectt.cgi";
-
-        my $ua      = LWP::UserAgent->new();
-        my $request = POST( $url, [ text => $options,
-                                            dialect => $rinkworks->{$cmd} 
-                     ] );
-        my $content = $ua->request($request);
-        $output = $content->content;
-        $output=~m#<div class='dialectized_text'>(.+?)</div>#gis;
-        $output = $1;
-        $output=~s/\n//gis;
-        $output=~s/<.+?>//gis;
-        $output = decode_entities($output);
-
-        $translation_intro = "translates to $cmd for ".$self->{nick}.": "; 
-        $translation = $output;
-
-    }
-
-    if ($google->{$cmd}){
-        my $url = "https://translate.google.com/?hl=".$google->{$cmd}."&ie=UTF8&text=" . uri_escape($options);
-        my $page = $self->getPage($url);
-
-        $page =~/.+?<span id=result_box class=".+?_text">(.+?)<\/div>.+?/;
-        $output = $1;
-        $output =~s/<.+?>//gis;
-
-        $output = decode_entities($output);
-        utf8::decode($output);
-        $translation_intro = "translates to $cmd for ".$self->{nick}.": "; 
-        $translation = $output;
-    }
-
-    if ($self->hasFlag("q")){
-        $self->returnType("text");
-        return $translation;
-    }else{
-        #return $translation_intro . $translation;
-        return $translation;
-    }
-=======
    if ( $google->{$cmd} ) {
       my $url  = "https://translate.google.com/?hl=" . $google->{$cmd} . "&ie=UTF8&text=" . uri_escape($options);
       my $page = $self->getPage($url);
@@ -245,7 +151,6 @@ sub getOutput {
       #return $translation_intro . $translation;
       return $translation;
    }
->>>>>>> a8f51568f4cfd9ecc60ffd39e61c993a51b670e5
 
 }
 
