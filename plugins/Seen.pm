@@ -16,7 +16,7 @@ package plugins::Seen;
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #-----------------------------------------------------------------------------
-use strict;         
+use strict;
 use warnings;
 use base qw (modules::PluginBaseClass);
 use modules::PluginBaseClass;
@@ -29,7 +29,7 @@ sub getOutput {
     my $cmd = $self->{command};
     my $nick = $self->{nick};
     my $irc_event = $self->{irc_event} ||'';
-    my $mask = $self->{mask};  
+    my $mask = $self->{mask};
     my $channel;
     my $ignore_channel_re = "stopdrinking";
 
@@ -83,7 +83,7 @@ sub getOutput {
                     push @records, $rec2;
                 }
             }
-        
+
         }else{
             return $self->help($cmd);
         }
@@ -101,7 +101,7 @@ sub getOutput {
         }
 
         my $list = $self->getList();
-        
+
         if ( $channel !~ /$ignore_channel_re/ ) {
             if ($list){
                 return "$desc: $list";
@@ -112,14 +112,17 @@ sub getOutput {
 
         return;
     }
-    
-        
+
+
     ##
     ##  Seen
     ##
 
 
     if ($cmd eq 'seen'){
+
+        return "You can't do that via PM. Sorry, bud." if (  $self->{channel} !~ /^#/ ); #Disallow PM
+
         return $self->help($cmd) if (
                                        ($options eq '')              #No nick passed to lookup
                                        &&                            #And NOT trying to hide/unhide
@@ -129,7 +132,7 @@ sub getOutput {
                                           ($self->hasFlag('unhide'))
                                         )
                                     );
-        
+
 
         if ($self->hasFlag('hide')){
 
@@ -168,7 +171,7 @@ sub getOutput {
                 return "Either you've not been seen in $hchannel or you need to provide a valid [-channel=<#channel>] to unhide from.";
             }
         }
-        
+
         ###
         ###Primary function
         ###
@@ -214,14 +217,14 @@ sub getOutput {
             my @records = $c->matchRecords({display_id=>$num});
 
             return "I couldn't find that record."  if (!@records);
-        
+
             if ($self->hasPermission($records[0]->{val3})){
                 $c->deleteByVal({display_id=>$num});
                 return "Deleted.";
             }else{
                 return "You can only delete tells that you created.";
             }
-            
+
         }
 
         # no flags. add a tell.
@@ -251,8 +254,8 @@ sub getOutput {
         }else{
             return "Hold on there, tiger.  I don't recognize you.  /msg $self->{BotName} login -password=<password>";
         }
-        
-    }   
+
+    }
 
 
     ##
@@ -264,7 +267,7 @@ sub getOutput {
         my $c = $self->getCollection(__PACKAGE__, '%');
         $c->sort({field=>"collection_name", type=>'alpha', order=>'asc'});
         my @records = $c->matchRecords({val1=>$channel});
-        
+
         if ($self->hasFlag("cleardatabase")){
 
             foreach my $rec (@records){
@@ -323,7 +326,7 @@ sub getOutput {
             push @ret, "$nick: <$rec->{val3}> $rec->{val2} (Sent at $rec->{sys_creation_date})";
             $c->delete($rec->{row_id});
         }
-        
+
         return \@ret;
     }
 
@@ -346,16 +349,17 @@ sub settings{
 
 sub listeners{
     my $self = shift;
-    
+
     my @commands = [qw(seen seendb tell joins)];
 
     my @irc_events = [qw (irc_join) ];
 
     my @preg_matches = [ "/./" ];
 
-    my $default_permissions =[ 
+    my $default_permissions =[
         {command=>"seendb", flag=>'cleardatabase', require_group=>UA_ADMIN},
-        {command=>"joins", require_group=>UA_TRUSTED}
+        {command=>"joins", require_group=>UA_TRUSTED},
+        {command=>"seen", flag=>'channel', require_group=>UA_TRUSTED}
     ];
 
     return {commands=>@commands, permissions=>$default_permissions, irc_events=>@irc_events, preg_matches=>@preg_matches};
