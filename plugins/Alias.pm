@@ -231,7 +231,8 @@ sub listeners{
     my @preg_matches = [qw () ];
 
     my $default_permissions =[
-        {command=>"PLUGIN", flag=>"add", require_group => UA_REGISTERED},
+        {command=>"PLUGIN", flag=>"add", require_group => UA_TRUSTED},
+        {command=>"PLUGIN", flag=>"delete", require_group => UA_TRUSTED}
     ];
 
     return {commands=>\@commands, permissions=>$default_permissions, 
