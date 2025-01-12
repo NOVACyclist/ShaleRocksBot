@@ -600,8 +600,8 @@ sub numFlags{
     my $self = shift;
 
     if ($self->{FLAGS}){
-        my $c = keys ($self->{FLAGS});
-        $c = $c / 2;
+        my @keys = keys %{$self->{FLAGS}};
+        my $c = @keys / 2;
         return $c;
     }else{
         return 0;
@@ -886,7 +886,7 @@ sub botCan{
         return 0;
     }
 
-    foreach my $k (keys $self->{BotPluginInfo}){
+    foreach my $k (keys %{$self->{BotPluginInfo}}){
         foreach my $cmd (@{$self->{BotPluginInfo}->{$k}->{commands}}){
             if ($cmd eq $pcmd){
                 return 1;
@@ -1174,7 +1174,14 @@ sub modPluginSettings{
 
         if (defined($self->{SETTINGS}->{$setting}->{allowed_values}) 
         && @{$self->{SETTINGS}->{$setting}->{allowed_values}}){
-            if (!($value ~~ @{$self->{SETTINGS}->{$setting}->{allowed_values}})){
+            my $found = 0;
+            foreach my $allowed_value (@{$self->{SETTINGS}->{$setting}->{allowed_values}}) {
+                if ($value eq $allowed_value) {
+                    $found = 1;
+                    last;
+                }
+            }
+            if (!$found) {
                 $output = "That is not a valid value. ";
                 foreach my $v (@{$self->{SETTINGS}->{$setting}->{allowed_values}}){
                     $self->addToList($v);
@@ -1240,3 +1247,4 @@ sub modPluginSettings{
 
 1;
 __END__
+

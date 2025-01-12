@@ -129,7 +129,7 @@ sub setMode{
     $self->loadCollection();
 
     my @modes = (qw(replace remove censor kill));
-    if ( ! ($mode ~~ @modes)){
+    if (!grep { $_ eq $mode } @modes) {
         return "Invalid mode.  Pick from replace, remove, censor, kill.";
     }
 
@@ -175,3 +175,4 @@ sub filter{
 }
 1;
 __END__
+

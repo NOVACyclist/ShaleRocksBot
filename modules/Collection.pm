@@ -197,10 +197,9 @@ sub load{
         $data{'sys_update_date'} = $row->[14];
         $data{'sys_creation_timestamp'} = $row->[15];
         $data{'sys_update_timestamp'} = $row->[16];
-
         #print Dumper(%data);
 
-        push $self->{'records'}, {%data};
+        push @{$self->{'records'}}, {%data};
 
         if ( $self->{'max_record_id'} < $data{'display_id'}){
             $self->{'max_record_id'} = $data{'display_id'};
@@ -576,7 +575,7 @@ sub updateRecord{
     }
 
     my $detail;
-    foreach my $f (sort keys $fields){
+    foreach my $f (sort keys %{$fields}){
         $detail.="$f>$fields->{$f} * ";
     }
 
@@ -658,12 +657,11 @@ sub matchRecords{
     #print Dumper($fields);
 
     my @ret = ();
-
     foreach my $rec (@{$self->{'records'}}){
         my $match = 0;
         my $notmatch = 0;
 
-        foreach my $f (keys $fields){
+        foreach my $f (keys %{$fields}){
             #print "F is $f, rec is ".$rec->{$f}." fields is ".$fields->{$f}."\n";
             
             if ($rec->{$f} eq $fields->{$f}){
@@ -718,7 +716,7 @@ sub getRecords{
 
     foreach my $rec (@{$self->{'records'}}){
         #print "recid = " . $rec->{'row_id'} . "\n";
-        if ($rec->{'row_id'} ~~ @num_arr){
+        if (grep { $_ == $rec->{'row_id'} } @num_arr){
             my %data;
             $data{'row_id'} = $rec->{'row_id'};
             $data{'display_id'} = $rec->{'display_id'};
@@ -858,3 +856,4 @@ sub DESTROY {
 
 1;
 __END__
+

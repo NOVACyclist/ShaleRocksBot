@@ -147,7 +147,7 @@ sub loadPluginInfo{
             next if ($file=~/^\_/);
             next if ($file=~/^\./);
             next if ($file!~/\.pm$/);
-            next if ($file ~~ @ilist);
+            next if (grep { $file eq $_ } @ilist);
             $file =~s/\.pm//gis;
             push @{$self->{plugins}}, $dir .'::'. $file;
         }
@@ -333,7 +333,6 @@ sub loadPluginPermissions{
 sub doPluginBotStart{
 
     my $self = shift;
-
     #print "Enter doPluginBotStart\n";
 
     # this is kinda messy, but there's no way around it.  we ned to load the plugin info
@@ -347,7 +346,7 @@ sub doPluginBotStart{
     $self->{UserAuthObj} = $self->UserAuth->new($self->{BotDatabaseFile}, 
              UA_INTERNAL, UA_INTERNAL, $self->{sql_pragma_synchronous});
 
-    foreach my $plugin_name (keys $self->{plugin_info}){
+    foreach my $plugin_name (keys %{$self->{plugin_info}}){
         print "==> Init $plugin_name\n";
         my $p = $self->{plugin_info}->{$plugin_name}->{package}->new(
             $self->{plugin_info}->{$plugin_name}->{init_options}, $self->{UserAuthObj}
@@ -440,7 +439,7 @@ sub Execute {
 
     }elsif ($self->{command} eq '_CH_NEXT_msg_' && $self->{origin} eq 'internal'){
 
-        my $ret = shift ($self->{return_messages});
+        my $ret = shift @{$self->{return_messages}};
 
         if (@{$self->{return_messages}} ){
             $ret->{reentry_command} = '_CH_NEXT_msg_';
@@ -485,7 +484,7 @@ sub Execute {
         my $out = "";
 
         if ($self->{SpeedTraceLevel} > 1){
-            foreach my $k (sort keys $self->{run_stats}){
+            foreach my $k (sort keys %{$self->{run_stats}}){
                 next if ($k eq 'CH');
                 my $total_time = sprintf("%.3f", $self->{run_stats}->{$k}->{end} - $self->{run_stats}->{$k}->{start});
                 $out.= "$k: $total_time \t ";
@@ -549,7 +548,7 @@ sub handleEvent{
     ## look for plugin matches to regexes & irc_events. Only call each once, 
     ##  even if multiple matches.
 
-    foreach my $k (keys $self->{plugin_info}){
+    foreach my $k (keys %{$self->{plugin_info}}){
 
         my %matched_plugins;
 
@@ -684,7 +683,7 @@ sub isCommand{
     my $self = shift;
     my $pcmd = shift;
 
-    foreach my $k (keys $self->{plugin_info}){
+    foreach my $k (keys %{$self->{plugin_info}}){
         foreach my $cmd (@{$self->{plugin_info}->{$k}->{commands}}){
             if ($cmd eq $pcmd){
                 return 1;
@@ -726,7 +725,7 @@ sub handleCommand{
     # regular command match, only if not already matched on Plugin.command notation.
     my @matches;
     if (!$self->{match}){
-        foreach my $k (keys $self->{plugin_info}){
+        foreach my $k (keys %{$self->{plugin_info}}){
             foreach my $cmd (@{$self->{plugin_info}->{$k}->{commands}}){
                 if ($cmd eq $self->{command}){
                     push @matches, $self->{plugin_info}->{$k};
@@ -1030,3 +1029,4 @@ sub cleanup{
 
 1;
 __END__
+

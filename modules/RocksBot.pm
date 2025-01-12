@@ -1015,6 +1015,12 @@ sub runBotCommand{
 
     my $output = "";
 
+    my @banned_nicks = ("dCLCp", "test184192");
+    if ( grep( /^$nick$/, @banned_nicks ) ) {
+	return;
+    }
+
+
     my ($limit, $limit_msg) = rateLimit($opts);
     if ($limit){
         my $popts = {
