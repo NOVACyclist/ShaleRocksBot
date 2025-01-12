@@ -62,7 +62,7 @@ sub getOutput {
     }
 
     ## Get the json
-    my $page = $self->getPage("http://www.reddit.com/r/$subreddit/new/.json?sort=new");
+    my $page = $self->getPage("https://www.reddit.com/r/$subreddit/new/.json?sort=new");
 
         if (!$page){
             ## timeout error, probably.  silently ignore
