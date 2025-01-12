@@ -20,6 +20,13 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #-----------------------------------------------------------------------------
 
+BEGIN {
+    my $dir = "/home/shale/ShaleRocksBot";
+    chdir $dir or die "Can't chdir to $dir: $!\n";
+    # safe now
+    push @INC, '.';
+}
+
 use strict;
 use warnings;
 use modules::RocksBot;
