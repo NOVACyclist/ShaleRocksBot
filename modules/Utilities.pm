@@ -147,7 +147,7 @@ sub parseFlags{
     $new_options=~s/ +$//;
     $new_options=~s/_BITEME_PARSEWORDS_/'/g;
     if ($FLAGS){
-        foreach my $flag (keys $FLAGS){
+        foreach my $flag (keys %$FLAGS){
             $FLAGS->{$flag}=~s/_BITEME_PARSEWORDS_/'/gis;
             $FLAGS->{$flag}=~s/^"(.+?)"$/$1/;
             #print "Flag is now $FLAGS->{$flag}\n";

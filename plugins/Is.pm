@@ -201,7 +201,7 @@ sub getOutput {
                 }
 
                 $ret = "I know $stats->{total_records} things.  ";
-                foreach my $k (keys $stats){
+                foreach my $k (keys %$stats){
                     next if $k eq 'total_records';
                     $ret.="$k ($stats->{$k}) ";
                 }  

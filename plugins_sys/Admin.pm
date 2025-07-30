@@ -591,7 +591,7 @@ sub getOutput {
         ## list plugins - default action
         ##
 
-        foreach my $k (sort keys $plugins){
+        foreach my $k (sort keys %$plugins){
             if (@{$plugins->{$k}->{permissions}}){
                 my $found = 0;
                 no warnings;

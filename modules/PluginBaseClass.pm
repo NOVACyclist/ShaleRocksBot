@@ -600,7 +600,7 @@ sub numFlags{
     my $self = shift;
 
     if ($self->{FLAGS}){
-        my $c = keys ($self->{FLAGS});
+        my $c = keys (%{$self->{FLAGS}});
         $c = $c / 2;
         return $c;
     }else{
@@ -886,7 +886,7 @@ sub botCan{
         return 0;
     }
 
-    foreach my $k (keys $self->{BotPluginInfo}){
+    foreach my $k (keys %{$self->{BotPluginInfo}}){
         foreach my $cmd (@{$self->{BotPluginInfo}->{$k}->{commands}}){
             if ($cmd eq $pcmd){
                 return 1;

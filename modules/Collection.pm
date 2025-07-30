@@ -200,7 +200,7 @@ sub load{
 
         #print Dumper(%data);
 
-        push $self->{'records'}, {%data};
+        push @{ $self->{'records'} }, {%data};
 
         if ( $self->{'max_record_id'} < $data{'display_id'}){
             $self->{'max_record_id'} = $data{'display_id'};
@@ -576,7 +576,7 @@ sub updateRecord{
     }
 
     my $detail;
-    foreach my $f (sort keys $fields){
+    foreach my $f (sort keys %$fields){
         $detail.="$f>$fields->{$f} * ";
     }
 
@@ -663,7 +663,7 @@ sub matchRecords{
         my $match = 0;
         my $notmatch = 0;
 
-        foreach my $f (keys $fields){
+        foreach my $f (keys %$fields){
             #print "F is $f, rec is ".$rec->{$f}." fields is ".$fields->{$f}."\n";
             
             if ($rec->{$f} eq $fields->{$f}){
