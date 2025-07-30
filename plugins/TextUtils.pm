@@ -101,7 +101,7 @@ sub getOutput {
 
     if ($cmd eq 'listcolors'){
         my $bullet = "";
-        foreach (sort { ($colors->{$a} cmp $colors->{$b}) } keys $colors){
+        foreach (sort { ($colors->{$a} cmp $colors->{$b}) } keys %$colors){
             $output.= $bullet . $colors->{$_} . "$_"."\x0f" ;
             $bullet = " " . $self->BULLET ." ";
         }

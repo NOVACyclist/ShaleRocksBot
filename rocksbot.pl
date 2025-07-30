@@ -22,6 +22,7 @@
 
 use strict;
 use warnings;
+use lib '.';
 use modules::RocksBot;
 use constant RocksBot => 'modules::RocksBot';
 use Cwd qw(abs_path getcwd);

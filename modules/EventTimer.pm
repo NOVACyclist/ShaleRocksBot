@@ -88,11 +88,11 @@ sub tick{
     ## Handle Events
 
     if ($self->{events}){
-        foreach my $k (sort keys $self->{events}){
+        foreach my $k (sort keys %{$self->{events}}){
             #print " " . ($k - $now) . " ";
         }
 
-        foreach my $k (keys $self->{events}){
+        foreach my $k (keys %{$self->{events}}){
             if ($k <= $now){
                 $self->processEvent($k);
                 $hasJobs = 1;
