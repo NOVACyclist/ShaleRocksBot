@@ -112,7 +112,7 @@ sub getOutput {
     }
 
 
-    if ($command ~~ @{$self->{types}}){
+    if (grep { $_ eq $command } @{$self->{types}}){
         my $URL = "http://bitinfocharts.com/$command";
         my $page = $self->getPage($URL);
     

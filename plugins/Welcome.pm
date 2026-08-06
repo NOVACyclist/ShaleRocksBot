@@ -43,7 +43,7 @@ sub getOutput {
     
         my @wchannels = split (/ /, $self->s('herald_channels'));
         
-        if ($self->{channel} ~~ @wchannels){
+        if (grep { $_ eq $self->{channel} } @wchannels){
             my ($greeting, $type) = $self->getGreeting();
 
             if ($type eq 'action'){

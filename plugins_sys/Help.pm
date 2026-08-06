@@ -45,7 +45,7 @@ sub getOutput {
 
     if ($cmd eq 'plugins'){
         $output = "My Plugins:";
-        foreach my $k (sort keys $plugins){
+        foreach my $k (sort keys %{$plugins}){
             $output.=" $k";
         }
         return $output;
@@ -63,13 +63,13 @@ sub getOutput {
 
         $html.="<b>Enabled Plugins</b><br>";
         $html.="<ul>";
-        foreach my $k (sort keys $plugins){
+        foreach my $k (sort keys %{$plugins}){
             $html.="<li><a href=\"#$k\">$k</a></li>";
         }
         $html.="</ul>";
         $html.="<p>&nbsp;</p>";
 
-        foreach my $k (sort keys $plugins){
+        foreach my $k (sort keys %{$plugins}){
             $html.="<a name=\"$k\"></a>";
             $html.="\n<p><b>$k</b>:\n";
 
@@ -93,7 +93,7 @@ sub getOutput {
             
 
             $html.="<ul>";
-            foreach my $h (sort keys $o->{HELP}){
+            foreach my $h (sort keys %{$o->{HELP}}){
                 my $key = $h;
                 my $text = $o->{HELP}->{$h};
                 next if ($key eq '[plugin_description]');
@@ -114,7 +114,7 @@ sub getOutput {
 
     if ($cmd eq 'allcommands'){
         my @commands;
-        foreach my $k (sort keys $plugins){
+        foreach my $k (sort keys %{$plugins}){
             foreach my $command (@{$plugins->{$k}->{commands}}){
                 if (!$self->hasFlag("all")){
                     #print "ask for $k - $command\n";
@@ -146,7 +146,7 @@ sub getOutput {
 
     if ($cmd eq 'allregex'){
         my @exp;
-        foreach my $k (sort keys $plugins){
+        foreach my $k (sort keys %{$plugins}){
             foreach my $regex (@{$plugins->{$k}->{preg_matches}}){
                 push @exp, "$k: $regex";
             }
@@ -164,7 +164,7 @@ sub getOutput {
         my $ret = BOLD."$size regex matches: ".NORMAL . $list;
 
         my @exc;
-        foreach my $k (sort keys $plugins){
+        foreach my $k (sort keys %{$plugins}){
             foreach my $regex (@{$plugins->{$k}->{preg_excludes}}){
                 push @exc, "$k: $regex";
             }
@@ -281,7 +281,7 @@ sub getOutput {
         if (!$package){
             my @found;
             #my $cmd = $testpackage;  #just to make this clearer # not
-            foreach my $entry (keys $plugins){
+            foreach my $entry (keys %{$plugins}){
                 foreach my $cmd (@{$plugins->{$entry}->{commands}}){
                     if ($cmd eq $testpackage){
                         ## found it. let's make sure it's the only one.
