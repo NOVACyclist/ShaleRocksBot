@@ -695,8 +695,13 @@ sub getPage {
     }
     
     if ($res->is_error){
-        print "error with lwp:\n";
-        printf "[%d] %s\n", $res->code, $res->message;
+        ##  One print, one line. This used to be a print plus a printf, and
+        ##  with several CommandHandler processes sharing one stdout the two
+        ##  halves interleaved with the parent's output -- producing log lines
+        ##  like "#chan Bot(output) ch0:ERR: error with lwp:" that read as
+        ##  though the bot had said that in the channel. Include the URL so
+        ##  the failure is actually diagnosable.
+        printf "error with lwp: [%d] %s <%s>\n", $res->code, $res->message, $url;
     }
 
     return "";

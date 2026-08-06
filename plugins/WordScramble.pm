@@ -16,6 +16,8 @@ sub plugin_init{
     my $self = shift;
     $self->useChannelCookies();
     $self->{dbh} = DBI->connect("dbi:SQLite:dbname=".$self->{BotDatabaseFile}, "", "", { AutoCommit => 0 });
+    ## Wait for the lock rather than failing. See Collection.pm for detail.
+    $self->{dbh}->sqlite_busy_timeout(30_000);
 
     ## Check if table exists.
     my $sql = "SELECT count(*) FROM sqlite_master WHERE name ='wordlist' and type='table'";

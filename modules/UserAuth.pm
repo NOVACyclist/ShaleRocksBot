@@ -590,7 +590,13 @@ sub changePassword{
     return "Something bad happened. UA-cp-1" if (@records != 1);
 
     $c->updateRecord($records[0]->{row_id}, {val2=>$hashed_password});
-    if ($self->adminOverride()){
+
+    ##  Read the flag; do NOT call adminOverride(), which is a SETTER.
+    ##  `if ($self->adminOverride())` set admin_override = 1 and returned 1,
+    ##  so this branch was always taken AND every successful password change
+    ##  silently left the object in admin-override state -- and isAuthed()
+    ##  returns true whenever that flag is set.
+    if ($self->{admin_override}){
         return "That password has been changed.";
     }else{
         return "Success! Your password has been changed.";

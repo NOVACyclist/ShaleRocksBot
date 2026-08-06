@@ -108,7 +108,10 @@ sub getOutput {
    if ( $rinkworks->{$cmd} ) {
       my $url = "http://www.rinkworks.com/dialect/dialectt.cgi";
 
-      my $ua      = LWP::UserAgent->new();
+      ## Timeout explicitly: LWP defaults to 180s, and this runs inside a
+      ## CommandHandler worker process. Three slow requests would occupy the
+      ## whole pool and make the bot look dead for three minutes.
+      my $ua      = LWP::UserAgent->new( timeout => 20 );
       my $request = POST(
          $url,
          [

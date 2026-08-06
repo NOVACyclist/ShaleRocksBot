@@ -63,8 +63,15 @@ sub init{
     ##  Get our IP
     ##
     
+    ##  www.jsonip.com stopped resolving, so this eval failed on every start
+    ##  and the filter ran with no IP to redact -- silently, because the only
+    ##  symptom is a warning at boot. privacy_filter_enable=1 looked healthy
+    ##  while doing nothing about the one thing it exists to hide.
+    ##
+    ##  api.ipify.org is current and https, so the lookup itself no longer
+    ##  announces this host's address in cleartext.
     eval {
-        my $page = $self->getPage("http://www.jsonip.com/");
+        my $page = $self->getPage("https://api.ipify.org/?format=json");
         my $json_o  = JSON->new->allow_nonref;
         my $j = $json_o->decode($page);
         my $ip = $j->{ip};

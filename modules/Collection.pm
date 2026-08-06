@@ -74,6 +74,16 @@ sub new {
 
     $self->{dbh} = DBI->connect("dbi:SQLite:dbname=".$self->{BotDatabaseFile}, "", "", { AutoCommit => 0 });
 
+    ##  Wait for the write lock instead of failing instantly.
+    ##
+    ##  The bot runs NumWorkerThreads CommandHandler PROCESSES plus the parent,
+    ##  all opening this same file, and the nightly backup opens it too. Without
+    ##  a busy timeout, SQLite returns SQLITE_BUSY the moment two of them
+    ##  overlap -- with RaiseError on (set below) that is a die inside whatever
+    ##  command the user just ran. 30s is far longer than any write here takes,
+    ##  so in practice this converts a random hard failure into a brief wait.
+    $self->{dbh}->sqlite_busy_timeout(30_000);
+
     my $sql = "PRAGMA synchronous = $self->{sql_pragma_synchronous}";
     my $sth = $self->{dbh}->prepare($sql);
     $sth->execute();

@@ -47,6 +47,9 @@ sub new {
     $self->{caller} = $caller;
     $self->{BotDatabaseFile} = $db_file;
     $self->{dbh} = DBI->connect("dbi:SQLite:dbname=".$self->{BotDatabaseFile}, "", "");
+    ## Wait for the lock rather than failing: the worker processes and the
+    ## nightly backup share this database file. See Collection.pm for detail.
+    $self->{dbh}->sqlite_busy_timeout(30_000);
     $self->{last_update_time} = 0;
     $self->{update_interval} = 60 * 10;
     $self->{discard_at} = 10;
