@@ -39,6 +39,15 @@ use Time::Local qw(timegm);
 ##  Badges lives in its own collection namespace; read it by name.
 use constant BADGE_PACKAGE => 'plugins::Badges';
 
+##  How recently someone must have been around to appear in the channel
+##  listing. A badge is set once and then sits in the database forever, so
+##  without this the list is dominated by people who set a badge years ago and
+##  never came back. Announcing "10 years of Sobriety" for somebody who left on
+##  day two is not a celebration, it is a fabrication -- nobody knows whether
+##  they stayed sober, and it crowds out the people who are actually here.
+##  Of 3,415 badge holders in this database, 546 have been seen in 60 days.
+use constant ACTIVE_DAYS => 60;
+
 ##  Milestones worth marking, in days. Deliberately generous at the start --
 ##  in early recovery the short ones are the ones that matter -- then round
 ##  numbers and year anniversaries after that.
@@ -154,6 +163,49 @@ sub milestoneWindow {
     return 14;                      # 10 years and beyond
 }
 
+##  Nicks the Seen plugin has recorded activity for in the last $days days,
+##  as a lowercased lookup hash (IRC nicks are case-insensitive).
+##
+##  Done as one direct query rather than through the Collection API on
+##  purpose. Seen holds ~196,000 rows across ~63,000 nicks; loading that via
+##  the '%' wildcard collection to filter ~4,000 badges would be absurd, and
+##  a per-nick Collection load would be thousands of round trips. This is a
+##  single filtered read that measures at ~0.35s.
+##
+##  Reuses the Collection's own handle, so there is no second connection and
+##  it inherits the busy timeout. Read-only: it never writes or commits.
+sub recentlySeen {
+    my ($self, $c, $days) = @_;
+    my %active;
+
+    my $dbh = $c->{dbh};
+    return \%active if (!$dbh);
+
+    my $table = $c->{table_name} || 'collections';
+
+    my $rows = eval {
+        $dbh->selectcol_arrayref(
+            "SELECT DISTINCT collection_name FROM $table
+              WHERE module_name = 'Seen'
+                AND sys_update_date >= date('now', ?)",
+            undef, "-${days} day"
+        );
+    };
+
+    if ($@ || !$rows) {
+        ##  If Seen is unavailable for any reason, fail OPEN rather than
+        ##  silently reporting that nobody has a milestone.
+        print "Milestones: could not read Seen activity, not filtering: $@\n" if ($@);
+        return undef;
+    }
+
+    foreach my $n (@{$rows}) {
+        $active{ lc($n) } = 1 if (defined $n && $n ne '');
+    }
+
+    return \%active;
+}
+
 ##  All badges for one nick, as {name, days}, newest-progress first.
 sub badgesFor {
     my ($self, $nick) = @_;
@@ -239,6 +291,18 @@ sub getOutput {
     my $out = ($who eq $self->accountNick()) ? "Your next milestones: " : "$who: ";
     $out .= join(" " . $self->BULLET . " ", map { $_->{txt} } @lines);
 
+    ##  Asking about a specific person always answers -- hiding it would be
+    ##  worse than unhelpful. But say so if they have not been around, because
+    ##  a day count only kept running because nobody stopped the clock is not
+    ##  the same claim as one belonging to somebody still here.
+    if ($who ne $self->accountNick()) {
+        my $c      = $self->getCollection(BADGE_PACKAGE, '%');
+        my $active = $self->recentlySeen($c, ACTIVE_DAYS);
+        if (defined $active && !$active->{ lc($who) }) {
+            $out .= "  (not seen in the last " . ACTIVE_DAYS . " days)";
+        }
+    }
+
     return $out;
 }
 
@@ -251,11 +315,23 @@ sub channelToday {
     my ($self, $channel) = @_;
 
     my $c = $self->getCollection(BADGE_PACKAGE, '%');
+
+    ##  Only people who have actually been around lately. undef means the
+    ##  lookup failed, in which case we show everyone rather than nobody.
+    my $active = $self->recentlySeen($c, ACTIVE_DAYS);
+
     my @hits;
+    my $skipped = 0;
 
     foreach my $rec ($c->getAllRecords()) {
         next if (!defined $rec->{val1} || !defined $rec->{val2});
         next if ($rec->{val1} eq '' || $rec->{val2} eq '');
+
+        my $owner = $rec->{collection_name};
+        if (defined $active && defined $owner && !$active->{ lc($owner) }) {
+            $skipped++;
+            next;
+        }
 
         my $days = $self->daysSince($rec->{val2});
         next if (!defined $days || $days <= 0);
@@ -288,8 +364,12 @@ sub channelToday {
                       label => $self->milestoneLabel($hit) };
     }
 
-    return "No milestones around right now that I can see."
-        if (!@hits);
+    print "Milestones: " . scalar(@hits) . " hit(s), $skipped badge(s) skipped as inactive\n";
+
+    if (!@hits) {
+        return "No milestones around right now among people seen in the last "
+             . ACTIVE_DAYS . " days.";
+    }
 
     ##  Exact-today first, then longest-running -- so the biggest anniversaries
     ##  lead rather than being buried behind a dozen 30-day marks.
@@ -328,7 +408,11 @@ sub addHelp {
       . "own next milestone for each badge, soonest first.  Give a nick to see theirs.");
 
     $self->addHelpItem("[milestones][-channel]",
-        "Show everyone who reaches a milestone today.");
+        "Show everyone with a milestone around now.  Only counts people seen in the last "
+      . ACTIVE_DAYS . " days -- a badge set years ago by somebody who never came back "
+      . "is not a milestone worth announcing.  How near counts as 'around now' widens the "
+      . "longer someone has been going: exact in the first 90 days, up to a fortnight either "
+      . "side past ten years.");
 
     $self->addHelpItem("[milestones][-nick]",
         "milestones -nick=<nick>.  Show that person's upcoming milestones.");
