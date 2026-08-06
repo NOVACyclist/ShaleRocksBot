@@ -727,6 +727,21 @@ sub publish{
     my $link = $p->publish($content);
 
     if ($link=~/^http/){
+        ##  Don't send our own published URLs to a shortener.
+        ##
+        ##  Two reasons. It cannot work: is.gd blacklists the .us.to domain as
+        ##  a redirection service, so every publish spent a round trip earning
+        ##  a 400 and logging an error. And it should not: the page address is
+        ##  the only thing keeping an unlisted page unlisted, and published
+        ##  pages can contain `seen` history -- handing that to a third party
+        ##  undoes the unguessable filename it is protected by.
+        ##
+        ##  Self-hosted URLs are already short. Anything else still shortens.
+        my $base = $self->{INIT_OPTIONS}->{publish_base_url} || '';
+        if ($base ne '' && index($link, $base) == 0){
+            return $link;
+        }
+
         return $self->getShortURL($link);
     }else{
         return $link;
