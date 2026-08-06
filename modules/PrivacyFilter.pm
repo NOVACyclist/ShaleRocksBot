@@ -17,9 +17,8 @@ package modules::PrivacyFilter;
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #-----------------------------------------------------------------------------
 
-use strict;         
+use strict;
 use warnings;
-use lib '/home/ec2-user/ShaleRocksBot/trunk';
 use base qw (modules::PluginBaseClass);
 use modules::PluginBaseClass;
 use Data::Dumper;
@@ -129,7 +128,7 @@ sub setMode{
     $self->loadCollection();
 
     my @modes = (qw(replace remove censor kill));
-    if ( ! ($mode ~~ @modes)){
+    if (!grep { $_ eq $mode } @modes) {
         return "Invalid mode.  Pick from replace, remove, censor, kill.";
     }
 
@@ -175,3 +174,4 @@ sub filter{
 }
 1;
 __END__
+

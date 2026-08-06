@@ -63,6 +63,7 @@ our $daemon_logfile;
 our $daemon_pidfile;
 our $command_window;
 our $command_max;
+our @banned_nicks;
 our $EventTimerObj;
 our $PrivacyFilter;
 our $privacy_filter_enable;
@@ -122,6 +123,25 @@ sub loadConfig{
     $SpeedTraceLevel= $cfg->param("BotSettings.SpeedTraceLevel");
     $sql_pragma_synchronous= $cfg->param("BotSettings.sql_pragma_synchronous");
     $privacy_filter_enable = $cfg->param("BotSettings.privacy_filter_enable");
+
+    ##  Nicks the bot ignores entirely. Kept in the config, not in the source:
+    ##  this repository is public, and a ban list in the code publishes the
+    ##  names of the people on it to anyone who reads the history.
+    ##
+    ##  Config::Simple returns a list for a comma-separated value and a plain
+    ##  scalar for a single entry, so normalise both to a list. Empty/absent
+    ##  means nobody is banned.
+    my $banned = $cfg->param("BotSettings.banned_nicks");
+    @banned_nicks = ();
+    if (defined $banned){
+        my @raw = (ref($banned) eq 'ARRAY') ? @{$banned} : ($banned);
+        foreach my $b (@raw){
+            next if (!defined $b);
+            $b =~ s/^\s+//;
+            $b =~ s/\s+$//;
+            push @banned_nicks, $b if (length $b);
+        }
+    }
 
 }
 
@@ -1014,6 +1034,25 @@ sub runBotCommand{
     my $irc_event = $opts->{irc_event} || '';
 
     my $output = "";
+
+    ##  Ignore list, from BotSettings.banned_nicks in the config.
+    ##
+    ##  Compare as STRINGS, not as a regex. This was previously
+    ##  `grep( /^$nick$/, @banned_nicks )`, which interpolates the nick
+    ##  straight into a pattern. IRC nicks may contain | [ ] \ { } ^ ` -, all
+    ##  regex metacharacters. A nick beginning with "|" produced a pattern
+    ##  like /^|...$/ -- an alternation whose bare ^ branch matches ANY
+    ##  string, so the grep was always true and every command from that user
+    ##  was silently dropped. runBotCommand is the single funnel for public
+    ##  messages, PMs, events and pipe re-entry, so the user could not use the
+    ##  bot at all.
+    ##
+    ##  Case-insensitive because IRC nicks are, which also closes a trivial
+    ##  change-the-capitalisation bypass of the ban.
+    if ( @banned_nicks && grep { lc($_) eq lc($nick) } @banned_nicks ) {
+	return;
+    }
+
 
     my ($limit, $limit_msg) = rateLimit($opts);
     if ($limit){
