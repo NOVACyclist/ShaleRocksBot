@@ -51,8 +51,14 @@ my $UserAuthObj;        #
 ## From the config file
 my $ConfigFile;
 my $BotCommandPrefix;
-my $BotDatabaseFile;    
-my $BotName;        
+##  Placeholder standing in for a '|' that came from command OUTPUT rather
+##  than from the user's typing, so the pipe splitter cannot mistake data for
+##  syntax. Same trick the splitter already uses for quotes
+##  (_BITEME_PARSELINES_). Chosen to be something no real message contains.
+my $PIPE_MASK = '_SRB_DATAPIPE_';
+
+my $BotDatabaseFile;
+my $BotName;
 my $EnablePipes;
 my $BotOwnerNick;           
 my $plugin_ignore_arr;
@@ -833,6 +839,12 @@ sub handleCommand{
             #print "options is $self->{options}\n";
         }
 
+        ##  Restore any pipe characters that came from DATA rather than from
+        ##  the user's typing. See the chaining code below for why they were
+        ##  masked. Done outside the block above because the mask must be
+        ##  undone even when pipe splitting is disabled (no_pipes) or off.
+        $self->{options} =~ s/$PIPE_MASK/|/g if (defined $self->{options});
+
         ## Run the Plugin 
 
         $self->{num_commands}++;
@@ -897,11 +909,34 @@ sub handleCommand{
             #dere be pipes here
             }else{
 
+                ##  Hand the previous stage's OUTPUT to the next command.
+                ##
+                ##  The output is DATA, but it gets concatenated into a plain
+                ##  string alongside the remaining pipe stages, and the next
+                ##  CommandHandler re-scans that whole string for '|'. So any
+                ##  pipe character inside the data was being treated as pipe
+                ##  SYNTAX -- and it only had to be followed by a word that
+                ##  happens to be a registered command to split there.
+                ##
+                ##  That is not hypothetical: this bot has Points entries
+                ##  literally named "| uc" and "| cut", and uc/cut are real
+                ##  TextUtils commands. `;points -nick X | publish` therefore
+                ##  chained into `cut` partway through its own data and the
+                ##  user's result vanished with no error. IRC nicks may also
+                ##  contain '|' (e.g. |_ocke), so aliases and seen data hit
+                ##  the same trap.
+                ##
+                ##  Mask pipes in the data so only the separators we appended
+                ##  here -- which are genuine syntax -- can split. The mask is
+                ##  removed after the next stage's split, above.
+                my $safe_output = defined($output) ? $output : '';
+                $safe_output =~ s/\|/$PIPE_MASK/g;
+
                 my $next_command;
                 if ($self->{obj}->returnType() eq 'runBotCommand'){
-                    $next_command = $output . ' | ' . shift (@parts);
+                    $next_command = $safe_output . ' | ' . shift (@parts);
                 }else{
-                    $next_command = shift (@parts) . " " . $output;
+                    $next_command = shift (@parts) . " " . $safe_output;
                 }
 
                 for(my $i=0; $i<@parts; $i++){
