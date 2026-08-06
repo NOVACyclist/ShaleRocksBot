@@ -224,6 +224,17 @@ sub init{
      heap => { irc => $irc },
     );
 
+    ##  Unbuffered output, ALWAYS -- not only when daemonising.
+    ##
+    ##  Perl line-buffers STDOUT to a terminal but BLOCK-buffers it to a pipe,
+    ##  and under systemd stdout is a pipe to journald. With autoflush set only
+    ##  inside the daemonize branch below, running under systemd (daemonize=0)
+    ##  meant log lines sat in an 8K buffer for minutes or tens of minutes.
+    ##  The log then looks frozen while the bot is running perfectly normally,
+    ##  which makes it impossible to tell a healthy bot from a dead one --
+    ##  exactly the wrong failure mode for the one diagnostic we have.
+    $| = 1;
+
     ##
     ##  Daemonize
     ##
@@ -233,7 +244,7 @@ sub init{
         flock(SELFLOCK, LOCK_EX | LOCK_NB) or die("Aborting: another instance is already running\n");
         open(STDOUT, ">>", $daemon_logfile) or die("Couldn't open logger output file: $!\n");
         open(STDERR, ">&STDOUT") or die("Couldn't redirect STDERR to STDOUT: $!\n");
-        $| = 1; 
+        $| = 1;     ## re-assert: the reopen above gives us a fresh handle
         chdir('/');
         exit if (fork());
         exit if (fork());
