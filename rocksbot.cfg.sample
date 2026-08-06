@@ -66,11 +66,46 @@ plugin_ignore_list =
 command_limit_window = 60
 command_limit_max  = 15
 
+; Nicks the bot ignores completely -- comma separated, leave empty for none.
+; Matching is case-insensitive and literal (not a regex), so nicks containing
+; | [ ] \ { } ^ ` are handled correctly.
+;
+; Keep this here rather than in the source. If your repository is public, a ban
+; list committed to the code publishes the names of the people on it to anyone
+; who reads the history, forever.
+banned_nicks =
+
 ; Custom Publish module.  This is the module that plugins will use to publish
-; HTML pages. By default, we use modules::Publish, which publishes to htmlpaste.com.
-; If you'd like to publish somewhere else, make a different module and supply the 
-; module name here. See modules::Publish for more info.
+; HTML pages. By default, we use modules::Publish, which writes a static HTML
+; file locally and returns its URL.  If you'd like to publish somewhere else,
+; make a different module and supply the module name here.  See
+; modules::Publish for more info.
 publish_module = "modules::Publish"
+
+; Where modules::Publish writes pages, and the URL they are served from.  These
+; must agree with your web server config: publish_path is the filesystem
+; directory, publish_base_url is the address that serves that same directory.
+;
+; The bot user needs write access to publish_path, and the web server user
+; needs read access.  The supplied nginx vhost expects the directory to be
+; owned bot-user:www-data and setgid (mode 2750), so pages the bot creates
+; inherit the www-data group.
+;
+; SECURITY: published pages can contain unescaped user input (the TextUtils
+; "publish" command publishes raw text by design), so treat them as untrusted
+; HTML.  Serve them from a dedicated hostname with a restrictive
+; Content-Security-Policy -- see the shipped nginx config, which blocks scripts
+; and remote resource loads.  Do not serve them from a hostname that shares an
+; origin with anything that matters.
+; Both keys MUST be in this [BotSettings] block. CommandHandler reads them as
+; BotSettings.publish_path / BotSettings.publish_base_url; anywhere else they
+; are silently ignored and modules::Publish falls back to its built-in default.
+;
+; Use https. Serving these over plain http means the page address -- which is
+; the only thing keeping an unlisted page unlisted -- travels in the clear.
+; Publish.pm force-upgrades an http:// value here to https:// for that reason.
+publish_path = "/var/www/shalerocksbot/publish/"
+publish_base_url = "https://shalerocksbot.us.to/"
 
 ; OK here's the deal.  sqlite databases don't always play well with ext4 filesystems.
 ; It's well documented.  "They're working on it."  If you run into speed problems,
