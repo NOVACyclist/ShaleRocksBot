@@ -51,7 +51,7 @@ sub getOutput {
 
     if ($cmd eq 'udquiz'){
         my @dchannels = split (/ /, $self->s('quiz_disable_channels'));
-        if ($self->{channel} ~~ @dchannels){
+        if (grep { $_ eq $self->{channel} } @dchannels){
             my $msg = "The Urban Dictionary Quiz game is disabled in this channel. ";
             my $adchannel = $self->s('quiz_advertise_channel') || 'none';
             if ($adchannel ne 'none'){

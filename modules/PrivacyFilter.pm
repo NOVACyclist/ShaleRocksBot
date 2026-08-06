@@ -17,9 +17,8 @@ package modules::PrivacyFilter;
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #-----------------------------------------------------------------------------
 
-use strict;         
+use strict;
 use warnings;
-use lib '/home/ec2-user/ShaleRocksBot/trunk';
 use base qw (modules::PluginBaseClass);
 use modules::PluginBaseClass;
 use Data::Dumper;
@@ -64,8 +63,15 @@ sub init{
     ##  Get our IP
     ##
     
+    ##  www.jsonip.com stopped resolving, so this eval failed on every start
+    ##  and the filter ran with no IP to redact -- silently, because the only
+    ##  symptom is a warning at boot. privacy_filter_enable=1 looked healthy
+    ##  while doing nothing about the one thing it exists to hide.
+    ##
+    ##  api.ipify.org is current and https, so the lookup itself no longer
+    ##  announces this host's address in cleartext.
     eval {
-        my $page = $self->getPage("http://www.jsonip.com/");
+        my $page = $self->getPage("https://api.ipify.org/?format=json");
         my $json_o  = JSON->new->allow_nonref;
         my $j = $json_o->decode($page);
         my $ip = $j->{ip};
@@ -129,7 +135,7 @@ sub setMode{
     $self->loadCollection();
 
     my @modes = (qw(replace remove censor kill));
-    if ( ! ($mode ~~ @modes)){
+    if (!grep { $_ eq $mode } @modes) {
         return "Invalid mode.  Pick from replace, remove, censor, kill.";
     }
 
@@ -175,3 +181,4 @@ sub filter{
 }
 1;
 __END__
+

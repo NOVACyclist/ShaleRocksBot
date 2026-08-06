@@ -79,7 +79,36 @@ sub parseFlags{
     for(my $i=0; ($i<@tokens) && (!$done_parsing); $i++){
         my $token = $tokens[$i];
         
-        if ($token=~/^-(.+?)$/){                        # matched a flag 
+        ##  Decide whether a leading "-" means a flag or is just data.
+        ##
+        ##  Piped commands concatenate the previous command's OUTPUT into the
+        ##  next command's option string, so `;points | publish` hands this
+        ##  parser real data. Anything the parser mistakes for a flag is
+        ##  CONSUMED -- it never reaches $new_options. That silently deleted
+        ##  every negative score from published output ("-3" became a flag
+        ##  named "3"), and the damage compounds through a long pipe chain
+        ##  because each stage re-parses what the last one produced.
+        ##
+        ##  A token is only a flag if its name:
+        ##    * contains a word character  -- so "-->" and "---" are data,
+        ##      not flags named "->" and "--"
+        ##    * does not begin with a digit or "." -- so "-3", "-5.5", "-.25"
+        ##      and "-50%" are data
+        ##
+        ##  Named flags are untouched: -now, -channel=x, --info, -h all still
+        ##  parse (--info's name is "-info", which has a word character and
+        ##  starts with "-"). The only numeric flag in the tree was
+        ##  CryptoCurrency's "-24", deliberately sacrificed: its endpoint
+        ##  doge4.us no longer resolves, and "-usd" reaches the same branch.
+        ##  Intact pipes matter more than a dead dogecoin command.
+        my $looks_like_flag = 0;
+        if ($token =~ /^-(.+?)$/){
+            my $name = $1;
+            $looks_like_flag = ($name =~ /\w/ && $name !~ /^[.\d]/) ? 1 : 0;
+        }
+
+        if ($looks_like_flag){
+            $token =~ /^-(.+?)$/;
             my $token_name = $1;
             $FLAGS->{$token_name} = FLAG_ON; # we know that it's at least true.  might have a val
             $FLAGS->{$token_name . '_pos'} = ++$flag_pos;
@@ -147,7 +176,7 @@ sub parseFlags{
     $new_options=~s/ +$//;
     $new_options=~s/_BITEME_PARSEWORDS_/'/g;
     if ($FLAGS){
-        foreach my $flag (keys $FLAGS){
+        foreach my $flag (keys %$FLAGS){
             $FLAGS->{$flag}=~s/_BITEME_PARSEWORDS_/'/gis;
             $FLAGS->{$flag}=~s/^"(.+?)"$/$1/;
             #print "Flag is now $FLAGS->{$flag}\n";
@@ -162,3 +191,4 @@ sub parseFlags{
 
 1;
 __END__
+

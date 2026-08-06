@@ -63,6 +63,7 @@ our $daemon_logfile;
 our $daemon_pidfile;
 our $command_window;
 our $command_max;
+our @banned_nicks;
 our $EventTimerObj;
 our $PrivacyFilter;
 our $privacy_filter_enable;
@@ -74,6 +75,16 @@ our @CH;
 
 # this is for the rate limiter
 our %user_commands;
+
+##  Re-entry depth for plugin-triggered commands (Alias expansion etc.),
+##  keyed "nick\0channel". Reset whenever a fresh non-internal command
+##  arrives, so a completed chain never leaves a stale count behind.
+our %run_depth;
+use constant MAX_RUN_DEPTH => 5;
+
+##  Counter for the periodic expiry sweep of %user_commands (see rateLimit).
+our $rate_sweep_counter = 0;
+use constant SWEEP_EVERY => 100;
 
 # this is for the loop protection
 our $recent_responses;
@@ -122,6 +133,25 @@ sub loadConfig{
     $SpeedTraceLevel= $cfg->param("BotSettings.SpeedTraceLevel");
     $sql_pragma_synchronous= $cfg->param("BotSettings.sql_pragma_synchronous");
     $privacy_filter_enable = $cfg->param("BotSettings.privacy_filter_enable");
+
+    ##  Nicks the bot ignores entirely. Kept in the config, not in the source:
+    ##  this repository is public, and a ban list in the code publishes the
+    ##  names of the people on it to anyone who reads the history.
+    ##
+    ##  Config::Simple returns a list for a comma-separated value and a plain
+    ##  scalar for a single entry, so normalise both to a list. Empty/absent
+    ##  means nobody is banned.
+    my $banned = $cfg->param("BotSettings.banned_nicks");
+    @banned_nicks = ();
+    if (defined $banned){
+        my @raw = (ref($banned) eq 'ARRAY') ? @{$banned} : ($banned);
+        foreach my $b (@raw){
+            next if (!defined $b);
+            $b =~ s/^\s+//;
+            $b =~ s/\s+$//;
+            push @banned_nicks, $b if (length $b);
+        }
+    }
 
 }
 
@@ -204,6 +234,17 @@ sub init{
      heap => { irc => $irc },
     );
 
+    ##  Unbuffered output, ALWAYS -- not only when daemonising.
+    ##
+    ##  Perl line-buffers STDOUT to a terminal but BLOCK-buffers it to a pipe,
+    ##  and under systemd stdout is a pipe to journald. With autoflush set only
+    ##  inside the daemonize branch below, running under systemd (daemonize=0)
+    ##  meant log lines sat in an 8K buffer for minutes or tens of minutes.
+    ##  The log then looks frozen while the bot is running perfectly normally,
+    ##  which makes it impossible to tell a healthy bot from a dead one --
+    ##  exactly the wrong failure mode for the one diagnostic we have.
+    $| = 1;
+
     ##
     ##  Daemonize
     ##
@@ -213,7 +254,7 @@ sub init{
         flock(SELFLOCK, LOCK_EX | LOCK_NB) or die("Aborting: another instance is already running\n");
         open(STDOUT, ">>", $daemon_logfile) or die("Couldn't open logger output file: $!\n");
         open(STDERR, ">&STDOUT") or die("Couldn't redirect STDERR to STDOUT: $!\n");
-        $| = 1; 
+        $| = 1;     ## re-assert: the reopen above gives us a fresh handle
         chdir('/');
         exit if (fork());
         exit if (fork());
@@ -910,19 +951,52 @@ sub ch_output{
             $options=~s/^(\w+)\b//;
             my $cmd = $1;
 
-            print "RUNNING CMD:$cmd, OPTIONS:$options\n";
+            ##  Depth guard -- see %run_depth near rateLimit().
+            ##
+            ##  A plugin returning runBotCommand makes the bot execute another
+            ##  command; that is how Alias expands. Nothing bounded it, so an
+            ##  alias pointing at itself (or any cycle, a->b->a) re-entered
+            ##  here forever. rateLimit() deliberately exempts origin
+            ##  'internal', so it was no backstop either, and every cycle
+            ##  occupies a CommandHandler -- one bad alias could wedge the bot
+            ##  permanently. Legitimate expansions resolve in a hop or two.
+            ##
+            ##  Counted in the parent rather than round-tripped through the
+            ##  CommandHandler: the parent is a single process, and there are
+            ##  five separate result-hash constructors in CommandHandler that
+            ##  would each have to carry the field.
+            my $depth_key = ($nick // '') . "\0" . ($channel // '');
+            my $depth = ++$run_depth{$depth_key};
 
-            my $opts = {
-                command => $cmd,
-                options => $options,
-                channel => $channel,
-                nick      => $nick,
-                mask      => $mask,
-                origin  => 'internal',
-                filter_applied => $filter_applied
-            };
+            if ($depth > MAX_RUN_DEPTH){
+                print theTime() . "Aborting runBotCommand: depth $depth for '$cmd' "
+                    . "(nick $nick, channel $channel) -- alias loop?\n";
+                delete $run_depth{$depth_key};
 
-            runBotCommand( $opts );
+                printOutput({
+                    channel       => $channel,
+                    nick          => $nick,
+                    mask          => $mask,
+                    delimiter     => $delimiter,
+                    suppress_nick => $suppress_nick,
+                    output        => "That expanded into a loop, so I stopped it.",
+                });
+
+            }else{
+                print "RUNNING CMD:$cmd, OPTIONS:$options\n";
+
+                my $opts = {
+                    command => $cmd,
+                    options => $options,
+                    channel => $channel,
+                    nick      => $nick,
+                    mask      => $mask,
+                    origin  => 'internal',
+                    filter_applied => $filter_applied
+                };
+
+                runBotCommand( $opts );
+            }
         }
     }
 
@@ -1014,6 +1088,31 @@ sub runBotCommand{
     my $irc_event = $opts->{irc_event} || '';
 
     my $output = "";
+
+    ##  A command that did not come from a plugin re-entry starts a fresh
+    ##  expansion chain, so clear any depth left over from the previous one.
+    if (!defined($opts->{origin}) || $opts->{origin} ne 'internal'){
+        delete $run_depth{ ($nick // '') . "\0" . ($channel // '') };
+    }
+
+    ##  Ignore list, from BotSettings.banned_nicks in the config.
+    ##
+    ##  Compare as STRINGS, not as a regex. This was previously
+    ##  `grep( /^$nick$/, @banned_nicks )`, which interpolates the nick
+    ##  straight into a pattern. IRC nicks may contain | [ ] \ { } ^ ` -, all
+    ##  regex metacharacters. A nick beginning with "|" produced a pattern
+    ##  like /^|...$/ -- an alternation whose bare ^ branch matches ANY
+    ##  string, so the grep was always true and every command from that user
+    ##  was silently dropped. runBotCommand is the single funnel for public
+    ##  messages, PMs, events and pipe re-entry, so the user could not use the
+    ##  bot at all.
+    ##
+    ##  Case-insensitive because IRC nicks are, which also closes a trivial
+    ##  change-the-capitalisation bypass of the ban.
+    if ( @banned_nicks && grep { lc($_) eq lc($nick) } @banned_nicks ) {
+	return;
+    }
+
 
     my ($limit, $limit_msg) = rateLimit($opts);
     if ($limit){
@@ -1160,11 +1259,38 @@ sub rateLimit{
     }
     $user_commands{$opts->{nick}} = \@newarr;
 
-    # add this entry
-    my $copy = $opts;
-    $copy->{timestamp} = time();
-    push @{$user_commands{$opts->{nick}}}, $copy;
-    
+    ##  Record just what the limiter actually reads.
+    ##
+    ##  This was `my $copy = $opts;` -- which is not a copy at all, it is a
+    ##  second reference to the caller's hash. Setting ->{timestamp} on it
+    ##  therefore mutated the live opts of the command being processed, and it
+    ##  pinned the whole opts hash (options text, mask, channel...) in memory
+    ##  for the length of the rate-limit window. Only these two fields are
+    ##  ever looked at, so store only these two.
+    push @{$user_commands{$opts->{nick}}},
+        { command => $opts->{command}, timestamp => time() };
+
+    ##  %user_commands is keyed by nick and nothing ever removed a key, so it
+    ##  grew by one entry for every distinct nick the bot had ever seen and
+    ##  held them for the life of the process -- months, on a busy network.
+    ##
+    ##  A nick's own list is only re-filtered when that nick next speaks, so
+    ##  expiry has to be swept globally. Every SWEEP_EVERY calls rather than
+    ##  every call: the work is proportional to the number of tracked nicks,
+    ##  and it does not need to be prompt to be effective.
+    if (++$rate_sweep_counter >= SWEEP_EVERY){
+        $rate_sweep_counter = 0;
+        my $cutoff = time() - $command_window;
+        foreach my $n (keys %user_commands){
+            my @live = grep { $_->{timestamp} > $cutoff } @{$user_commands{$n}};
+            if (@live){
+                $user_commands{$n} = \@live;
+            }else{
+                delete $user_commands{$n};
+            }
+        }
+    }
+
     # special: if the command is login, timeout sooner.
     if ($opts->{command} eq 'login'){
         my $count = 0;

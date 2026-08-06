@@ -42,22 +42,25 @@ sub getOutput {
 
     ## return if channel should be ignored
     if ($self->s('mode') eq 'exclude'){
-        return if ('all' ~~ @channels);
-        if (! ('none' ~~ @channels)){
-            return if ($channel ~~ @channels);
+        return if (grep { $_ eq 'all' } @channels);
+        if (! (grep { $_ eq 'none' } @channels)){
+            return if (grep { $_ eq $channel } @channels);
         }
 
     }elsif($self->s('mode') eq 'include'){
-        return if ('none' ~~ @channels);
-        if (! ('all' ~~ @channels)){
-            return if ('none' ~~ @channels);
-            return if ( !($channel ~~ @channels));
+        return if (grep { $_ eq 'none' } @channels);
+        if (! (grep { $_ eq 'all' } @channels)){
+            ## NB: redundant -- the identical test above already returned.
+            ## Kept as-is; this pass only replaces smartmatch, it does not
+            ## change control flow.
+            return if (grep { $_ eq 'none' } @channels);
+            return if ( !(grep { $_ eq $channel } @channels));
         }
     }
 
     ## return if nick appears in ignore list
     my @ignore_nicks = split (/ /, $self->s('ignore_nicks'));
-    return if ($nick ~~ @ignore_nicks);
+    return if (grep { $_ eq $nick } @ignore_nicks);
 
     while($options=~m#(https?://.+?)(\s|$)|$#gi){
         my $url = $1;

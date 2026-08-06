@@ -39,11 +39,15 @@ sub getOutput {
         $self->useChannelCookies();
 
         ## dont welcome people when they change hosts
-        return if ($self->cookie('last_welcome') > time() - $self->s('last_welcome_timeout'));
+        ## cookie() returns "" for anyone who has never been welcomed, which
+        ## warns on every first-time join ("Argument "" isn't numeric").
+        ## 0 is the correct "never" value and compares cleanly.
+        my $last_welcome = $self->cookie('last_welcome') || 0;
+        return if ($last_welcome > time() - $self->s('last_welcome_timeout'));
     
         my @wchannels = split (/ /, $self->s('herald_channels'));
         
-        if ($self->{channel} ~~ @wchannels){
+        if (grep { $_ eq $self->{channel} } @wchannels){
             my ($greeting, $type) = $self->getGreeting();
 
             if ($type eq 'action'){

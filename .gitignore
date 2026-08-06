@@ -6,6 +6,15 @@ Makefile
 *.bak
 *.gz
 *.cfg
+
+# Every local variant of the live config, whatever the suffix.
+# `*.cfg` alone matched rocksbot.cfg but NOT rocksbot.cfg.bak.<timestamp>,
+# and that file carries the NickServ password and the plugin API keys. In a
+# public repository one `git add -A` would have published them. The sample is
+# credential-free and is meant to be tracked, so it is excluded.
+rocksbot.cfg*
+!rocksbot.cfg.sample
+
 *.db
 *.sqlite
 *.json

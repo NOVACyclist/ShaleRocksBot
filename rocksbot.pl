@@ -20,6 +20,20 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #-----------------------------------------------------------------------------
 
+## Anchor to the script's own directory rather than a hardcoded path, so the bot
+## runs correctly regardless of the caller's working directory (systemd starts
+## services in /).  The chdir matters beyond @INC: getcwd() below resolves the
+## default config location, and plugins resolve their paths relative to cwd.
+use FindBin;
+
+BEGIN {
+    chdir $FindBin::RealBin
+        or die "Can't chdir to $FindBin::RealBin: $!\n";
+    ## Absolute path, not '.' -- a relative '.' in @INC is the pattern perl 5.26
+    ## dropped by default because anything that later changes cwd can hijack it.
+    unshift @INC, $FindBin::RealBin;
+}
+
 use strict;
 use warnings;
 use modules::RocksBot;

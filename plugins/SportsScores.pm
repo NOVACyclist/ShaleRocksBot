@@ -99,7 +99,9 @@ sub getOutput {
     if ($options){
         print "Searching...$options\n";
         foreach my $g (@games){
-            if ($g=~/$options/i){
+            ## \Q: $options is raw user input. Unescaped, "(" dies with an
+            ## unmatched-paren regex error and "|" matches every game.
+            if ($g=~/\Q$options\E/i){
                 push @mgames, $g;
             }
         }

@@ -41,7 +41,10 @@ use modules::EventTimer;
 use constant EventTimer => 'modules::EventTimer';
 
 #use LWP;
-#use URI::Escape;
+## Required by getShortURL(). Note perl -c will NOT catch this being missing:
+## uri_escape($x) resolves at runtime, so an absent import fails only when a
+## user actually publishes something.
+use URI::Escape;
 use Data::Dumper;
 use IRC::Utils ':ALL';
 use HTML::Entities;
@@ -600,8 +603,8 @@ sub numFlags{
     my $self = shift;
 
     if ($self->{FLAGS}){
-        my $c = keys ($self->{FLAGS});
-        $c = $c / 2;
+        my @keys = keys %{$self->{FLAGS}};
+        my $c = @keys / 2;
         return $c;
     }else{
         return 0;
@@ -692,8 +695,13 @@ sub getPage {
     }
     
     if ($res->is_error){
-        print "error with lwp:\n";
-        printf "[%d] %s\n", $res->code, $res->message;
+        ##  One print, one line. This used to be a print plus a printf, and
+        ##  with several CommandHandler processes sharing one stdout the two
+        ##  halves interleaved with the parent's output -- producing log lines
+        ##  like "#chan Bot(output) ch0:ERR: error with lwp:" that read as
+        ##  though the bot had said that in the channel. Include the URL so
+        ##  the failure is actually diagnosable.
+        printf "error with lwp: [%d] %s <%s>\n", $res->code, $res->message, $url;
     }
 
     return "";
@@ -712,7 +720,10 @@ sub publish{
         return "Error # pbc.p.1";
     }
 
-    my $p = $m->new();
+    ## Pass the plugin's init options through so the publish module can be
+    ## configured (path, base URL) instead of hardcoding them. Publish modules
+    ## that take no constructor args are unaffected -- perl ignores extras.
+    my $p = $m->new($self->{INIT_OPTIONS});
     my $link = $p->publish($content);
 
     if ($link=~/^http/){
@@ -727,13 +738,30 @@ sub getShortURL{
     my $self = shift;
     my $url = shift;
     
-    my $shortlink = $self->getPage("http://is.gd/create.php?format=simple&url=" . $url);
-    
-    if ($shortlink=~/http/){
-        return $shortlink;
-    }else{
-        return $url;
+    ##  Call the shortener over TLS. Over plain http the full target URL travels
+    ##  in the clear in the query string, and published pages can contain `seen`
+    ##  history -- so the request itself was leaking what the link protects.
+    ##
+    ##  Escape the URL too: it is interpolated into a query string, so any &, ?
+    ##  or # in it would previously truncate or corrupt the request.
+    my $shortlink = $self->getPage(
+        "https://is.gd/create.php?format=simple&url=" . uri_escape($url)
+    );
+
+    ##  Accept only something that actually looks like a shortener result.
+    ##  The old test was `=~ /http/`, which also matched is.gd's HTML error
+    ##  pages -- handing the user an error blob instead of a link.
+    if (defined($shortlink) && $shortlink =~ m{^\s*(https?://\S+)\s*$}i){
+        my $link = $1;
+        ##  Return https even if the shortener answers with an http link.
+        $link =~ s{^http://}{https://}i;
+        return $link;
     }
+
+    ##  Shortening failed (is.gd blacklists some domains, including the
+    ##  .us.to redirector). The original URL is already short and already
+    ##  https, so returning it unchanged is the right outcome, not a fallback.
+    return $url;
 }
 
 
@@ -886,7 +914,7 @@ sub botCan{
         return 0;
     }
 
-    foreach my $k (keys $self->{BotPluginInfo}){
+    foreach my $k (keys %{$self->{BotPluginInfo}}){
         foreach my $cmd (@{$self->{BotPluginInfo}->{$k}->{commands}}){
             if ($cmd eq $pcmd){
                 return 1;
@@ -1174,7 +1202,14 @@ sub modPluginSettings{
 
         if (defined($self->{SETTINGS}->{$setting}->{allowed_values}) 
         && @{$self->{SETTINGS}->{$setting}->{allowed_values}}){
-            if (!($value ~~ @{$self->{SETTINGS}->{$setting}->{allowed_values}})){
+            my $found = 0;
+            foreach my $allowed_value (@{$self->{SETTINGS}->{$setting}->{allowed_values}}) {
+                if ($value eq $allowed_value) {
+                    $found = 1;
+                    last;
+                }
+            }
+            if (!$found) {
                 $output = "That is not a valid value. ";
                 foreach my $v (@{$self->{SETTINGS}->{$setting}->{allowed_values}}){
                     $self->addToList($v);
@@ -1240,3 +1275,4 @@ sub modPluginSettings{
 
 1;
 __END__
+

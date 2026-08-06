@@ -74,6 +74,16 @@ sub new {
 
     $self->{dbh} = DBI->connect("dbi:SQLite:dbname=".$self->{BotDatabaseFile}, "", "", { AutoCommit => 0 });
 
+    ##  Wait for the write lock instead of failing instantly.
+    ##
+    ##  The bot runs NumWorkerThreads CommandHandler PROCESSES plus the parent,
+    ##  all opening this same file, and the nightly backup opens it too. Without
+    ##  a busy timeout, SQLite returns SQLITE_BUSY the moment two of them
+    ##  overlap -- with RaiseError on (set below) that is a die inside whatever
+    ##  command the user just ran. 30s is far longer than any write here takes,
+    ##  so in practice this converts a random hard failure into a brief wait.
+    $self->{dbh}->sqlite_busy_timeout(30_000);
+
     my $sql = "PRAGMA synchronous = $self->{sql_pragma_synchronous}";
     my $sth = $self->{dbh}->prepare($sql);
     $sth->execute();
@@ -197,10 +207,9 @@ sub load{
         $data{'sys_update_date'} = $row->[14];
         $data{'sys_creation_timestamp'} = $row->[15];
         $data{'sys_update_timestamp'} = $row->[16];
-
         #print Dumper(%data);
 
-        push $self->{'records'}, {%data};
+        push @{$self->{'records'}}, {%data};
 
         if ( $self->{'max_record_id'} < $data{'display_id'}){
             $self->{'max_record_id'} = $data{'display_id'};
@@ -362,6 +371,11 @@ sub getAllRecords{
 ## Example:  $c->searchRecords("foo bar", 1) #Matches (val1=~/foo/ || val1=~/bar/)
 ## Example:  $c->searchRecords("+foo -bar", 2)  #Matches (val2=~/foo/ && val2!~/bar/)
 ##
+## Terms are matched LITERALLY (\Q...\E), not as regexes. Search terms come
+## straight from IRC users -- ";notes search (" used to die with an unmatched
+## paren, and "|" matched every record. The leading + / - are still parsed as
+## include/exclude markers before the term is escaped.
+##
 ##
 sub searchRecords{
    my $self = shift;
@@ -391,14 +405,14 @@ sub searchRecords{
                 if ($term=~/^\-/){
                     $term=~s/^\-//gis;
 
-                    if ($rec->{'val' . $field}=~/$term/i){
+                    if ($rec->{'val' . $field}=~/\Q$term\E/i){
                         #print " - Set Dont add flag\n";
                         $dont_add_this = 1;
                     }
                     
                 }else{
                     $term=~s/^\+//gis;
-                    if ($rec->{'val' . $field}=~/$term/i){
+                    if ($rec->{'val' . $field}=~/\Q$term\E/i){
                         $add_this = 1;
                     }else{
                         $dont_add_this = 1;
@@ -444,7 +458,7 @@ sub searchRecords{
         foreach my $rec (@{$self->{'records'}}){
             foreach my $term (@terms){
                 #print " - test $term\n";
-                if ($rec->{'val' . $field}=~/$term/i){
+                if ($rec->{'val' . $field}=~/\Q$term\E/i){
                     $add_this = 1;
                     last;
                 }
@@ -576,7 +590,7 @@ sub updateRecord{
     }
 
     my $detail;
-    foreach my $f (sort keys $fields){
+    foreach my $f (sort keys %{$fields}){
         $detail.="$f>$fields->{$f} * ";
     }
 
@@ -658,12 +672,11 @@ sub matchRecords{
     #print Dumper($fields);
 
     my @ret = ();
-
     foreach my $rec (@{$self->{'records'}}){
         my $match = 0;
         my $notmatch = 0;
 
-        foreach my $f (keys $fields){
+        foreach my $f (keys %{$fields}){
             #print "F is $f, rec is ".$rec->{$f}." fields is ".$fields->{$f}."\n";
             
             if ($rec->{$f} eq $fields->{$f}){
@@ -718,7 +731,7 @@ sub getRecords{
 
     foreach my $rec (@{$self->{'records'}}){
         #print "recid = " . $rec->{'row_id'} . "\n";
-        if ($rec->{'row_id'} ~~ @num_arr){
+        if (grep { $_ == $rec->{'row_id'} } @num_arr){
             my %data;
             $data{'row_id'} = $rec->{'row_id'};
             $data{'display_id'} = $rec->{'display_id'};
@@ -858,3 +871,4 @@ sub DESTROY {
 
 1;
 __END__
+

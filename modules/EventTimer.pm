@@ -47,6 +47,9 @@ sub new {
     $self->{caller} = $caller;
     $self->{BotDatabaseFile} = $db_file;
     $self->{dbh} = DBI->connect("dbi:SQLite:dbname=".$self->{BotDatabaseFile}, "", "");
+    ## Wait for the lock rather than failing: the worker processes and the
+    ## nightly backup share this database file. See Collection.pm for detail.
+    $self->{dbh}->sqlite_busy_timeout(30_000);
     $self->{last_update_time} = 0;
     $self->{update_interval} = 60 * 10;
     $self->{discard_at} = 10;
@@ -88,11 +91,11 @@ sub tick{
     ## Handle Events
 
     if ($self->{events}){
-        foreach my $k (sort keys $self->{events}){
+        foreach my $k (sort keys %{$self->{events}}){
             #print " " . ($k - $now) . " ";
         }
 
-        foreach my $k (keys $self->{events}){
+        foreach my $k (keys %{$self->{events}}){
             if ($k <= $now){
                 $self->processEvent($k);
                 $hasJobs = 1;
@@ -442,3 +445,4 @@ sub scheduleEvent{
 
 1;
 __END__
+
