@@ -78,10 +78,12 @@ sub getOutput {
             # "repeat count overflow". Non-numeric values like "abc" don't
             # die but get reinterpreted as more template characters, silently
             # mangling the output. Reject anything out of bounds up front
-            # instead of handing it to unpack. 512 is an arbitrary cap well
-            # above any IRC line.
-            if ($num !~ /^[1-9]\d*$/ || $num > 512){
-                return "Invalid value for -c: must be a positive whole number.  Usage: rainbow -c=<number> <text>";
+            # instead of handing it to unpack. 128 is well above any useful
+            # stagger width; the error names the bound so a technically-valid
+            # but out-of-range number (e.g. 9999) isn't a silent mystery.
+            my $MAX_RAINBOW_C = 128;
+            if ($num !~ /^[1-9]\d*$/ || $num > $MAX_RAINBOW_C){
+                return "Invalid value for -c: must be a whole number from 1 to $MAX_RAINBOW_C.  Usage: rainbow -c=<number> <text>";
             }
             @str = unpack("(A$num)*", $options);
             print Dumper (@str);
