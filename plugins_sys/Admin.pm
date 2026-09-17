@@ -788,7 +788,11 @@ sub listGroupMembers{
     }
 
     if ($group_name eq 'unregistered'){
-        return "About 6 billion.  Too many to list.";
+        # World population, extrapolated the same way worldometers.info does:
+        # 8.309B at 2026-08-06 00:00 UTC, growing ~130k/day.
+        my $pop = int(8_309_000_000 + (time() - 1785974400) * (130_000 / 86400));
+        $pop =~ s/(?<=\d)(?=(?:\d{3})+$)/,/g;
+        return "About $pop.  Too many to list.";
     }
 
     my $c = $self->getCollection('UserAuth', '%');
