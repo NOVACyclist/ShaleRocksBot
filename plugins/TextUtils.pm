@@ -71,6 +71,18 @@ sub getOutput {
             @str = split / /, $options;
             
         }elsif(my $num = $self->hasFlagValue("c")){
+            # -c is documented as "Usage: rainbow -c=<number> <text>" -- a
+            # positive whole number. unpack()'s count is not sanitized
+            # against that: "-1" makes the template "(A-1)*", which dies with
+            # "Invalid type '-' in unpack", and an oversized value dies with
+            # "repeat count overflow". Non-numeric values like "abc" don't
+            # die but get reinterpreted as more template characters, silently
+            # mangling the output. Reject anything out of bounds up front
+            # instead of handing it to unpack. 512 is an arbitrary cap well
+            # above any IRC line.
+            if ($num !~ /^[1-9]\d*$/ || $num > 512){
+                return "Invalid value for -c: must be a positive whole number.  Usage: rainbow -c=<number> <text>";
+            }
             @str = unpack("(A$num)*", $options);
             print Dumper (@str);
 

@@ -648,7 +648,27 @@ sub handleEvent{
 
         $self->{num_regex}++;
 
-        my @output_arr = $self->{'obj'}->run();
+        my @output_arr;
+        eval {
+            @output_arr = $self->{'obj'}->run();
+        };
+
+        ##  A plugin dying here used to propagate straight out of handleEvent()
+        ##  with $self->{'obj'} left holding the crashed instance. That matters
+        ##  because handleCommand() (below) only creates a fresh plugin object
+        ##  when $self->{'obj'} doesn't already exist -- otherwise it assumes
+        ##  this is a legitimate multi-step reentry and reuses whatever object
+        ##  is sitting there. Left uncleared, the next real command routed to
+        ##  this same worker (CommandHandler objects are persistent, one per
+        ##  POE::Component::Generic worker -- see [[shalerocksbot]]) would
+        ##  silently run against this crashed, wrong-type plugin object instead
+        ##  of the one it actually asked for.
+        if ($@){
+            print "Plugin " . ref($self->{'obj'}) . " died handling irc_event '"
+                . $self->{irc_event} . "': $@";
+            delete($self->{'obj'});
+            next;
+        }
 
         if ($self->{SpeedTraceLevel}){
             my @rstemp = $self->{obj}->getStats();
@@ -859,7 +879,29 @@ sub handleCommand{
         $self->{'obj'}->setValue("no_pipes", $self->{'no_pipes'});
         $self->{'obj'}->setValue("BotPluginInfo", $self->{plugin_info});
 
-        my @output_arr = $self->{'obj'}->run();
+        my @output_arr;
+        eval {
+            @output_arr = $self->{'obj'}->run();
+        };
+
+        ##  See the matching comment in handleEvent(). An uncaught die here
+        ##  (e.g. TextUtils rainbow's unpack() on a bad -c value) used to skip
+        ##  past cleanup(), leaving {command} and {obj} set on this worker's
+        ##  persistent CommandHandler. setValue() no-ops on falsy values, so
+        ##  the next unrelated line from ANY user that landed on this same
+        ##  worker kept {command} eq the crashed command, and the "reuse
+        ##  {obj} if it exists" reentry check above silently fed that
+        ##  stranger's chat line into the crashed plugin instead of running
+        ##  it as plain text. Pushing a normal (non-reentry) return message
+        ##  and returning here lets Execute()'s existing end-of-queue logic
+        ##  call cleanup() for us, same as the "no permission" case above.
+        if ($@){
+            print "Plugin " . ref($self->{'obj'}) . " died on command '"
+                . $self->{command} . "': $@";
+            push @{$self->{return_messages}},
+                $self->returnMessage("Sorry, that command hit an internal error.");
+            return;
+        }
 
         if ($self->{SpeedTraceLevel}){
             my @rstemp = $self->{obj}->getStats();
