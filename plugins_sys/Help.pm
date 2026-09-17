@@ -306,8 +306,8 @@ sub getOutput {
                         }
                     }
 
-                    $output = "The '$cmd' command was found in these plugins: $list. ";
-                    $output .="Specify the plugin name to get help.  Example: help $sample $cmd";
+                    $output = "The '$testpackage' command was found in these plugins: $list. ";
+                    $output .="Specify the plugin name to get help.  Example: help $sample $testpackage";
                     return ($output);
             }else{
                 $figureditout = $found[0];

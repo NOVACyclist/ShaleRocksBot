@@ -109,8 +109,8 @@ sub getOutput {
         }
     }
 
-    if ($new_count > 5){
-        my $message = "... there were ".($new_count-5)." additional new posts, but I decided to not trouble you with them.";
+    if ($new_count > 4){
+        my $message = "... there were ".($new_count-4)." additional new posts, but I decided to not trouble you with them.";
         push (@output, $message);
     }
 

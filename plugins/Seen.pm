@@ -212,7 +212,10 @@ sub getOutput {
 
 
         ## delete a tell
-        if (my $num = $self->hasFlagValue("delete")){
+        if ($self->hasFlag("delete")){
+            my $num = $self->hasFlagValue("delete");
+            return $self->help($cmd) if (!$num);
+
             my $c = $self->getCollection(__PACKAGE__, ":tell");
             my @records = $c->matchRecords({display_id=>$num});
 

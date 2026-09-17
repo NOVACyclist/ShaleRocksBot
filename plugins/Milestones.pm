@@ -206,6 +206,40 @@ sub recentlySeen {
     return \%active;
 }
 
+##  Same as recentlySeen, but scoped to one channel -- Seen keeps one row per
+##  (nick, channel) with val1 holding the channel, so "active" here means
+##  seen in *this* channel, not just seen somewhere on the bot.
+sub recentlySeenInChannel {
+    my ($self, $c, $channel, $days) = @_;
+    my %active;
+
+    my $dbh = $c->{dbh};
+    return \%active if (!$dbh);
+
+    my $table = $c->{table_name} || 'collections';
+
+    my $rows = eval {
+        $dbh->selectcol_arrayref(
+            "SELECT DISTINCT collection_name FROM $table
+              WHERE module_name = 'Seen'
+                AND val1 = ?
+                AND sys_update_date >= date('now', ?)",
+            undef, $channel, "-${days} day"
+        );
+    };
+
+    if ($@ || !$rows) {
+        print "Milestones: could not read per-channel Seen activity, not filtering: $@\n" if ($@);
+        return undef;
+    }
+
+    foreach my $n (@{$rows}) {
+        $active{ lc($n) } = 1 if (defined $n && $n ne '');
+    }
+
+    return \%active;
+}
+
 ##  All badges for one nick, as {name, days}, newest-progress first.
 sub badgesFor {
     my ($self, $nick) = @_;
@@ -257,16 +291,18 @@ sub getOutput {
 
         ##  Did they just go past one? Someone at ten years may only look in
         ##  once a month, and "you passed it nine days ago" is the whole point
-        ##  of the command for them. Newbies get window 0 and never see this.
+        ##  of the command for them. Newbies get window 0, so only the exact
+        ##  day itself (ago == 0) qualifies for them -- no multi-day fuzz, but
+        ##  the milestone day itself still has to be announced.
         my $passed = $self->lastMilestone($b->{days});
-        if (defined $passed && $window > 0 && ($b->{days} - $passed) <= $window
-            && $b->{days} != $passed) {
+        if (defined $passed && ($b->{days} - $passed) <= $window) {
             my $ago = $b->{days} - $passed;
             push @lines, {
                 to  => -1,   # sorts ahead of anything upcoming
-                txt => "$b->{name}: day $b->{days} -- you passed "
-                     . $self->milestoneLabel($passed)
-                     . ($ago == 1 ? " yesterday" : " $ago days ago"),
+                txt => "$b->{name}: day $b->{days} -- you "
+                     . ($ago == 0 ? "hit " . $self->milestoneLabel($passed) . " today"
+                        : "passed " . $self->milestoneLabel($passed)
+                          . ($ago == 1 ? " yesterday" : " $ago days ago")),
             };
             next;
         }
@@ -316,9 +352,12 @@ sub channelToday {
 
     my $c = $self->getCollection(BADGE_PACKAGE, '%');
 
-    ##  Only people who have actually been around lately. undef means the
-    ##  lookup failed, in which case we show everyone rather than nobody.
-    my $active = $self->recentlySeen($c, ACTIVE_DAYS);
+    ##  Only people who have actually been around lately in *this* channel.
+    ##  undef means the lookup failed, in which case we show everyone rather
+    ##  than nobody.
+    my $active = (defined $channel && $channel ne '')
+        ? $self->recentlySeenInChannel($c, $channel, ACTIVE_DAYS)
+        : $self->recentlySeen($c, ACTIVE_DAYS);
 
     my @hits;
     my $skipped = 0;

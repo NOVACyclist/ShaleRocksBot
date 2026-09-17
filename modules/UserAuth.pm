@@ -107,6 +107,7 @@ sub loadAccountSettings{
     $self->{is_identified} = 0;
     $self->{account_exists} = 0;
     $self->{mask_authed} = 0;
+    $self->{groups} = [];
 
     if ($self->{nick} eq UA_INTERNAL){
         $self->{is_identified} = 1;

@@ -294,7 +294,7 @@ sub getOutput {
         my $pplugin = $self->hasFlagValue("plugin");
         my $pcommand = $self->hasFlagValue("command");
 
-        return $self->help($cmd) if (!$pplugin && !$pcommand);
+        return $self->help($cmd) if (!$pplugin || !$pcommand);
 
         my $c = $self->getCollection('CommandHandler', 'disable');
         my @records = $c->matchRecords({val1=>$pplugin, val2=>$pcommand});

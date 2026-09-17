@@ -114,9 +114,10 @@ sub getOutput {
 
       my ( $badge_date, $badge_name );
 
-      if ( !( $badge_name = $self->hasFlagValue("name") ) ) {
+      if ( !$self->hasFlag("name") ) {
          return ("A badge name is required.  Example: -name = QuitSmoking  Example: -name=\"Quit Smoking\"");
       }
+      $badge_name = $self->hasFlagValue("name");
 
       if ( !( $badge_date = $self->hasFlagValue("date") ) ) {
          return (
@@ -170,7 +171,8 @@ sub getOutput {
 
       my $oc = $self->getCollection( __PACKAGE__, '%' );
 
-      if ( $badge_name = $self->hasFlagValue("name") ) {
+      if ( $self->hasFlag("name") ) {
+         $badge_name = $self->hasFlagValue("name");
          my @records = $oc->matchRecords( { val1 => $badge_name } );
          my $ret = "$badge_name badges: ";
          foreach my $badge (@records) {
@@ -284,13 +286,15 @@ sub getOutput {
       my $ret = "";
       my ( $badge_name, $badge_cost, $badge_unit, $badge_unit_position );
 
-      if ( !( $badge_name = $self->hasFlagValue("name") ) ) {
+      if ( !$self->hasFlag("name") ) {
          return "You must specify a badge name.  Example:  -name = \"QuitSmoking\" ";
       }
+      $badge_name = $self->hasFlagValue("name");
 
-      if ( !( $badge_cost = $self->hasFlagValue("cost") ) ) {
+      if ( !$self->hasFlag("cost") ) {
          return "You must specify a daily cost.  Example:  -cost = 15.99.  To clear the cost, use -cost = none";
       }
+      $badge_cost = $self->hasFlagValue("cost");
 
       $badge_cost =~ s/^(\D+)|(\D+)$//;    #remove the unit if there is one and save it.
 
@@ -363,9 +367,10 @@ sub getOutput {
 
       my $ret = "";
       my $badge_name;
-      if ( !( $badge_name = $self->hasFlagValue("name") ) ) {
+      if ( !$self->hasFlag("name") ) {
          return "You must specify a badge name.  Example:  -name = \"QuitSmoking\" ";
       }
+      $badge_name = $self->hasFlagValue("name");
 
       my @records = $c->matchRecords( { val1 => $badge_name } );
 
@@ -396,9 +401,10 @@ sub getOutput {
 
       my ( $badge_name, $badge_date );
 
-      if ( !( $badge_name = $self->hasFlagValue("name") ) ) {
+      if ( !$self->hasFlag("name") ) {
          return ("A badge name is required.  Example: -name = QuitSmoking  Example: -name=\"Quit Smoking\"");
       }
+      $badge_name = $self->hasFlagValue("name");
 
       if ( !( $badge_date = $self->hasFlagValue("date") ) ) {
          return (
@@ -461,7 +467,9 @@ sub getOutput {
    elsif ( $self->hasFlag("name") || $self->{'options'} =~ /^(\w+)\b/ ) {
       my $badge_name;
 
-      if ( !( $badge_name = $self->hasFlagValue("name") ) ) {
+      if ( $self->hasFlag("name") ) {
+         $badge_name = $self->hasFlagValue("name");
+      }else{
          $badge_name = $1;
       }
 

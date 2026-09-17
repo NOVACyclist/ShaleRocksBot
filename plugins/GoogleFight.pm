@@ -106,7 +106,7 @@ sub getOutput {
     }elsif (($small_number / $big_number) > .01){
         $winner_text = "$winner crushes $loser!";
 
-    }elsif (($small_number / $big_number) > .01){
+    }elsif (($small_number / $big_number) > .005){
         $winner_text = "$winner destroys $loser!";
 
     }elsif (($small_number / $big_number) > .001){

@@ -121,7 +121,7 @@ sub getOutput {
         for (my $i= (length($board) -1); $i>=0; $i--){
             my $bl = substr($board, $i, 1);
 
-            if ($temp=~s/$bl//){
+            if ($temp=~s/\Q$bl\E//){
                 $correct_letter++;
             }
         }

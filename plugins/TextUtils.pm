@@ -70,7 +70,7 @@ sub getOutput {
             #split on words
             @str = split / /, $options;
             
-        }elsif(my $num = $self->hasFlagValue("c")){
+        }elsif($self->hasFlag("c")){
             # -c is documented as "Usage: rainbow -c=<number> <text>" -- a
             # positive whole number. unpack()'s count is not sanitized
             # against that: "-1" makes the template "(A-1)*", which dies with
@@ -81,6 +81,10 @@ sub getOutput {
             # instead of handing it to unpack. 128 is well above any useful
             # stagger width; the error names the bound so a technically-valid
             # but out-of-range number (e.g. 9999) isn't a silent mystery.
+            # A bare -c with no value at all (hasFlagValue returns 0, same as
+            # a literal "-c=0") is likewise rejected here rather than
+            # silently falling through to per-character rainbow.
+            my $num = $self->hasFlagValue("c");
             my $MAX_RAINBOW_C = 128;
             if ($num !~ /^[1-9]\d*$/ || $num > $MAX_RAINBOW_C){
                 return "Invalid value for -c: must be a whole number from 1 to $MAX_RAINBOW_C.  Usage: rainbow -c=<number> <text>";
@@ -290,9 +294,9 @@ sub getOutput {
         my $str = $3;
     
         if ($self->hasFlag("i")){
-            $str=~s/$start/$end/gi;
+            $str=~s/\Q$start\E/$end/gi;
         }else{
-            $str=~s/$start/$end/g;
+            $str=~s/\Q$start\E/$end/g;
         }
         return ($str);
     }
@@ -306,9 +310,10 @@ sub getOutput {
 
         if ($self->hasFlag("p")){
             $pattern = $self->hasFlagValue("p");
-        }else{
-            $options=~s/^(.+?) //;
+        }elsif ($options=~s/^(.+?) //){
             $pattern = $1;
+        }else{
+            $pattern = $options;
         }
 
         my $pos = index($options, $pattern);
@@ -454,7 +459,7 @@ sub getOutput {
             my @tokens = split /$delimiter/, $options;
 
             foreach my $field (@fields){
-                next if ($field > @tokens);
+                next if ($field < 1 || $field > @tokens);
 
                 if ($output){
                     $output .= $output_delimiter . $tokens[$field-1];

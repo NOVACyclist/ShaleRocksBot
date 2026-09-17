@@ -561,17 +561,17 @@ sub updateRecord{
     if (defined($fields->{'val6'})){ $db_val6 = $fields->{'val6'}; 
     }else{ $db_val6 = $record[0]->{'val6'}; }
 
-    if (defined($fields->{'val7'})){ $db_val7 = $fields->{'val7'}; 
-    }else{ $db_val6 = $record[0]->{'val7'}; }
-    
-    if (defined($fields->{'val8'})){ $db_val8 = $fields->{'val8'}; 
-    }else{ $db_val6 = $record[0]->{'val8'}; }
+    if (defined($fields->{'val7'})){ $db_val7 = $fields->{'val7'};
+    }else{ $db_val7 = $record[0]->{'val7'}; }
 
-    if (defined($fields->{'val9'})){ $db_val9 = $fields->{'val9'}; 
-    }else{ $db_val6 = $record[0]->{'val9'}; }
+    if (defined($fields->{'val8'})){ $db_val8 = $fields->{'val8'};
+    }else{ $db_val8 = $record[0]->{'val8'}; }
 
-    if (defined($fields->{'val10'})){ $db_val10 = $fields->{'val10'}; 
-    }else{ $db_val6 = $record[0]->{'val10'}; }
+    if (defined($fields->{'val9'})){ $db_val9 = $fields->{'val9'};
+    }else{ $db_val9 = $record[0]->{'val9'}; }
+
+    if (defined($fields->{'val10'})){ $db_val10 = $fields->{'val10'};
+    }else{ $db_val10 = $record[0]->{'val10'}; }
 
     my $sth = $self->{dbh}->prepare($sql);
 

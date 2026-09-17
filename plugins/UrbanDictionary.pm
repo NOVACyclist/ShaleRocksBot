@@ -257,7 +257,7 @@ sub getOutput {
                 $rep.='*';
             }
         }
-        $def=~s/$word/$rep/gis;
+        $def=~s/\Q$word\E/$rep/gis;
         $self->globalCookie("last_word_hint", $rep);
 
         $output = BOLD."UrbanDictionary.com Quiz".NORMAL.GREEN." (answer with $cmd <answer>) ".BLUE."Word: $rep (".length($rep).") ".BLUE."Definition:".NORMAL." $def";

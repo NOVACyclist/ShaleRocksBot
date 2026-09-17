@@ -438,9 +438,9 @@ sub scoreWord{
 sub IsValidWord{
     my $self = shift;
     my $word = shift;
-    my $sql = "select count(*) from wordlist where word = '$word'";
+    my $sql = "select count(*) from wordlist where word = ?";
     my $sth = $self->{dbh}->prepare($sql);
-    $sth->execute();
+    $sth->execute($word);
     $self->{dbh}->commit;
     my $row = $sth->fetch;
     return $row->[0];
@@ -515,7 +515,7 @@ sub findWords{
     for (my $i=@all_letters; $i>=5; $i--){
         my @tries = $self->chooseTry($i, @all_letters);
         foreach my $try (@tries){
-            $self->addToList("letters = '$try'", " OR ");
+            $self->addToList("letters = " . $self->{dbh}->quote($try), " OR ");
         }
 
         my $sql = "select * from wordlist where " . $self->getList();

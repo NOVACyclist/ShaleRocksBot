@@ -27,6 +27,7 @@ sub getOutput {
     if ($cmd eq 'resetmovie'){
 
         my @records = $c->matchRecords({val1=>'movie'});
+        return "There is no movie countdown set." if (@records == 0);
 
         $c->delete($records[0]->{row_id});
 

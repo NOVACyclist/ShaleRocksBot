@@ -125,6 +125,7 @@ sub getOutput {
  
         my $num = $price_usd;
         $num = (split / /, $price_usd)[0];
+        return "Sorry, I couldn't find a price for $command right now." if (!$num);
         my $dollar = sprintf("%.8f", 1 / $num);
         $dollar = sprintf("%.2f", $dollar) if ($dollar > 1);
 

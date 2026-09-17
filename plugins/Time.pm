@@ -75,9 +75,9 @@ sub getOutput {
         ## add a new cron job
         ##
         if ($self->hasFlag("add")){
-            return "You need to use the -seconds=<seconds> flag" if (!defined($secs));
-            return "You need to use the -minutes=<minutes> flag" if (!defined($mins));
-            return "You need to use the -hours=<hours> flag" if (!defined($hours));
+            return "You need to use the -seconds=<seconds> flag" if (!$self->hasFlag("seconds"));
+            return "You need to use the -minutes=<minutes> flag" if (!$self->hasFlag("minutes"));
+            return "You need to use the -hours=<hours> flag" if (!$self->hasFlag("hours"));
             return "You need to use the -command=<command> flag" if (!$cmdstr);
 
             my ($jcommand, $jopts) = split / /, $cmdstr, 2;

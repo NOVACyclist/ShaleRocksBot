@@ -187,7 +187,7 @@ sub MM{
         }
 
         if ($self->{options}){
-            if ($str=~/$self->{options}/i){
+            if ($str=~/\Q$self->{options}\E/i){
                 $self->addToList($str);
             }
         }else{

@@ -35,11 +35,13 @@ sub getOutput {
         my $hits = $self->globalCookie("hits") || 0;
         my $misses = $self->globalCookie("misses") || 0;
         my $mg = $self->globalCookie("monopoly_guy") || 0;
-        
+
+        return "I don't have any imgur stats yet." if (!$runs);
+
         my $full = sprintf("%.2f", $hits/$runs * 100);
-        my $popularity = sprintf("%.2f", $mg/$hits);
+        my $popularity = $hits ? sprintf("%.2f", $mg/$hits) : 0;
         my $num_monopoly_guys = sprintf("%d", 62**5 * $full / 100  * $popularity);
-        my $pm = int($num_monopoly_guys * sqrt($mg) / $mg);
+        my $pm = $mg ? int($num_monopoly_guys * sqrt($mg) / $mg) : 0;
         $pm = $self->commify($pm);
         $num_monopoly_guys = $self->commify($num_monopoly_guys);
 

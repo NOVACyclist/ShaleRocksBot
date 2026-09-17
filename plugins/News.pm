@@ -53,7 +53,8 @@ sub getOutput {
     #}
     
     if ($feed->entries > 2){
-        for (my $i=0; $i<5; $i++){
+        my $max = $feed->entries < 5 ? $feed->entries : 5;
+        for (my $i=0; $i<$max; $i++){
             my $title = ($feed->entries)[$i]->{'entry'}->{'title'};
             my $link = ($feed->entries)[$i]->{'entry'}->{'link'};
             my $shorturl = $self->getShortURL($link);
