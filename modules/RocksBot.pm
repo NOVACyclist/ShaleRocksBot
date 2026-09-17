@@ -226,9 +226,9 @@ sub init{
 
     POE::Session->create(
      package_states => [
-          $self => [ qw(_default _start irc_001 irc_public irc_msg irc_ping irc_join 
-                        irc_part irc_quit irc_ctcp_version irc_ctcp_action 
-                        ch_result ch_output ch_startup_complete ch_plugin_loaded 
+          $self => [ qw(_default _start irc_001 irc_isupport irc_public irc_msg irc_ping irc_join
+                        irc_part irc_quit irc_ctcp_version irc_ctcp_action
+                        ch_result ch_output ch_startup_complete ch_plugin_loaded
                         ch_stats timerTick deferredCommand _stop irc_332) ],
         ],
      heap => { irc => $irc },
@@ -408,6 +408,26 @@ sub irc_001 {
     ## Do inital plugin startup stuff
 
     $CH[0]->{ch}->doPluginBotStart({event=>'ch_startup_complete'});
+
+    return;
+}
+
+
+## IRCv3 Bot Mode (https://ircv3.net/specs/extensions/bot-mode -- an IRCv3
+## working-group spec, not an IETF RFC). A server that supports it advertises
+## which usermode marks an account as a bot via the ISUPPORT BOT token (e.g.
+## "BOT=B" on Snoonet). This always fires after irc_001, since ISUPPORT (005)
+## follows the welcome burst (001) in the registration stream. Self-setting
+## it here is what makes clients/servers show a bot indicator next to our
+## nick; servers without the BOT token just don't get this, which is fine.
+sub irc_isupport {
+    my $sender = $_[SENDER];
+    my $irc = $sender->get_heap();
+
+    if (my $botmode = $irc->isupport('BOT')){
+        print "Server supports IRCv3 Bot Mode (BOT=$botmode). Setting usermode +$botmode.\n";
+        $irc->yield(mode => $irc->nick_name() . " +$botmode");
+    }
 
     return;
 }
